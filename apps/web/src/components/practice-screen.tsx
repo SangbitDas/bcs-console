@@ -226,30 +226,55 @@ export function PracticeScreen({
 
 
   useEffect(() => {
-    if (initialMode !== undefined && s.mode !== initialMode && !s.started) {
-      s.setMode(initialMode);
+    // 1. If we are on the Hub route (/practice), ensure state resets to Hub so browser Back button works
+    if (initialMode === null) {
+      if (s.mode !== null || s.started) {
+        s.backToHub();
+      }
+      return;
     }
-  }, [initialMode]);
 
-  useEffect(() => {
+    // 2. If params explicitly specify an exam, subject, or mode, handle that
     const rawSubId = params.id ?? params.subject;
     if (rawSubId) {
-      s.setMode('subject');
       const id = parseInt(String(rawSubId), 10);
       if (!isNaN(id)) {
-        s.setSubjects([id]);
+        if (s.mode !== 'subject' || !s.started || s.subjects.length !== 1 || s.subjects[0] !== id) {
+          s.setMode('subject');
+          s.setSubjects([id]);
+          s.start();
+        }
+      }
+      return;
+    }
+
+    if (params.exam) {
+      if (s.mode !== 'exam' || s.exam !== params.exam || !s.started) {
+        s.setMode('exam');
+        s.setExam(String(params.exam));
         s.start();
       }
-    } else if (params.exam) {
-      s.setMode('exam');
-      s.setExam(String(params.exam));
-      s.start();
-    } else if (params.mode === 'bookmarks' || params.mode === 'wrong') {
-      s.setMode(params.mode);
-      s.start();
+      return;
+    }
+
+    if (params.mode === 'bookmarks' || params.mode === 'wrong') {
+      if (s.mode !== params.mode || !s.started) {
+        s.setMode(params.mode);
+        s.start();
+      }
+      return;
+    }
+
+    // 3. Sub-route mode switching or browser back navigation
+    if (initialMode !== undefined && s.mode !== initialMode) {
+      s.setMode(initialMode);
+    } else if (initialMode === 'exam' && s.started && !params.exam) {
+      s.backToPicker();
+    } else if (initialMode === 'subject' && s.started && !rawSubId && s.subjects.length <= 1) {
+      s.backToPicker();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id, params.subject, params.exam, params.mode]);
+  }, [initialMode, params.id, params.subject, params.exam, params.mode]);
 
   const subjectName = useCallback(
     (id: number) => subjects?.find((x) => x.id === id)?.subject_bn ?? `বিষয় ${id}`,
@@ -369,7 +394,7 @@ export function PracticeScreen({
               subjectName={subjectName}
               examSlug={s.exam}
               onFinish={finishSession}
-              onBack={() => s.backToPicker()}
+              onBack={() => { s.backToPicker(); router.push('/practice/exam' as any); }}
             />
           ) : (
             <SubjectAllQuestionsView
@@ -378,7 +403,7 @@ export function PracticeScreen({
               subjectIds={s.subjects}
               subjectName={subjectName}
               onFinish={finishSession}
-              onBack={() => s.backToPicker()}
+              onBack={() => { s.backToPicker(); router.push('/practice/subject' as any); }}
             />
           )}
         </View>
@@ -448,7 +473,7 @@ export function PracticeScreen({
             subjectName={subjectName}
             examSlug={s.exam}
             onFinish={finishSession}
-            onBack={() => s.backToPicker()}
+            onBack={() => { s.backToPicker(); router.push('/practice/exam' as any); }}
           />
         ) : s.mode === 'subject' ? (
           <SubjectAllQuestionsView
@@ -457,7 +482,7 @@ export function PracticeScreen({
             subjectIds={s.subjects}
             subjectName={subjectName}
             onFinish={finishSession}
-            onBack={() => s.backToPicker()}
+            onBack={() => { s.backToPicker(); router.push('/practice/subject' as any); }}
           />
         ) : (
           <RunnerView session={session} subjectName={subjectName} scope={scopeLabel()} onFinish={finishSession} />
@@ -789,6 +814,7 @@ function ConfigureView({
                             onPress={() => {
                               s.setExam(e.slug);
                               s.start();
+                              router.push(`/practice/exam?exam=${e.slug}` as any);
                             }}
                           />
                         );
@@ -1344,7 +1370,7 @@ function ExamAllQuestionsView({
         <Breadcrumb
           trail={[
             { label: 'হোম', href: '/' },
-            { label: 'অনুশীলন', onPress: () => backToHub() },
+            { label: 'অনুশীলন', onPress: () => { backToHub(); router.push('/practice' as any); } },
             { label: 'বিসিএস পরীক্ষা', onPress: onBack },
             { label: `${examLabel(examSlug)} বিসিএস` },
           ]}
@@ -1849,7 +1875,7 @@ function SubjectAllQuestionsView({
         <Breadcrumb
           trail={[
             { label: 'হোম', href: '/' },
-            { label: 'অনুশীলন', onPress: () => backToHub() },
+            { label: 'অনুশীলন', onPress: () => { backToHub(); router.push('/practice' as any); } },
             { label: 'বিষয়ভিত্তিক অনুশীলন', onPress: onBack },
             {
               label:
