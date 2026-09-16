@@ -1,0 +1,112 @@
+{
+  "verified_at": "2026-09-10",
+  "total_exams": 41,
+  "total_questions": 5350,
+  "per_exam_counts": {
+    "10th_bcs": 100,
+    "11st_bcs": 100,
+    "12nd_bcs": 100,
+    "13rd_bcs": 100,
+    "14th_bcs": 100,
+    "15th_bcs": 100,
+    "16th_bcs": 100,
+    "17th_bcs": 100,
+    "18th_bcs": 100,
+    "19th_bcs": 50,
+    "20th_bcs": 100,
+    "21st_bcs": 100,
+    "22nd_bcs": 100,
+    "23rd_bcs": 100,
+    "24th_bcs": 100,
+    "25th_bcs": 100,
+    "26th_bcs": 200,
+    "27th_bcs": 100,
+    "28th_bcs": 100,
+    "29th_bcs": 100,
+    "30th_bcs": 100,
+    "31st_bcs": 100,
+    "32nd_bcs": 100,
+    "33rd_bcs": 100,
+    "34th_bcs": 100,
+    "35th_bcs": 200,
+    "36th_bcs": 200,
+    "37th_bcs": 200,
+    "38th_bcs": 200,
+    "39th_bcs": 100,
+    "40th_bcs": 200,
+    "41st_bcs": 200,
+    "42nd_bcs": 100,
+    "43rd_bcs": 200,
+    "44th_bcs": 200,
+    "45th_bcs": 200,
+    "46th_bcs": 200,
+    "47th_bcs": 200,
+    "48th_bcs": 100,
+    "49th_bcs": 100,
+    "50th_bcs": 200
+  },
+  "subject_distribution": {
+    "1": 1008,
+    "2": 977,
+    "3": 831,
+    "4": 747,
+    "5": 165,
+    "6": 517,
+    "7": 201,
+    "8": 564,
+    "9": 214,
+    "10": 126
+  },
+  "questions_with_images": 766,
+  "referenced_image_paths": 799,
+  "files_on_disk": 808,
+  "orphan_images_ignored": [
+    "images/35th_bcs/q1_img1.jpg",
+    "images/36th_bcs/q183_img1.jpg",
+    "images/37th_bcs/q175_img1.png",
+    "images/40th_bcs/q186_img3.png",
+    "images/42nd_bcs/q85_img1.jpg",
+    "images/43rd_bcs/q65_img1.jpg",
+    "images/45th_bcs/q127_img1.jpg",
+    "images/46th_bcs/q25_img1.jpg",
+    "images/47th_bcs/q180_img1.jpg"
+  ],
+  "blank_correct_answers": [
+    {
+      "exam_slug": "25th_bcs",
+      "question_number": 65
+    },
+    {
+      "exam_slug": "26th_bcs",
+      "question_number": 91
+    },
+    {
+      "exam_slug": "34th_bcs",
+      "question_number": 100
+    },
+    {
+      "exam_slug": "36th_bcs",
+      "question_number": 113
+    },
+    {
+      "exam_slug": "36th_bcs",
+      "question_number": 120
+    },
+    {
+      "exam_slug": "38th_bcs",
+      "question_number": 83
+    },
+    {
+      "exam_slug": "39th_bcs",
+      "question_number": 76
+    },
+    {
+      "exam_slug": "47th_bcs",
+      "question_number": 110
+    }
+  ],
+  "taxonomy": "topics_taxonomy.md (IDs 1-10 fixed)",
+  "canonical_merged_file": "bcs_preliminary_question_bank.json",
+  "per_exam_dir": "data/processed/json/",
+  "image_dir_convention": "images/<exam_slug>/q<N>_img<K>.(jpg|png)"
+}

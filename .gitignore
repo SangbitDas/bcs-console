@@ -1,0 +1,47 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# JS / Expo web app
+node_modules/
+apps/web/dist/
+apps/web/.expo/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# CLI tools
+.opencode/
+
+# Internal docs & memory
+PRD.md
+prd.md
+SUPABASE_AGENT_BRIEF.md
+memory.md
+upcoming.md
+
+# Temporary root screenshots / mock images
+/mock.png
+/ChatGPT Image*.png
+
+# Logs & temp files
+*.log
+*.tmp
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
