@@ -713,14 +713,10 @@ function ConfigureView({
         <SummaryCard
           rows={[
             ['মোড', 'বিষয়ভিত্তিক অনুশীলন'],
-            ['নির্বাচিত বিষয়', s.subjects.length ? `${toBn(s.subjects.length)}টি বিষয়` : 'কোনোটি নির্বাচিত নয়'],
+            ['উৎস', '১০টি বিষয়'],
             ['প্রশ্ন পরিসর', '১০ম–৫০তম বিসিএস'],
-            ['পদ্ধতি', 'সকল প্রশ্ন এক সাথে'],
+            ['পদ্ধতি', 'যেকোনো বিষয় বেছে নিন'],
           ]}
-          cta="অনুশীলনে প্রবেশ করুন →"
-          disabled={s.subjects.length === 0}
-          onCta={() => s.start()}
-          hideCtaOnMobile={true}
         />
       ) : s.mode === 'custom' ? (
         <SummaryCard
@@ -826,112 +822,59 @@ function ConfigureView({
             </View>
           ) : null}
 
-          {/* Subject Mode: ONLY Subject Name Cards + Enter Button (NO BCS Range card) */}
+          {/* Subject Mode: Directly clickable cards (Single subject practice) */}
           {s.mode === 'subject' ? (
             <View className="overflow-hidden rounded-xl border border-black/15 bg-surface shadow-sm">
               <View className="border-b border-black/10 bg-black/[0.02] p-5">
-                <View className="flex-row items-center justify-between">
-                  <View>
-                    <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18 }}>বিষয় নির্বাচন করুন</Bn>
-                  </View>
-                  <Pressable
-                    onPress={() => {
-                      if (s.subjects.length === subjects.length) {
-                        subjects.forEach((sub) => {
-                          if (s.subjects.includes(sub.id)) s.toggleSubject(sub.id);
-                        });
-                      } else {
-                        subjects.forEach((sub) => {
-                          if (!s.subjects.includes(sub.id)) s.toggleSubject(sub.id);
-                        });
-                      }
-                    }}
-                    className="rounded-lg border border-black/10 bg-surface px-3 py-1.5 transition-colors active:bg-black/5">
-                    <Text className="text-black/75" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-                      {s.subjects.length === subjects.length ? 'সব মুছুন' : 'সব নির্বাচন করুন'}
-                    </Text>
-                  </Pressable>
-                </View>
+                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18 }}>বিষয় নির্বাচন করুন</Bn>
+                <Text className="text-black/50 text-xs mt-1" style={{ fontFamily: FONT.ui }}>
+                  অনুশীলন শুরু করতে পছন্দের বিষয়ে ক্লিক করুন
+                </Text>
               </View>
 
-              {/* Subject Cards Multi-select Grid */}
+              {/* Subject Cards Grid */}
               <View className={isWide ? 'p-5' : 'p-3'}>
                 <View className="flex-row flex-wrap" style={{ gap: isWide ? 12 : 10 }}>
                   {subjects.map((sub) => {
-                    const active = s.subjects.includes(sub.id);
                     const qCount = SUBJECT_COUNT[sub.id] ?? 0;
                     const Icon = SUBJECT_ICONS[sub.id];
                     return (
                       <Pressable
                         key={sub.id}
-                        onPress={() => s.toggleSubject(sub.id)}
+                        onPress={() => router.push(`/practice/subject/${sub.id}` as any)}
                         style={
                           (!isWide
-                            ? { width: 'calc(50% - 5px)', minHeight: 120 }
+                            ? { width: 'calc(50% - 5px)', minHeight: 110 }
                             : { flex: 1, minWidth: 230, minHeight: 96 }) as any
                         }
-                        className={`justify-between rounded-xl border p-3 md:p-4 transition-all ${
-                          active
-                            ? 'border-black bg-ink text-white shadow-sm'
-                            : 'border-black/10 bg-surface hover:border-black/30'
-                        }`}>
-                        <View className="flex-row items-start justify-between gap-1">
-                          <View className="flex-row items-center gap-1.5 md:gap-2.5">
-                            <View
-                              className={`h-5 w-5 items-center justify-center rounded border ${
-                                active ? 'border-white bg-white' : 'border-black/30 bg-surface'
-                              }`}>
-                              {active ? <Check size={14} color="#0A0A0A" strokeWidth={3} /> : null}
-                            </View>
-                            <View
-                              className={`h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-lg ${
-                                active ? 'bg-white/15' : 'bg-black/[0.04]'
-                              }`}>
-                              {Icon ? <Icon size={isWide ? 15 : 13} color={active ? '#FFFFFF' : '#0A0A0A'} /> : null}
-                            </View>
+                        className="justify-between rounded-xl border border-black/10 bg-surface p-3 md:p-4 transition-all hover:border-black/30 hover:shadow-sm active:scale-[0.99] active:bg-black/[0.02]">
+                        <View className="flex-row items-center justify-between gap-1">
+                          <View className="h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-lg bg-black/[0.04]">
+                            {Icon ? <Icon size={isWide ? 17 : 15} color="#0A0A0A" /> : null}
                           </View>
                           <Bn
-                            className={active ? 'text-white/70' : 'text-black/45'}
+                            className="text-black/50"
                             style={{ fontFamily: FONT.uiSemi, fontSize: isWide ? 12 : 11 }}>
                             {`${toBn(qCount.toLocaleString('en-US'))}টি প্রশ্ন`}
                           </Bn>
                         </View>
-                        <View className="mt-2.5">
+                        <View className="mt-3 flex-row items-center justify-between">
                           <Bn
                             numberOfLines={isWide ? 2 : 3}
-                            className={active ? 'text-white font-bold' : 'text-black font-semibold'}
+                            className="text-black font-semibold"
                             style={{
-                              fontFamily: active ? FONT.uiBold : FONT.uiSemi,
+                              fontFamily: FONT.uiSemi,
                               fontSize: isWide ? 15.5 : 13.5,
                               lineHeight: isWide ? 22 : 19,
                             }}>
                             {sub.subject_bn}
                           </Bn>
+                          <ChevronRight size={16} color="rgba(0,0,0,0.35)" />
                         </View>
                       </Pressable>
                     );
                   })}
                 </View>
-              </View>
-
-              {/* Bottom Action Bar */}
-              <View className="flex-row items-center justify-between border-t border-black/10 bg-black/[0.02] p-5">
-                <Bn className="text-black/70" style={{ fontFamily: FONT.uiSemi, fontSize: 14 }}>
-                  {s.subjects.length > 0
-                    ? `নির্বাচিত বিষয়: ${toBn(s.subjects.length)}টি`
-                    : 'অন্তত একটি বিষয় বেছে নিন'}
-                </Bn>
-                <Pressable
-                  disabled={s.subjects.length === 0}
-                  onPress={() => s.start()}
-                  className={`flex-row items-center gap-2 rounded-xl px-6 py-3 transition-opacity ${
-                    s.subjects.length > 0 ? 'bg-ink opacity-100 shadow-sm' : 'bg-black/20 opacity-50'
-                  }`}>
-                  <Text className="text-white font-semibold" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
-                    অনুশীলনে প্রবেশ করুন
-                  </Text>
-                  <ChevronRight size={18} color="#FFFFFF" strokeWidth={2.5} />
-                </Pressable>
               </View>
             </View>
           ) : null}
