@@ -1,27 +1,21 @@
 import { Link, router } from 'expo-router';
 import {
   ArrowRight,
-  Award,
   BookOpen,
   BookOpenText,
   Brain,
   Calculator,
-  Calendar,
   CheckCircle2,
   Cpu,
   Earth,
-  FileText,
   FlaskConical,
   Globe,
   GraduationCap,
   HelpCircle,
   Image as ImageIcon,
   Landmark,
-  Languages,
   Layers,
-  Play,
   Scale,
-  Sliders,
   Timer,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -58,27 +52,6 @@ export const SUBJECT_ICONS: Record<number, LucideIcon> = {
   10: Scale,
 };
 
-const STEPS = [
-  {
-    n: 'ধাপ ০১',
-    t: 'বছর বেছে নিন',
-    d: '১০ম থেকে ৫০তম — যেকোনো নির্দিষ্ট বিসিএস অথবা সব বছর একসাথে সেট করুন।',
-    icon: Calendar,
-  },
-  {
-    n: 'ধাপ ০২',
-    t: 'বিষয় ঠিক করুন',
-    d: 'দশটি বিষয়ের মধ্যে নিজের দুর্বল জায়গাগুলো অগ্রাধিকার দিয়ে চর্চা শুরু করুন।',
-    icon: Sliders,
-  },
-  {
-    n: 'ধাপ ০৩',
-    t: 'শুরু করুন',
-    d: 'ঘড়ি ছাড়া স্বতঃস্ফূর্ত অনুশীলন, অথবা টাইমারসহ বাস্তবসম্মত পূর্ণাঙ্গ মক পরীক্ষা।',
-    icon: Play,
-  },
-];
-
 const RULES: { id: string; subject: string; rule: string }[] = [
   { id: '০১', subject: 'নম্বর', rule: 'সঠিক উত্তরে +১.০০, ভুল উত্তরে −০.২৫' },
   { id: '০২', subject: 'উত্তর না দিলে', rule: 'কোনো নম্বর কাটা হবে না' },
@@ -94,7 +67,6 @@ export default function Home() {
 
   /* Compute column counts for uniform grids */
   const statCols = width > 900 ? 4 : 2;
-  const stepCols = width > 900 ? 3 : width > 550 ? 2 : 1;
   const subjectCols = width > 1000 ? 5 : width > 750 ? 4 : width > 500 ? 3 : 2;
 
   return (
@@ -303,82 +275,55 @@ export default function Home() {
           </View>
         </View>
 
-        {/* Section 3: Three Steps — uniform grid */}
-        <SectionHead kicker="কীভাবে শুরু করবেন" title="তিন ধাপে প্রস্তুতি।" />
+        {/* Unified Section: Preparation Modes */}
+        <SectionHead kicker="কীভাবে প্রস্তুতি নেবেন" title="প্রস্তুতির দুটি শক্তিশালী মাধ্যম।" />
         <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-            {STEPS.map((s) => {
-              const Icon = s.icon;
-              return (
-                <View
-                  key={s.n}
-                  style={{ width: `${100 / stepCols - 1.5}%`, minHeight: 180 }}
-                  className="justify-between rounded-2xl border border-black/10 bg-surface p-6 shadow-sm transition-all hover:border-black/25">
-                  <View>
-                    <View className="mb-4 flex-row items-center justify-between">
-                      <View className="rounded-full bg-[#EA0000]/10 px-3 py-1">
-                        <Text style={{ color: '#EA0000', fontFamily: FONT.uiBold, fontSize: 12 }}>
-                          {s.n}
-                        </Text>
-                      </View>
-                      <View className="h-9 w-9 items-center justify-center rounded-xl bg-black/[0.04]">
-                        <Icon size={18} color="#0A0A0A" />
-                      </View>
-                    </View>
-                    <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, marginBottom: 6 }}>{s.t}</Bn>
-                    <Bn className="text-black/65" style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22 }}>
-                      {s.d}
-                    </Bn>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Section 4: Two Flagship Paths — uniform 2-column */}
-        <SectionHead kicker="পথ বেছে নিন" title="দুটি মাধ্যম।" />
-        <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-            {/* Practice Flagship Card */}
+          <View className="flex-row flex-wrap" style={{ gap: 14 }}>
+            {/* Practice Card */}
             <Pressable
               onPress={() => router.push('/practice' as any)}
-              style={{ width: width > 700 ? '48.5%' : '100%', minHeight: 280 }}
-              className="justify-between rounded-2xl border border-black/10 bg-surface p-7 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:scale-[0.99]">
+              style={
+                {
+                  width: width > 768 ? 'calc(50% - 7px)' : '100%',
+                  minHeight: 320,
+                } as any
+              }
+              className="justify-between rounded-2xl border border-black/10 bg-surface p-6 sm:p-7 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:scale-[0.99]">
               <View>
                 <View className="mb-5 flex-row items-center justify-between">
                   <View className="h-12 w-12 items-center justify-center rounded-xl bg-[#EA0000]/10">
                     <BookOpen size={24} color="#EA0000" />
                   </View>
-                  <View className="rounded-full bg-black/[0.04] px-3 py-1">
-                    <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
-                      ঘড়ি ছাড়া
+                  <View className="rounded-full bg-[#EA0000]/10 px-3 py-1">
+                    <Text className="text-[#EA0000]" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
+                      ঘড়ি ছাড়া · সেলফ-লার্নিং
                     </Text>
                   </View>
                 </View>
+
                 <Text
                   className="text-[#EA0000]"
                   style={{ fontFamily: FONT.uiSemi, fontSize: 11, marginBottom: 6 }}>
                   PRACTICE · স্বতঃস্ফূর্ত অনুশীলন
                 </Text>
-                <Text style={{ fontFamily: FONT.display, fontSize: 22, lineHeight: 30, marginBottom: 8 }}>
-                  নিজের গতিতে প্রশ্ন সমাধান
+                <Text style={{ fontFamily: FONT.display, fontSize: 21, lineHeight: 29, marginBottom: 8 }}>
+                  নিজের গতিতে প্রশ্ন সমাধান ও রিভিশন
                 </Text>
                 <Text
                   className="text-black/70"
-                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 12 }}>
-                  প্রতিটি উত্তরের সঙ্গে সঙ্গে সঠিক-ভুল যাচাই, বিস্তারিত ব্যাখ্যা ও সহায়ক ছবি।
+                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 14 }}>
+                  ১০ম থেকে ৫০তম বিসিএস এবং ১০টি বিষয়ের যেকোনো সংমিশ্রণে নিজের মতো অনুশীলন করুন। কোনো সময়ের চাপ ছাড়া প্রতিটি উত্তরের পুঙ্খানুপুঙ্খ ব্যাখ্যা ও চিত্রসহ সঠিক সমাধান আয়ত্ত করুন।
                 </Text>
 
-                <View className="gap-2">
+                <View className="gap-2.5">
                   {[
-                    'তাৎক্ষণিক সঠিক উত্তর ও সমাধান নোট',
-                    '১০টি বিষয় ও বছরের ফিল্টারিং',
-                    'বুকমার্ক ও ভুল প্রশ্ন অনুশীলন',
+                    '১০ম–৫০তম বিসিএস ও ১০টি বিষয়ের স্বাধীন ফিল্টারিং',
+                    'তাৎক্ষণিক সঠিক-ভুল যাচাই, সমাধান নোট ও চিত্রব্যাখ্যা',
+                    'বুকমার্ক সংরক্ষণ ও ভুল প্রশ্নগুলো আলাদা অনুশীলনের সুযোগ',
                   ].map((feat) => (
-                    <View key={feat} className="flex-row items-center gap-2">
+                    <View key={feat} className="flex-row items-center gap-2.5">
                       <CheckCircle2 size={15} color="#16a34a" />
-                      <Text className="text-black/80" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                      <Text className="text-black/80 flex-1" style={{ fontFamily: FONT.ui, fontSize: 13, lineHeight: 19 }}>
                         {feat}
                       </Text>
                     </View>
@@ -386,7 +331,7 @@ export default function Home() {
                 </View>
               </View>
 
-              <View className="flex-row items-center justify-between border-t border-black/5 pt-4 mt-4">
+              <View className="flex-row items-center justify-between border-t border-black/5 pt-4 mt-6">
                 <Text style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>অনুশীলন শুরু করুন</Text>
                 <View className="h-8 w-8 items-center justify-center rounded-full bg-ink">
                   <ArrowRight size={15} color="#fff" />
@@ -394,11 +339,16 @@ export default function Home() {
               </View>
             </Pressable>
 
-            {/* Mock Exam Flagship Card */}
+            {/* Mock Exam Card */}
             <Pressable
               onPress={() => router.push('/exam')}
-              style={{ width: width > 700 ? '48.5%' : '100%', minHeight: 280 }}
-              className="justify-between rounded-2xl border border-black/10 bg-surface p-7 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:scale-[0.99]">
+              style={
+                {
+                  width: width > 768 ? 'calc(50% - 7px)' : '100%',
+                  minHeight: 320,
+                } as any
+              }
+              className="justify-between rounded-2xl border border-black/10 bg-surface p-6 sm:p-7 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:scale-[0.99]">
               <View>
                 <View className="mb-5 flex-row items-center justify-between">
                   <View className="h-12 w-12 items-center justify-center rounded-xl bg-black/[0.04]">
@@ -406,33 +356,34 @@ export default function Home() {
                   </View>
                   <View className="rounded-full bg-black/[0.04] px-3 py-1">
                     <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
-                      বাস্তব পরিবেশ
+                      বাস্তব পরিবেশ · মূল্যায়ন
                     </Text>
                   </View>
                 </View>
+
                 <Text
                   className="text-black/50"
                   style={{ fontFamily: FONT.uiSemi, fontSize: 11, marginBottom: 6 }}>
                   MOCK EXAM · পূর্ণাঙ্গ পরীক্ষা
                 </Text>
-                <Text style={{ fontFamily: FONT.display, fontSize: 22, lineHeight: 30, marginBottom: 8 }}>
-                  সময় মেপে পূর্ণাঙ্গ পরীক্ষা
+                <Text style={{ fontFamily: FONT.display, fontSize: 21, lineHeight: 29, marginBottom: 8 }}>
+                  পরীক্ষার হলের পরিবেশে রিয়েল-টাইম টেস্ট
                 </Text>
                 <Text
                   className="text-black/70"
-                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 12 }}>
-                  পরীক্ষার হলের মতো নির্দিষ্ট সময়ে টেস্ট দিয়ে নিজের প্রস্তুতি ও অবস্থান যাচাই করুন।
+                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 14 }}>
+                  আসল বিসিএস পরীক্ষার মতো নির্ধারিত সময়সীমা ও কড়া নেগেティブ মার্কিংয়ের অধীনে পরীক্ষা দিন। পরীক্ষার হলের আবহাওয়ায় সময় ব্যবস্থাপনা ও বাস্তব প্রস্তুতি যাচাই করুন।
                 </Text>
 
-                <View className="gap-2">
+                <View className="gap-2.5">
                   {[
-                    'নির্দিষ্ট সময় ও কাউন্টডাউন টাইমার',
-                    'ওএমআর শিট ও এক নজরে সব প্রশ্ন',
-                    'নেগেটিভ মার্কিং (−০.২৫) সহ স্কোর',
+                    '১২০ মিনিটের কাউন্টডাউন টাইমার ও স্বয়ংক্রিয় ওএমআর জমা',
+                    'ডিজিটাল ওএমআর শিট ও এক নজরে সম্পূর্ণ প্রশ্ন প্যালেট',
+                    'ভুল উত্তরের জন্য −০.২৫ নেগেティブ মার্কিং সহ নির্ভুল স্কোর বিশ্লেষণ',
                   ].map((feat) => (
-                    <View key={feat} className="flex-row items-center gap-2">
+                    <View key={feat} className="flex-row items-center gap-2.5">
                       <CheckCircle2 size={15} color="#16a34a" />
-                      <Text className="text-black/80" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                      <Text className="text-black/80 flex-1" style={{ fontFamily: FONT.ui, fontSize: 13, lineHeight: 19 }}>
                         {feat}
                       </Text>
                     </View>
@@ -440,7 +391,7 @@ export default function Home() {
                 </View>
               </View>
 
-              <View className="flex-row items-center justify-between border-t border-black/5 pt-4 mt-4">
+              <View className="flex-row items-center justify-between border-t border-black/5 pt-4 mt-6">
                 <Text style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>মক পরীক্ষা শুরু করুন</Text>
                 <View className="h-8 w-8 items-center justify-center rounded-full bg-ink">
                   <ArrowRight size={15} color="#fff" />
