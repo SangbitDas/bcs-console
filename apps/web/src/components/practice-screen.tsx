@@ -217,7 +217,7 @@ export function PracticeScreen({
 }: {
   initialMode?: PracticeMode | null;
 }) {
-  const params = useLocalSearchParams<{ subject?: string; exam?: string; mode?: string }>();
+  const params = useLocalSearchParams<{ id?: string; subject?: string; exam?: string; mode?: string }>();
   const s = usePracticeStore();
   const lib = useLibrary();
   const { data: subjects } = useSubjects();
@@ -232,11 +232,14 @@ export function PracticeScreen({
   }, [initialMode]);
 
   useEffect(() => {
-    if (params.subject) {
+    const rawSubId = params.id ?? params.subject;
+    if (rawSubId) {
       s.setMode('subject');
-      const id = parseInt(String(params.subject), 10);
-      if (!s.subjects.includes(id)) s.toggleSubject(id);
-      s.start();
+      const id = parseInt(String(rawSubId), 10);
+      if (!isNaN(id)) {
+        s.setSubjects([id]);
+        s.start();
+      }
     } else if (params.exam) {
       s.setMode('exam');
       s.setExam(String(params.exam));
@@ -246,7 +249,7 @@ export function PracticeScreen({
       s.start();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.subject, params.exam, params.mode]);
+  }, [params.id, params.subject, params.exam, params.mode]);
 
   const subjectName = useCallback(
     (id: number) => subjects?.find((x) => x.id === id)?.subject_bn ?? `বিষয় ${id}`,
@@ -399,9 +402,9 @@ export function PracticeScreen({
                 s.start();
               } else {
                 s.setMode(m);
-                if (m === 'exam') router.push('/practice/exam');
-                else if (m === 'subject') router.push('/practice/subject');
-                else if (m === 'custom') router.push('/practice/custom');
+                if (m === 'exam') router.push('/practice/exam' as any);
+                else if (m === 'subject') router.push('/practice/subject' as any);
+                else if (m === 'custom') router.push('/practice/custom' as any);
               }
             }}
             onRerun={applyRerun}

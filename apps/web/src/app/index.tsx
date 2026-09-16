@@ -267,7 +267,7 @@ export default function Home() {
               return (
                 <Pressable
                   key={s.id}
-                  onPress={() => router.push(`/practice/subject?subject=${s.id}` as any)}
+                  onPress={() => router.push(`/practice/subject/${s.id}` as any)}
                   style={{ width: `${100 / subjectCols - 2}%`, height: 165 }}
                   className="justify-between rounded-2xl border border-black/10 bg-surface p-5 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:bg-black/[0.02]">
                   <View>

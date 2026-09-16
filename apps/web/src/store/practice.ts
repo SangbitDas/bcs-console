@@ -32,6 +32,7 @@ interface PracticeState {
   selectAllExams: (slugs: string[]) => void;
   clearExams: () => void;
   toggleSubject: (id: number) => void;
+  setSubjects: (ids: number[]) => void;
   setRange: (from: number, to: number) => void;
   setCount: (c: number | null) => void;
   setOrder: (o: OrderKind) => void;
@@ -76,6 +77,7 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
     set((s) => ({
       subjects: s.subjects.includes(id) ? s.subjects.filter((x) => x !== id) : [...s.subjects, id],
     })),
+  setSubjects: (subjects) => set({ subjects }),
   setRange: (fromN, toN) => set({ fromN, toN }),
   setCount: (count) => set({ count }),
   setOrder: (order) => set({ order }),
