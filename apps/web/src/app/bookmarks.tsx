@@ -8,7 +8,7 @@ import { useLibrary } from '../lib/library';
 import { useQuestionPool, useSubjects } from '../hooks/queries';
 import { Bn, Btn, Tag } from '../components/ui';
 import { Breadcrumb } from '../components/patterns';
-import { QuestionCard, type DisplayItem } from './practice';
+import { QuestionCard, type DisplayItem } from '../components/practice-screen';
 
 export default function BookmarksScreen() {
   const lib = useLibrary();
@@ -60,7 +60,7 @@ export default function BookmarksScreen() {
   }, []);
 
   const startInteractivePractice = () => {
-    router.push({ pathname: '/practice', params: { mode: 'bookmarks' } });
+    router.push({ pathname: '/practice' as any, params: { mode: 'bookmarks' } });
   };
 
   return (
@@ -116,7 +116,7 @@ export default function BookmarksScreen() {
               অনুশীলন বা মক পরীক্ষা চলাকালে যেকোনো প্রশ্নের বুকমার্ক আইকনে চাপ দিয়ে গুরুত্বপূর্ণ প্রশ্ন এখানে সংরক্ষণ করে রাখতে পারবেন।
             </Text>
             <Pressable
-              onPress={() => router.push('/practice')}
+              onPress={() => router.push('/practice' as any)}
               className="flex-row items-center gap-2 rounded-xl bg-ink px-5 py-2.5">
               <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
                 অনুশীলনে যান

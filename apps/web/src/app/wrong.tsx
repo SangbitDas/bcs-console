@@ -8,7 +8,7 @@ import { useLibrary } from '../lib/library';
 import { useQuestionPool, useSubjects } from '../hooks/queries';
 import { Bn, Btn, Tag } from '../components/ui';
 import { Breadcrumb } from '../components/patterns';
-import { QuestionCard, type DisplayItem } from './practice';
+import { QuestionCard, type DisplayItem } from '../components/practice-screen';
 
 export default function WrongQuestionsScreen() {
   const lib = useLibrary();
@@ -60,7 +60,7 @@ export default function WrongQuestionsScreen() {
   }, []);
 
   const startInteractivePractice = () => {
-    router.push({ pathname: '/practice', params: { mode: 'wrong' } });
+    router.push({ pathname: '/practice' as any, params: { mode: 'wrong' } });
   };
 
   return (
@@ -124,7 +124,7 @@ export default function WrongQuestionsScreen() {
               অনুশীলন বা মক পরীক্ষা সম্পন্ন করার সময় যে প্রশ্নগুলোর উত্তর ভুল হবে, তা স্বয়ংক্রিয়ভাবে এখানে জমা থাকবে যাতে পরে চর্চা করতে পারেন।
             </Text>
             <Pressable
-              onPress={() => router.push('/practice')}
+              onPress={() => router.push('/practice' as any)}
               className="flex-row items-center gap-2 rounded-xl bg-ink px-5 py-2.5">
               <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
                 অনুশীলনে যান

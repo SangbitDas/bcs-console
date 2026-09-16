@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { AlertTriangle, ArrowRight, Bookmark, BookOpen, Check, ChevronRight, Eye, EyeOff, FileText, Filter, Settings, Target, Zap } from 'lucide-react';
@@ -9,9 +9,9 @@ import { ERAS, SUBJECT_COUNT, examLabel, examNum, optText, shuffle, slugsInRange
 import { useLibrary, type RerunConfig } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
-import { Btn, Bn, Chip, Feedback, OptBtn, ScorePanel, Tag, type OptState } from '../components/ui';
-import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from '../components/patterns';
-import { SUBJECT_ICONS } from './index';
+import { Btn, Bn, Chip, Feedback, OptBtn, ScorePanel, Tag, type OptState } from './ui';
+import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
+import { SUBJECT_ICONS } from '../app/index';
 
 const OPT_KEYS = ['A', 'B', 'C', 'D'];
 
@@ -212,7 +212,11 @@ const MODE_META: Record<Exclude<PracticeMode, 'bookmarks' | 'wrong'>, { title: s
   custom: { title: 'নিজের পরীক্ষা তৈরি করুন', desc: 'পরিসর, বিষয়, সংখ্যা ও ধরন নিজে ঠিক করুন।' },
 };
 
-export default function Practice() {
+export function PracticeScreen({
+  initialMode = null,
+}: {
+  initialMode?: PracticeMode | null;
+}) {
   const params = useLocalSearchParams<{ subject?: string; exam?: string; mode?: string }>();
   const s = usePracticeStore();
   const lib = useLibrary();
@@ -220,6 +224,12 @@ export default function Practice() {
   const { data: exams } = useExams();
 
 
+
+  useEffect(() => {
+    if (initialMode !== undefined && s.mode !== initialMode && !s.started) {
+      s.setMode(initialMode);
+    }
+  }, [initialMode]);
 
   useEffect(() => {
     if (params.subject) {
@@ -387,7 +397,12 @@ export default function Practice() {
               if (m === 'bookmarks' || m === 'wrong') {
                 s.setMode(m);
                 s.start();
-              } else s.setMode(m);
+              } else {
+                s.setMode(m);
+                if (m === 'exam') router.push('/practice/exam');
+                else if (m === 'subject') router.push('/practice/subject');
+                else if (m === 'custom') router.push('/practice/custom');
+              }
             }}
             onRerun={applyRerun}
           />
@@ -404,7 +419,7 @@ export default function Practice() {
             subjectName={subjectName}
             onRetry={() => s.start()}
             onPicker={() => s.backToPicker()}
-            onHub={() => s.backToHub()}
+            onHub={() => { s.backToHub(); router.push('/practice' as any); }}
           />
         ) : pool.isPending ? (
           <View className="py-20 items-center justify-center gap-3">
@@ -657,7 +672,7 @@ function ConfigureView({
     <View className="gap-4">
       {/* Back to hub */}
       <Pressable
-        onPress={() => s.backToHub()}
+        onPress={() => { s.backToHub(); router.push('/practice' as any); }}
         className="flex-row items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2.5">
         <Text style={{ fontSize: 14 }}>←</Text>
         <Text className="text-black/70" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
@@ -729,7 +744,7 @@ function ConfigureView({
       <Breadcrumb
         trail={[
           { label: 'হোম', href: '/' },
-          { label: 'অনুশীলন', onPress: () => s.backToHub() },
+          { label: 'অনুশীলন', onPress: () => { s.backToHub(); router.push('/practice' as any); } },
           { label: meta?.title ?? '' },
         ]}
       />
@@ -1983,7 +1998,7 @@ function RunnerView({
 
   return (
     <View className="gap-4">
-      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'অনুশীলন', onPress: () => s.backToHub() }, { label: 'প্রশ্নোত্তর' }]} />
+      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'অনুশীলন', onPress: () => { s.backToHub(); router.push('/practice' as any); } }, { label: 'প্রশ্নোত্তর' }]} />
       <Cols min={300} weights={[2, 1]}>
       <View className="border border-black/10 bg-surface p-5">
         <View className="mb-3 flex-row flex-wrap items-center justify-between gap-2">
@@ -2098,7 +2113,7 @@ function PracticeResult({
 
   return (
     <View className="gap-4">
-      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'অনুশীলন', onPress: () => s.backToHub() }, { label: 'ফলাফল' }]} />
+      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'অনুশীলন', onPress: () => { s.backToHub(); router.push('/practice' as any); } }, { label: 'ফলাফল' }]} />
       <View className="items-center border border-black bg-surface p-8">
         <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: 40 }}>
           {`${toBn(s.right)} / ${toBn(total)}`}
