@@ -1,5 +1,5 @@
-import { PracticeScreen } from '../../components/practice-screen';
+import { Redirect } from 'expo-router';
 
 export default function PracticeCustomRoute() {
-  return <PracticeScreen initialMode="custom" />;
+  return <Redirect href="/custom" />;
 }

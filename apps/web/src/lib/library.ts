@@ -13,15 +13,15 @@ export interface RerunConfig {
 }
 
 export interface MockRerunConfig {
-  source: 'full' | 'exam' | 'subject' | 'custom';
-  exam: string;
-  exams: string[];
-  fromN: number;
-  toN: number;
-  subjects: number[];
-  count: number | null;
-  minutes: number | null;
-  order: 'seq' | 'random';
+  count: number;
+  minutes: number;
+  source?: 'full' | 'exam' | 'subject' | 'custom';
+  exam?: string;
+  exams?: string[];
+  fromN?: number;
+  toN?: number;
+  subjects?: number[];
+  order?: 'seq' | 'random';
 }
 
 export interface RecentSession {

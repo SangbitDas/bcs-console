@@ -113,7 +113,7 @@ export default function BookmarksScreen() {
               এখনো কোনো প্রশ্ন বুকমার্ক করেননি
             </Text>
             <Text className="max-w-md text-center text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 20 }}>
-              অনুশীলন বা মক পরীক্ষা চলাকালে যেকোনো প্রশ্নের বুকমার্ক আইকনে চাপ দিয়ে গুরুত্বপূর্ণ প্রশ্ন এখানে সংরক্ষণ করে রাখতে পারবেন।
+              অনুশীলন বা মক এক্সাম চলাকালে যেকোনো প্রশ্নের বুকমার্ক আইকনে চাপ দিয়ে গুরুত্বপূর্ণ প্রশ্ন এখানে সংরক্ষণ করে রাখতে পারবেন।
             </Text>
             <Pressable
               onPress={() => router.push('/practice' as any)}

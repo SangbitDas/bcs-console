@@ -12,7 +12,7 @@ import {
   Minus,
   type LucideIcon,
 } from 'lucide-react';
-import { Children, useState, type ReactNode } from 'react';
+import { Children, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { FONT } from '../lib/fonts';
 import { examLabel, examNum, toBn } from '../lib/format';
@@ -142,7 +142,7 @@ export function DropdownSelect<T extends string | number>({
   const displayLabel = label ?? selectedOption?.label ?? placeholder ?? String(value);
 
   return (
-    <View style={{ position: 'relative', zIndex: open ? 50 : 1 }}>
+    <View style={{ position: 'relative', zIndex: open ? 9999 : 1 }}>
       <Pressable
         onPress={() => setOpen(!open)}
         accessibilityRole="combobox"
@@ -154,31 +154,46 @@ export function DropdownSelect<T extends string | number>({
         </View>
       </Pressable>
       {open ? (
-        <View className="absolute left-0 right-0 top-[48px] z-50 rounded-md border border-black/20 bg-surface shadow-lg">
-          <ScrollView style={{ maxHeight }} nestedScrollEnabled showsVerticalScrollIndicator={true}>
-            {options.map((o) => {
-              const active = o.value === value;
-              return (
-                <Pressable
-                  key={String(o.value)}
-                  onPress={() => {
-                    onChange(o.value);
-                    setOpen(false);
-                  }}
-                  className={`min-h-[42px] flex-row items-center justify-between border-b border-black/5 px-3.5 py-2 ${
-                    active ? 'bg-black/[0.04]' : ''
-                  }`}>
-                  <Bn
-                    className={active ? 'text-black' : 'text-black/80'}
-                    style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 14 }}>
-                    {o.label}
-                  </Bn>
-                  {active ? <Check size={16} color="#0A0A0A" /> : null}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
+        <>
+          <Pressable
+            onPress={() => setOpen(false)}
+            style={{
+              position: 'fixed' as any,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9998,
+            }}
+          />
+          <View
+            className="absolute left-0 right-0 top-[48px] rounded-md border border-black/20 bg-surface shadow-2xl"
+            style={{ zIndex: 9999, elevation: 25 }}>
+            <ScrollView style={{ maxHeight }} nestedScrollEnabled showsVerticalScrollIndicator={true}>
+              {options.map((o) => {
+                const active = o.value === value;
+                return (
+                  <Pressable
+                    key={String(o.value)}
+                    onPress={() => {
+                      onChange(o.value);
+                      setOpen(false);
+                    }}
+                    className={`min-h-[42px] flex-row items-center justify-between border-b border-black/5 px-3.5 py-2.5 hover:bg-black/[0.03] ${
+                      active ? 'bg-black/[0.05]' : ''
+                    }`}>
+                    <Bn
+                      className={active ? 'text-black font-semibold' : 'text-black/80'}
+                      style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 14 }}>
+                      {o.label}
+                    </Bn>
+                    {active ? <Check size={16} color="#0A0A0A" strokeWidth={2.5} /> : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </>
       ) : null}
     </View>
   );
@@ -637,16 +652,16 @@ export function SidebarLayout({
 
   if (!isWide) {
     return (
-      <View className="gap-6">
+      <View className="gap-6" style={{ overflow: 'visible' }}>
         {reverseOnMobile ? (
           <>
-            {children}
-            {sidebar}
+            <View style={{ position: 'relative', zIndex: 20, overflow: 'visible' }}>{children}</View>
+            <View style={{ position: 'relative', zIndex: 1 }}>{sidebar}</View>
           </>
         ) : (
           <>
-            {sidebar}
-            {children}
+            <View style={{ position: 'relative', zIndex: 1 }}>{sidebar}</View>
+            <View style={{ position: 'relative', zIndex: 20, overflow: 'visible' }}>{children}</View>
           </>
         )}
       </View>
@@ -979,24 +994,15 @@ export function SubjectDropdown({
 }
 
 /* ---------- BCS Exam Tick Selector (Tick mark system replacing dropdowns) ---------- */
-const BCS_TICK_ERAS = [
-  { label: '৪৬তম–৫০তম বিসিএস', range: '৪৬–৫০তম', from: 46, to: 50 },
-  { label: '৪১তম–৪৫তম বিসিএস', range: '৪১–৪৫তম', from: 41, to: 45 },
-  { label: '৩১তম–৪০তম বিসিএস', range: '৩১–৪০তম', from: 31, to: 40 },
-  { label: '২১তম–৩০তম বিসিএস', range: '২১–৩০তম', from: 21, to: 30 },
-  { label: '১০ম–২০তম বিসিএস', range: '১০–২০তম', from: 10, to: 20 },
-];
-
 export function BcsTickPicker({
   exams,
   selected,
   onToggle,
   onSelectAll,
   onClear,
-  onSelectEra,
-  onDeselectEra,
   title = '১. বিসিএস পরিসর',
   subtitle = 'কোন বিসিএসের প্রশ্ন অন্তর্ভুক্ত করবেন? পছন্দমতো টিক দিন।',
+  noBorder = false,
 }: {
   exams: { slug: string; total_questions?: number }[];
   selected: string[];
@@ -1007,43 +1013,16 @@ export function BcsTickPicker({
   onDeselectEra?: (slugs: string[]) => void;
   title?: string;
   subtitle?: string;
+  noBorder?: boolean;
 }) {
-  const getEraSlugs = (from: number, to: number) => {
-    return exams
-      .filter((e) => {
-        const n = examNum(e.slug);
-        return n >= from && n <= to;
-      })
-      .sort((a, b) => examNum(b.slug) - examNum(a.slug))
-      .map((e) => e.slug);
-  };
-
-  const toggleEra = (from: number, to: number) => {
-    const eraSlugs = getEraSlugs(from, to);
-    const isAll = eraSlugs.length > 0 && eraSlugs.every((s) => selected.includes(s));
-    if (isAll) {
-      if (onDeselectEra) {
-        onDeselectEra(eraSlugs);
-      } else {
-        eraSlugs.forEach((s) => {
-          if (selected.includes(s)) onToggle(s);
-        });
-      }
-    } else {
-      if (onSelectEra) {
-        onSelectEra(eraSlugs);
-      } else {
-        eraSlugs.forEach((s) => {
-          if (!selected.includes(s)) onToggle(s);
-        });
-      }
-    }
-  };
+  const sortedExams = useMemo(() => {
+    return [...exams].sort((a, b) => examNum(b.slug) - examNum(a.slug));
+  }, [exams]);
 
   const isAllSelected = exams.length > 0 && selected.length >= exams.length;
 
   return (
-    <View className="border-b border-black/10 p-5">
+    <View className={`${noBorder ? '' : 'border-b border-black/10'} p-5`}>
       {/* Header */}
       <View className="mb-4 flex-row flex-wrap items-center justify-between gap-2">
         <View>
@@ -1055,7 +1034,7 @@ export function BcsTickPicker({
         <View className="flex-row items-center gap-3">
           <Bn className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
             {selected.length === 0
-              ? 'কোনোটি নির্বাচিত নয় (সব বিসিএস)'
+              ? 'কোনোটি নির্বাচিত নয়'
               : isAllSelected
               ? `সব (${toBn(exams.length)}টি) নির্বাচিত`
               : `${toBn(selected.length)}/${toBn(exams.length)}টি নির্বাচিত`}
@@ -1075,85 +1054,32 @@ export function BcsTickPicker({
         </View>
       </View>
 
-      {/* Era Groups with Master Checkbox + Child Exam Tick Badges */}
-      <View className="gap-3">
-        {BCS_TICK_ERAS.map((era) => {
-          const eraSlugs = getEraSlugs(era.from, era.to);
-          if (eraSlugs.length === 0) return null;
-          const selectedCount = eraSlugs.filter((s) => selected.includes(s)).length;
-          const isFullySelected = selectedCount === eraSlugs.length;
-          const isPartiallySelected = selectedCount > 0 && !isFullySelected;
+      {/* 50th down to 10th with Tick Box (single continuous card grid) */}
+      <View className="flex-row flex-wrap gap-2">
+        {sortedExams.map((e) => {
+          const active = selected.includes(e.slug);
+          const n = examNum(e.slug);
+          const label = n ? `${toBn(n)}${n === 10 ? 'ম' : 'তম'}` : e.slug;
 
           return (
-            <View
-              key={era.label}
-              className={`overflow-hidden rounded-xl border transition-colors ${
-                isFullySelected
-                  ? 'border-black/25 bg-black/[0.015]'
-                  : isPartiallySelected
-                  ? 'border-black/20 bg-surface'
-                  : 'border-black/10 bg-surface'
+            <Pressable
+              key={e.slug}
+              onPress={() => onToggle(e.slug)}
+              className={`flex-row items-center gap-2 rounded-lg border px-3 py-2 transition-all hover:border-black/35 hover:shadow-xs active:scale-[0.98] ${
+                active ? 'border-black bg-black/[0.04]' : 'border-black/15 bg-surface'
               }`}>
-              {/* Era Header: Master Checkbox */}
-              <View className="flex-row items-center justify-between border-b border-black/5 bg-black/[0.02] px-4 py-2.5">
-                <Pressable
-                  onPress={() => toggleEra(era.from, era.to)}
-                  className="flex-1 flex-row items-center gap-3">
-                  <View
-                    className={`h-5 w-5 items-center justify-center rounded border ${
-                      isFullySelected
-                        ? 'border-black bg-ink'
-                        : isPartiallySelected
-                        ? 'border-black bg-ink'
-                        : 'border-black/30 bg-surface'
-                    }`}>
-                    {isFullySelected ? (
-                      <Check size={13} color="#FFFFFF" strokeWidth={3} />
-                    ) : isPartiallySelected ? (
-                      <Minus size={13} color="#FFFFFF" strokeWidth={3} />
-                    ) : null}
-                  </View>
-                  <View className="flex-row items-baseline gap-2">
-                    <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
-                      {era.label}
-                    </Bn>
-                    <Bn className="text-black/40" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-                      {`${toBn(eraSlugs.length)}টি পরীক্ষা`}
-                    </Bn>
-                  </View>
-                </Pressable>
-                <Bn className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
-                  {`${toBn(selectedCount)}/${toBn(eraSlugs.length)}`}
-                </Bn>
+              <View
+                className={`h-4 w-4 items-center justify-center rounded border ${
+                  active ? 'border-black bg-ink' : 'border-black/30 bg-surface'
+                }`}>
+                {active ? <Check size={11} color="#FFFFFF" strokeWidth={3.5} /> : null}
               </View>
-
-              {/* Child Exams with Tick Marks */}
-              <View className="flex-row flex-wrap gap-2 p-3">
-                {eraSlugs.map((slug) => {
-                  const active = selected.includes(slug);
-                  return (
-                    <Pressable
-                      key={slug}
-                      onPress={() => onToggle(slug)}
-                      className={`flex-row items-center gap-2 rounded-lg border px-3 py-1.5 transition-colors ${
-                        active ? 'border-black bg-black/[0.04]' : 'border-black/15 bg-surface'
-                      }`}>
-                      <View
-                        className={`h-4 w-4 items-center justify-center rounded border ${
-                          active ? 'border-black bg-ink' : 'border-black/30 bg-surface'
-                        }`}>
-                        {active ? <Check size={11} color="#FFFFFF" strokeWidth={3.5} /> : null}
-                      </View>
-                      <Bn
-                        className={active ? 'text-black font-semibold' : 'text-black/75'}
-                        style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 13 }}>
-                        {examLabel(slug)}
-                      </Bn>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
+              <Bn
+                className={active ? 'text-black font-semibold' : 'text-black/75'}
+                style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 13.5 }}>
+                {label}
+              </Bn>
+            </Pressable>
           );
         })}
       </View>

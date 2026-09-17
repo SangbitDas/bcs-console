@@ -1,22 +1,78 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, memo } from 'react';
+import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
-import { ArrowRight, BookOpen, Clock, FileText, Settings, Target } from 'lucide-react';
+import { ArrowRight, BookOpen, ChevronRight, Clock, FileText, ShieldCheck, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
-import { ERAS, SUBJECT_COUNT, TIME_PRESETS, examLabel, examMinutes, examNum, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
+import { examLabel, fmtTime, optText, shuffle, toBn, type QuestionRow } from '../lib/format';
+import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions } from '../lib/examAllocation';
 import { useLibrary, type MockRerunConfig } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
-import { useExamStore, type ExamSource } from '../store/exam';
-import { Btn, Bn, Chip, Feedback, OptBtn, Tag, TimerBar, Palette, type OptState } from '../components/ui';
-import { BcsTickPicker, Breadcrumb, Cols, DropdownSelect, RadioCircleOption, RadioPill, RecentPracticeRow, ReviewToggle, SidebarLayout, SubjectDropdown } from '../components/patterns';
+import { useExamStore, type MockPresetCount } from '../store/exam';
+import { Btn, Bn, OptBtn, Tag, type OptState } from '../components/ui';
+import { Breadcrumb, Cols, RecentPracticeRow, SidebarLayout } from '../components/patterns';
 
 const OPT_KEYS = ['A', 'B', 'C', 'D'];
 
-const MOCK_SOURCES: { value: ExamSource; label: string }[] = [
-  { value: 'full', label: 'পূর্ণ সিলেবাস' },
-  { value: 'exam', label: 'বিসিএস পরীক্ষা' },
-  { value: 'subject', label: 'বিষয়' },
-  { value: 'custom', label: 'নিজের পরীক্ষা তৈরি করুন' },
+const DEFAULT_SUBJECTS = [
+  'বাংলা ভাষা ও সাহিত্য',
+  'English Language & Literature',
+  'বাংলাদেশ বিষয়াবলি',
+  'আন্তর্জাতিক বিষয়াবলি',
+  'ভূগোল, পরিবেশ ও দুর্যোগ',
+  'সাধারণ বিজ্ঞান',
+  'কম্পিউটার ও তথ্যপ্রযুক্তি',
+  'গাণিতিক যুক্তি',
+  'মানসিক দক্ষতা',
+  'নৈতিকতা ও সুশাসন',
+];
+
+export interface MockTier {
+  count: MockPresetCount;
+  title: string;
+  badge: string;
+  badgeColor: string;
+  minutes: number;
+  durationLabel: string;
+  desc: string;
+}
+
+export const MOCK_TIERS: MockTier[] = [
+  {
+    count: 200,
+    title: 'পূর্ণাঙ্গ মডেল টেস্ট',
+    badge: 'অফিসিয়াল ফরম্যাট',
+    badgeColor: '#EA0000',
+    minutes: 120,
+    durationLabel: '১২০ মিনিট (২ ঘণ্টা)',
+    desc: 'বিসিএস প্রিলিমিনারি সিলেবাসের ১০টি বিষয়ের পূর্ণাঙ্গ অফিসিয়াল মানবণ্টন অনুযায়ী বাস্তব পরীক্ষা।',
+  },
+  {
+    count: 120,
+    title: 'স্ট্যান্ডার্ড মডেল টেস্ট',
+    badge: 'মাঝারি ব্যাপ্তি',
+    badgeColor: '#0A0A0A',
+    minutes: 72,
+    durationLabel: '৭২ মিনিট (১ ঘণ্টা ১২ মি.)',
+    desc: '১০টি বিষয়ের আনুপাতিক সুষম বণ্টন। ব্যস্ত সময়ে পূর্ণাঙ্গ প্রস্তুতির সেরা মাধ্যম।',
+  },
+  {
+    count: 100,
+    title: 'স্প্রিন্ট টেস্ট',
+    badge: '১ ঘণ্টার স্পিড টেস্ট',
+    badgeColor: '#2563EB',
+    minutes: 60,
+    durationLabel: '৬০ মিনিট (১ ঘণ্টা)',
+    desc: '১ ঘণ্টার নির্দিষ্ট সময়ে দ্রুত সিদ্ধান্ত গ্রহণ ও সময় ব্যবস্থাপনা নিখুঁত করার পরীক্ষা।',
+  },
+  {
+    count: 60,
+    title: 'কুইক টেস্ট',
+    badge: 'স্বল্প পরিসর',
+    badgeColor: '#059669',
+    minutes: 36,
+    durationLabel: '৩৬ মিনিট',
+    desc: 'স্বল্প সময়ে ১০টি বিষয়ের দ্রুত প্রস্তুতি ও তাৎক্ষণিক দক্ষতা যাচাইয়ের সেরা মাধ্যম।',
+  },
 ];
 
 export default function Exam() {
@@ -26,42 +82,32 @@ export default function Exam() {
   const { data: exams } = useExams();
   const c = st.config;
 
-
-
-  const poolSlugs = useMemo(() => {
-    if (!exams) return [];
-    if (c.source === 'exam' && c.exam) return [c.exam];
-    if (c.exams.length) {
-      const set = new Set(c.exams);
-      return exams
-        .filter((e) => set.has(e.slug))
-        .sort((a, b) => examNum(a.slug) - examNum(b.slug))
-        .map((e) => e.slug);
-    }
-    return slugsInRange(c.fromN, c.toN, exams);
-  }, [exams, c.source, c.exam, c.exams, c.fromN, c.toN]);
-
-  const poolSubjects = c.subjects.length ? c.subjects : undefined;
-
+  // Pool: fetch all exams (10th-50th BCS) when started
   const pool = useQuestionPool({
     key: st.poolKey || 'idle',
-    slugs: poolSlugs,
-    subjectIds: poolSubjects,
+    slugs: (exams ?? []).map((e) => e.slug),
     enabled: !!st.poolKey,
   });
 
+  // Session: proportional allocation across all 10 subjects at 36s/Q, then shuffled
   const session = useMemo(() => {
     const p = pool.data ?? [];
-    const ordered = c.order === 'random' ? shuffle(p) : p;
-    return c.count != null ? ordered.slice(0, c.count) : ordered;
-  }, [pool.data, c.count, c.order, st.poolKey]);
+    if (!p.length) return [];
+    const N = c.count;
+    const allSubjects = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const availableCounts = computeAvailableCounts(p);
+    const inputs = buildSubjectInputs(allSubjects, availableCounts);
+    const allocation = allocateQuestionCounts(N, inputs, 0);
+    const sampled = sampleQuestions(p, allocation.perSubject);
+    return shuffle(sampled);
+  }, [pool.data, c.count, st.poolKey]);
 
   /* when pool arrives, start the clock */
   const initKey = useRef('');
   useEffect(() => {
     if (st.poolKey && pool.data && initKey.current !== st.poolKey && !st.result) {
       initKey.current = st.poolKey;
-      const mins = c.minutes ?? examMinutes(null, session.length || 100);
+      const mins = c.minutes;
       st.ready(mins);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,17 +169,10 @@ export default function Exam() {
         review.push({ qid: q.id, st: 'wrong', pick: a });
       }
     });
-    const picked = c.exams.length
-      ? `${toBn(c.exams.length)}টি বাছাই`
-      : 'সব পরীক্ষা';
-    const label =
-      c.source === 'exam' && c.exam
-        ? examLabel(c.exam)
-        : c.source === 'full'
-          ? 'ফুল সিলেবাস'
-          : `${picked}${c.subjects.length ? ' · ' + c.subjects.map(subjectName).join(', ') : ''}`;
+
+    const label = `মডেল টেস্ট • ${toBn(c.count)}টি প্রশ্ন (${toBn(c.minutes)} মিনিট)`;
     s.setResult({
-      score: right - wrong * 0.25,
+      score: right - wrong * 0.5,
       scorable: session.length - excluded,
       right, wrong, skipped, excluded, auto,
       label, bySubject, review,
@@ -145,43 +184,48 @@ export default function Exam() {
       label,
       total: session.length - excluded,
       right,
-      mockRerun: { source: c.source, exam: c.exam, exams: c.exams, fromN: c.fromN, toN: c.toN, subjects: c.subjects, count: c.count, minutes: c.minutes, order: c.order },
+      mockRerun: { count: c.count, minutes: c.minutes },
     });
   }
 
-  const applyMockRerun = (r: MockRerunConfig) => {
-    st.setConfig({ ...r });
-    beginWith(r);
+  const startTier = (count: MockPresetCount) => {
+    st.setPreset(count);
+    const key = JSON.stringify({ count, t: Date.now() });
+    st.begin(key);
   };
 
-  const beginWith = (cfg: typeof c) => {
-    const key = JSON.stringify({ ...cfg, t: Date.now() });
-    st.begin(key);
+  const applyMockRerun = (r: MockRerunConfig) => {
+    const validCount: MockPresetCount =
+      r.count === 120 || r.count === 100 || r.count === 60 ? r.count : 200;
+    startTier(validCount);
   };
 
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
       <View
         className={`mx-auto w-full px-5 py-8 ${
-          !st.poolKey ? 'max-w-[1100px]' : 'max-w-[1200px]'
+          !st.poolKey ? 'max-w-[1100px]' : 'max-w-[880px]'
         }`}>
         {!st.poolKey ? (
           <ConfigView
-            exams={exams ?? []}
             subjects={subjects ?? []}
             onRerun={applyMockRerun}
-            onStart={() => beginWith(c)}
+            onStartTier={startTier}
           />
         ) : st.result ? (
           <ExamResultView list={session} subjectName={subjectName} onRetry={() => st.backToPicker()} />
         ) : pool.isPending ? (
-          <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 15, marginTop: 16 }}>প্রশ্নপত্র তৈরি হচ্ছে…</Text>
+          <View className="items-center py-20">
+            <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 16 }}>
+              প্রশ্নপত্র তৈরি হচ্ছে…
+            </Text>
+          </View>
         ) : pool.isError || !session.length ? (
-          <View className="border border-dashed border-black/20 bg-surface p-8">
+          <View className="border border-dashed border-black/20 bg-surface p-8 rounded-xl">
             <Text className="text-center text-black/70" style={{ fontFamily: FONT.ui, fontSize: 15 }}>
               এই নির্বাচনে কোনো প্রশ্ন পাওয়া যায়নি।
             </Text>
-            <View className="mt-4">
+            <View className="mt-4 items-center">
               <Btn title="ফিরে যান" onPress={st.backToPicker} />
             </View>
           </View>
@@ -193,117 +237,184 @@ export default function Exam() {
   );
 }
 
-/* ================= Config (with sidebar) ================= */
+/* ================= Compact Summary Card (Mobile View) ================= */
+function CompactSummaryCard({ subjectNames }: { subjectNames: string[] }) {
+  return (
+    <View className="rounded-xl border border-black/15 bg-surface p-4 sm:p-5 shadow-xs">
+      {/* Header */}
+      <View className="flex-row items-center justify-between gap-2">
+        <View className="flex-row items-center gap-2">
+          <Bn className="text-black" style={{ fontFamily: FONT.uiBold, fontSize: 16 }}>
+            মক এক্সাম মানদণ্ড
+          </Bn>
+          <View className="rounded-full px-2.5 py-0.5 bg-black/[0.05]">
+            <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11, color: 'rgba(0,0,0,0.65)' }}>
+              ১০টি বিষয় • পূর্ণাঙ্গ সিলেবাস
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Specs Highlights Strip */}
+      <View className="mt-3.5 pt-3.5 border-t border-black/10 flex-row flex-wrap items-center gap-x-5 gap-y-2.5">
+        <View className="flex-row items-center gap-1.5">
+          <Clock size={14} color="#0A0A0A" />
+          <Bn className="text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 12.5 }}>
+            ৩৬ সেকেন্ড / প্রশ্ন
+          </Bn>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <ShieldCheck size={14} color="#0A0A0A" />
+          <Bn className="text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 12.5 }}>
+            -০.৫০ নেগেটিভ মার্ক
+          </Bn>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <FileText size={14} color="#0A0A0A" />
+          <Bn className="text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 12.5 }}>
+            ১০ম–৫০তম বিসিএস
+          </Bn>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <Zap size={14} color="#0A0A0A" />
+          <Bn className="text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 12.5 }}>
+            দুর্বলতা ও নির্ভুলতা বিশ্লেষণ
+          </Bn>
+        </View>
+      </View>
+
+      {/* Subjects */}
+      <View className="mt-3.5 pt-3.5 border-t border-black/10">
+        <View className="flex-row items-center gap-1.5 mb-2">
+          <BookOpen size={13} color="#0A0A0A" />
+          <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>
+            সিলেবাসভুক্ত বিষয়সমূহ:
+          </Text>
+        </View>
+        <View className="flex-row flex-wrap gap-1.5">
+          {subjectNames.map((name) => (
+            <View key={name} className="rounded-md border border-black/10 bg-black/[0.03] px-2 py-0.5">
+              <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11, color: 'rgba(0,0,0,0.8)' }}>
+                {name}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/* ================= Desktop Summary Card (Sidebar) ================= */
+function DesktopSummaryCard({ subjectNames }: { subjectNames: string[] }) {
+  return (
+    <View className="rounded-xl border border-black/10 bg-surface p-5 shadow-sm">
+      <Text style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 14 }}>
+        মক এক্সাম মানদণ্ড
+      </Text>
+
+      {/* Row 1: প্রশ্ন প্রতি সময় */}
+      <View className="mb-3 border-b border-black/10 pb-2.5">
+        <View className="flex-row items-center gap-2 mb-1">
+          <Clock size={15} color="#0A0A0A" />
+          <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+            প্রশ্ন প্রতি সময়
+          </Text>
+        </View>
+        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>৩৬ সেকেন্ড / প্রশ্ন</Bn>
+      </View>
+
+      {/* Row 2: নেগেটিভ মার্কিং */}
+      <View className="mb-3 border-b border-black/10 pb-2.5">
+        <View className="flex-row items-center gap-2 mb-1">
+          <ShieldCheck size={15} color="#0A0A0A" />
+          <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+            নেগেটিভ মার্কিং
+          </Text>
+        </View>
+        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>-০.৫০ নম্বর (ভুল উত্তরে)</Bn>
+      </View>
+
+      {/* Row 3: প্রশ্ন ব্যাংক */}
+      <View className="mb-3 border-b border-black/10 pb-2.5">
+        <View className="flex-row items-center gap-2 mb-1">
+          <FileText size={15} color="#0A0A0A" />
+          <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+            প্রশ্ন ব্যাংক
+          </Text>
+        </View>
+        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>১০ম–৫০তম বিসিএস</Bn>
+      </View>
+
+      {/* Row 4: ফলাফল মূল্যায়ন */}
+      <View className="mb-3 border-b border-black/10 pb-2.5">
+        <View className="flex-row items-center gap-2 mb-1">
+          <Zap size={15} color="#0A0A0A" />
+          <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+            ফলাফল ও বিশ্লেষণ
+          </Text>
+        </View>
+        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>দুর্বলতা ও নির্ভুলতা যাচাই</Bn>
+      </View>
+
+      {/* Row 5: সিলেবাসভুক্ত বিষয়সমূহ */}
+      <View className="pt-1">
+        <View className="flex-row items-center gap-2 mb-2">
+          <BookOpen size={15} color="#0A0A0A" />
+          <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+            সিলেবাসভুক্ত বিষয়সমূহ
+          </Text>
+        </View>
+        <View className="flex-row flex-wrap gap-1.5 mt-0.5">
+          {subjectNames.map((name) => (
+            <View key={name} className="rounded-md border border-black/10 bg-black/[0.03] px-2 py-0.5">
+              <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11, color: 'rgba(0,0,0,0.8)' }}>
+                {name}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/* ================= Config View ================= */
 function ConfigView({
-  exams,
   subjects,
   onRerun,
-  onStart,
+  onStartTier,
 }: {
-  exams: { slug: string; title: string; total_marks: number; total_questions: number }[];
   subjects: { id: number; subject_bn: string }[];
   onRerun: (r: MockRerunConfig) => void;
-  onStart: () => void;
+  onStartTier: (count: MockPresetCount) => void;
 }) {
-  const st = useExamStore();
+  const { width } = useWindowDimensions();
+  const isWide = width >= 860;
   const lib = useLibrary();
-  const c = st.config;
   const recents = lib.recents.filter((r) => r.kind === 'mock').slice(0, 3);
+  const subjectNames = subjects.length ? subjects.map((s) => s.subject_bn) : DEFAULT_SUBJECTS;
 
-  const examNumOptions = useMemo(() => {
-    return Array.from({ length: 41 }, (_, i) => 10 + i).map((n) => ({
-      value: n,
-      label: `${toBn(n)}তম`,
-    }));
-  }, []);
-
-  const countOptions = [200, 150, 100, 50, 30, 20, 10].map((n) => ({
-    value: n,
-    label: toBn(n),
-  }));
-
-  const timeOptions = [
-    { value: 120, label: '১২০ মিনিট' },
-    { value: 100, label: '১০০ মিনিট' },
-    { value: 90, label: '৯০ মিনিট' },
-    { value: 60, label: '৬০ মিনিট' },
-    { value: 30, label: '৩০ মিনিট' },
-    { value: 15, label: '১৫ মিনিট' },
-    { value: -1, label: 'স্বয়ংক্রিয়' },
-  ];
-
-  const metaMins = c.minutes != null ? `${toBn(c.minutes)} মিনিট` : '১২০ মিনিট';
-  const metaCount = c.count != null ? `${toBn(c.count)}` : '২০০';
-  const metaSrc = c.source === 'exam' && c.exam
-    ? examLabel(c.exam)
-    : c.exams.length === 0 || (exams && c.exams.length === exams.length)
-      ? 'সব বিসিএস (১০ম–৫০তম)'
-      : `${toBn(c.exams.length)}টি বিসিএস`;
-
-  /* Sidebar: summary + recent mocks */
+  /* Sidebar: format info (desktop only) + recent mocks */
   const sidebar = (
     <View className="gap-4">
-      {/* Summary stats */}
-      <View className="rounded-xl border border-black/10 bg-surface p-5 shadow-sm">
-        <Text style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 12 }}>পরীক্ষার সারসংক্ষেপ</Text>
-        {[
-          ['সময়', metaMins],
-          ['প্রশ্ন সংখ্যা', `${metaCount}টি`],
-          ['উৎস', metaSrc],
-          ['বিষয়', c.subjects.length ? `${toBn(c.subjects.length)}টি নির্বাচিত` : 'সব বিষয়'],
-          ['ধরন', c.order === 'random' ? 'দৈবচয়ন' : 'ক্রম অনুযায়ী'],
-        ].map(([l, v]) => (
-          <View key={l} className="mb-3 border-b border-black/10 pb-3">
-            <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12, marginBottom: 2 }}>{l}</Text>
-            <Bn style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>{v}</Bn>
-          </View>
-        ))}
-        <Pressable
-          onPress={onStart}
-          className="min-h-[48px] w-full flex-row items-center justify-center gap-2 rounded-lg bg-ink px-5 transition-opacity active:opacity-90">
-          <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
-            মক পরীক্ষা শুরু করুন
-          </Text>
-          <ArrowRight size={16} color="#FFFFFF" />
-        </Pressable>
-      </View>
-
-      {/* Meta icons strip */}
-      <View className="gap-2 rounded-xl border border-black/10 bg-surface p-4">
-        <View className="flex-row items-center gap-2">
-          <Clock size={15} color="rgba(0,0,0,0.5)" />
-          <Bn className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
-            {`সময়: ${metaMins}`}
-          </Bn>
-        </View>
-        <View className="flex-row items-center gap-2">
-          <FileText size={15} color="rgba(0,0,0,0.5)" />
-          <Bn className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
-            {`প্রশ্ন সংখ্যা: ${metaCount}`}
-          </Bn>
-        </View>
-        <View className="flex-row items-center gap-2">
-          <BookOpen size={15} color="rgba(0,0,0,0.5)" />
-          <Bn className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
-            {`উৎস: ${metaSrc}`}
-          </Bn>
-        </View>
-      </View>
+      {/* Standard Info card on desktop */}
+      {isWide && <DesktopSummaryCard subjectNames={subjectNames} />}
 
       {/* Recent Mocks */}
       {recents.length > 0 ? (
         <View>
           <Text style={{ fontFamily: FONT.uiBold, fontSize: 15, marginBottom: 8 }}>
-            সাম্প্রতিক মক
+            সাম্প্রতিক মক এক্সাম
           </Text>
-          <View className="overflow-hidden rounded-xl border border-black/10 bg-surface">
+          <View className="overflow-hidden rounded-xl border border-black/10 bg-surface shadow-xs">
             {recents.map((r) => (
               <RecentPracticeRow
                 key={r.id}
                 title={r.label}
-                sub="মক পরীক্ষা"
-                scoreText={`${toBn(r.right)}/${toBn(r.total)} সঠিক`}
-                pctText={`${toBn(Math.round((r.right / Math.max(1, r.total)) * 100))}%`}
+                sub="মক এক্সাম"
+                scoreText={`${toBn(r.right)}/${toBn(r.total)}`}
+                pctText={`${toBn(Math.round((r.right / Math.max(1, r.total)) * 100))}% সম্পন্ন`}
                 pct={(r.right / Math.max(1, r.total)) * 100}
                 onPress={() => r.mockRerun && onRerun(r.mockRerun)}
               />
@@ -316,151 +427,188 @@ function ConfigView({
 
   return (
     <View>
-      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'মক পরীক্ষা' }]} />
+      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'মক এক্সাম' }]} />
 
-      <SidebarLayout sidebar={sidebar} sidebarWidth={300}>
-        {/* Main Content: Form */}
+      <SidebarLayout sidebar={sidebar} sidebarWidth={300} reverseOnMobile={true}>
         <View>
           {/* Red accent line */}
           <View className="mb-3 h-1 w-10 rounded-full bg-[#EA0000]" />
 
           {/* Title & Subtitle */}
-          <Text style={{ fontFamily: FONT.displayBlack, fontSize: 36, lineHeight: 46, marginBottom: 8 }}>
-            মক পরীক্ষা
+          <Text style={{ fontFamily: FONT.displayBlack, fontSize: 32, lineHeight: 42, marginBottom: 6 }}>
+            মক এক্সাম
           </Text>
           <Text
             className="text-black/70"
-            style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 24, marginBottom: 24 }}>
-            বাস্তব পরীক্ষার মতো পরিবেশ নিজেকে যাচাই করুন।{'\n'}নির্দিষ্ট সময়ে নির্দিষ্ট সংখ্যক প্রশ্নের উত্তর দিন।
+            style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 22, marginBottom: !isWide ? 14 : 20 }}>
+            বাস্তব বিসিএস প্রিলিমিনারি পরীক্ষার মতো পরিবেশে নিজেকে যাচাই করুন।
           </Text>
 
-          {/* Unified Form Card */}
-          <View className="overflow-hidden rounded-xl border border-black/15 bg-surface shadow-sm">
-            {/* ১. প্রশ্নের উৎস */}
-            <View className="border-b border-black/10 p-5">
-              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>১. প্রশ্নের উৎস</Bn>
-              <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 14 }}>
-                কোন উৎস থেকে প্রশ্ন নিতে চান তা নির্বাচন করুন।
-              </Text>
-              <View className="flex-row flex-wrap gap-2.5">
-                {MOCK_SOURCES.map((src) => (
-                  <RadioPill
-                    key={src.value}
-                    label={src.label}
-                    selected={c.source === src.value}
-                    onPress={() => st.setConfig({ source: src.value })}
-                  />
-                ))}
-              </View>
+          {/* Mobile view: summary card under title */}
+          {!isWide && (
+            <View className="mb-5">
+              <CompactSummaryCard subjectNames={subjectNames} />
             </View>
+          )}
 
-            {/* ২. বিসিএস পরিসর - টিক মার্ক সিস্টেম বা একক পরীক্ষা */}
-            {c.source === 'exam' ? (
-              <View className="border-b border-black/10 p-5">
-                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>২. বিসিএস পরীক্ষা</Bn>
-                <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 12 }}>
-                  কোন বিসিএস পরীক্ষার প্রশ্নপত্র বেছে নিতে চান?
-                </Text>
-                <DropdownSelect
-                  value={c.exam || (exams?.[0]?.slug ?? '')}
-                  options={(exams ?? []).map((e) => ({ value: e.slug, label: examLabel(e.slug) }))}
-                  onChange={(val) => st.setConfig({ exam: String(val) })}
-                  label={c.exam ? examLabel(c.exam) : 'পরীক্ষা বেছে নিন'}
-                />
-              </View>
-            ) : (
-              <BcsTickPicker
-                exams={exams ?? []}
-                selected={c.exams}
-                onToggle={(slug) => st.toggleExam(slug)}
-                onSelectAll={() => exams && st.selectAllExams(exams.map((e) => e.slug))}
-                onClear={() => st.clearExams()}
-                title="২. বিসিএস পরিসর"
-                subtitle="কোন বিসিএসের প্রশ্ন অন্তর্ভুক্ত করবেন? পছন্দমতো টিক দিন।"
-              />
-            )}
+          {/* Preset Cards Selection: Click directly to start */}
+          <View className="gap-3.5 mb-6">
+            {MOCK_TIERS.map((tier) => {
+              return (
+                <Pressable
+                  key={tier.count}
+                  onPress={() => onStartTier(tier.count)}
+                  className="group rounded-xl border border-black/15 bg-surface p-5 transition-all hover:border-black/45 hover:shadow-sm active:scale-[0.99] cursor-pointer">
+                  <View className="flex-row items-start justify-between gap-3">
+                    <View className="flex-1">
+                      <View className="flex-row flex-wrap items-center gap-2 mb-2">
+                        <Bn
+                          className="text-black group-hover:text-[#EA0000] transition-colors"
+                          style={{ fontFamily: FONT.uiBold, fontSize: 18 }}>
+                          {tier.title}
+                        </Bn>
+                        <View className="rounded-full px-2.5 py-0.5 bg-black/[0.05]">
+                          <Text
+                            style={{
+                              fontFamily: FONT.uiSemi,
+                              fontSize: 11,
+                              color: 'rgba(0,0,0,0.65)',
+                            }}>
+                            {tier.badge}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text
+                        className="text-black/65"
+                        style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 20 }}>
+                        {tier.desc}
+                      </Text>
+                    </View>
 
-            {/* Row: ৩. প্রশ্ন সংখ্যা & ৪. সময় */}
-            <View className="flex-row border-b border-black/10">
-              <View className="flex-1 border-r border-black/10 p-5">
-                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>৩. প্রশ্ন সংখ্যা</Bn>
-                <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 12 }}>
-                  মোট কতটি প্রশ্ন চান?
-                </Text>
-                <DropdownSelect
-                  value={c.count ?? 200}
-                  options={countOptions}
-                  onChange={(val) => st.setConfig({ count: Number(val) })}
-                  label={c.count != null ? toBn(c.count) : '২০০'}
-                />
-              </View>
-              <View className="flex-1 p-5">
-                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>৪. সময়</Bn>
-                <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 12 }}>
-                  মোট কত মিনিট সময় থাকবে?
-                </Text>
-                <DropdownSelect
-                  value={c.minutes ?? -1}
-                  options={timeOptions}
-                  onChange={(val) => st.setConfig({ minutes: val === -1 ? null : Number(val) })}
-                  label={c.minutes != null ? `${toBn(c.minutes)} মিনিট` : 'স্বয়ংক্রিয়'}
-                />
-              </View>
-            </View>
+                    {/* Arrow indicator */}
+                    <View className="h-8 w-8 items-center justify-center rounded-full bg-black/[0.04] transition-all group-hover:bg-black group-hover:scale-105 shrink-0 mt-0.5">
+                      <ChevronRight size={17} color="rgba(0,0,0,0.4)" className="group-hover:text-white" />
+                    </View>
+                  </View>
 
-            {/* ৫. বিষয় নির্বাচন */}
-            <View className="border-b border-black/10 p-5">
-              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>৫. বিষয় নির্বাচন</Bn>
-              <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 12 }}>
-                কোন বিষয়গুলো অন্তর্ভুক্ত করতে চান? (সবগুলো বা নির্দিষ্ট বিষয়)
-              </Text>
-              <SubjectDropdown
-                subjects={subjects}
-                counts={SUBJECT_COUNT}
-                selected={c.subjects}
-                onToggle={(id) => st.toggleSubject(id)}
-                onSelectAll={() => st.setConfig({ subjects: subjects.map((s) => s.id) })}
-                onClear={() => st.setConfig({ subjects: [] })}
-              />
-            </View>
-
-            {/* ৬. প্রশ্নের ধরন */}
-            <View className="p-5">
-              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>৬. প্রশ্নের ধরন</Bn>
-              <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 14 }}>
-                প্রশ্নগুলো কীভাবে বাছাই হবে?
-              </Text>
-              <View className="flex-row items-center gap-8">
-                <RadioCircleOption
-                  label="দৈবচয়ন (Random)"
-                  selected={c.order === 'random'}
-                  onPress={() => st.setConfig({ order: 'random' })}
-                />
-                <RadioCircleOption
-                  label="ক্রম অনুযায়ী (Sequential)"
-                  selected={c.order === 'seq'}
-                  onPress={() => st.setConfig({ order: 'seq' })}
-                />
-              </View>
-            </View>
+                  {/* Highlights Strip */}
+                  <View className="mt-4 pt-3.5 border-t border-black/10 flex-row flex-wrap items-center gap-5">
+                    <View className="flex-row items-center gap-1.5">
+                      <FileText size={15} color="rgba(0,0,0,0.55)" />
+                      <Bn
+                        className="text-black font-semibold"
+                        style={{ fontFamily: FONT.uiBold, fontSize: 13 }}>
+                        {`${toBn(tier.count)}টি প্রশ্ন`}
+                      </Bn>
+                    </View>
+                    <View className="flex-row items-center gap-1.5">
+                      <Clock size={15} color="rgba(0,0,0,0.55)" />
+                      <Bn
+                        className="text-black font-semibold"
+                        style={{ fontFamily: FONT.uiBold, fontSize: 13 }}>
+                        {tier.durationLabel}
+                      </Bn>
+                    </View>
+                    <View className="flex-row items-center gap-1.5">
+                      <Zap size={15} color="#B45309" />
+                      <Bn
+                        className="text-black/75"
+                        style={{ fontFamily: FONT.uiSemi, fontSize: 12.5 }}>
+                        প্রশ্ন প্রতি সময়: ৩৬ সেকেন্ড
+                      </Bn>
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
-
-          {/* Main Submit Button */}
-          <Pressable
-            onPress={onStart}
-            className="mt-5 min-h-[52px] w-full flex-row items-center justify-center gap-2 rounded-lg bg-ink px-6 transition-opacity active:opacity-90">
-            <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 16 }}>
-              মক পরীক্ষা শুরু করুন
-            </Text>
-            <ArrowRight size={18} color="#FFFFFF" />
-          </Pressable>
         </View>
       </SidebarLayout>
     </View>
   );
 }
 
-/* ================= Runner ================= */
+/* ================= Exam Question Card (Practice Screen Style) ================= */
+const ExamQuestionCard = memo(function ExamQuestionCard({
+  q,
+  index,
+  subjectLabel,
+  picked,
+  onAnswer,
+}: {
+  q: QuestionRow;
+  index: number;
+  subjectLabel: string;
+  picked?: string;
+  onAnswer: (index: number, key: string) => void;
+}) {
+  const disabled = !q.correct_answer;
+
+  return (
+    <View
+      nativeID={`exam-q-${index}`}
+      className="overflow-hidden rounded-xl border border-black/10 bg-surface p-5 shadow-sm transition-shadow hover:shadow">
+      {/* Header */}
+      <View className="mb-3 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-2">
+          <View className="h-6 min-w-[26px] items-center justify-center rounded bg-ink px-2">
+            <Bn className="text-white font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 13 }}>
+              {toBn(index + 1)}
+            </Bn>
+          </View>
+          <Tag>{subjectLabel}</Tag>
+          {disabled ? <Tag warn>উৎসে উত্তর নেই</Tag> : null}
+        </View>
+      </View>
+
+      {/* Question text */}
+      <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, marginBottom: q.question ? 14 : 4 }}>
+        {q.question || '(ছবিতে প্রশ্ন দেখুন)'}
+      </Bn>
+
+      {/* Images */}
+      {(q.question_image_urls ?? []).map((u) => (
+        <View key={u} className="mb-4 items-center rounded-lg border border-black/10 bg-white p-3">
+          <Image source={{ uri: u }} style={{ width: '100%', height: 220 }} contentFit="contain" />
+        </View>
+      ))}
+
+      {/* Options */}
+      <View className="my-2 flex-col gap-2">
+        {OPT_KEYS.map((k) => {
+          const txt = optText(q, k);
+          if (!txt) return null;
+          const isPicked = picked === k;
+
+          let btnClass = 'border-black/15 bg-surface text-black/85 hover:border-black/35 cursor-pointer';
+          let badgeClass = 'border-black/20 bg-paper text-black/70';
+
+          if (isPicked) {
+            btnClass = 'border-[#EA0000] bg-[#EA0000]/[0.05] text-black font-semibold shadow-xs';
+            badgeClass = 'border-[#EA0000] bg-[#EA0000] text-white';
+          }
+
+          return (
+            <Pressable
+              key={k}
+              disabled={disabled}
+              onPress={() => onAnswer(index, k)}
+              className={`flex-row items-center gap-3 rounded-lg border p-3 transition-colors ${btnClass}`}>
+              <View className={`h-6 w-6 items-center justify-center rounded-full border ${badgeClass}`}>
+                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 12 }}>{k}</Bn>
+              </View>
+              <Bn className="flex-1" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
+                {txt}
+              </Bn>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+});
+
+/* ================= Runner View (Continuous List Like Practice Mode) ================= */
 function RunnerView({
   list,
   subjectName,
@@ -471,93 +619,96 @@ function RunnerView({
   onSubmit: (auto: boolean) => void;
 }) {
   const st = useExamStore();
-  const q = list[st.idx];
-  if (!q) return null;
-  const noAns = !q.correct_answer;
   const answeredCount = Object.keys(st.answers).length;
-  const marked = !!st.marked[st.idx];
 
   return (
-    <View className="gap-4">
-      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'মক পরীক্ষা', onPress: () => st.backToPicker() }, { label: 'পরীক্ষা চলছে' }]} />
-      <TimerBar
-        exam={st.config.source === 'exam' && st.config.exam ? examLabel(st.config.exam) : 'কাস্টম মক'}
-        marks={`পূর্ণমান ${toBn(list.filter((x) => x.correct_answer).length)}`}
-        remain={st.remain}
-        answered={answeredCount}
-        total={list.length}
+    <View className="gap-5">
+      <Breadcrumb
+        trail={[
+          { label: 'হোম', href: '/' },
+          { label: 'মক এক্সাম', onPress: () => st.backToPicker() },
+          { label: `পরীক্ষা চলছে (${toBn(st.config.count)} প্রশ্ন)` },
+        ]}
       />
-      <Cols min={320} weights={[2, 1]}>
-      <View className="border border-black/10 bg-surface p-5">
-        <View className="mb-3 flex-row flex-wrap items-center justify-between gap-2">
-          <View className="flex-row flex-wrap items-center gap-2">
-            <Tag>{subjectName(q.subject_id)}</Tag>
-            {noAns ? <Tag warn>উৎসে উত্তর নেই</Tag> : null}
+
+      {/* Top Header Bar with Timer, Progress & Submit */}
+      <View className="overflow-hidden rounded-xl border border-black/10 bg-ink shadow-sm">
+        <View className="flex-row flex-wrap items-center justify-between gap-3 px-5 py-3.5">
+          <View>
+            <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
+              {`মডেল টেস্ট • ${toBn(st.config.count)}টি প্রশ্ন`}
+            </Bn>
+            <Text className="text-white/70" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+              {`পূর্ণমান: ${toBn(list.filter((x) => x.correct_answer).length)} · ভুল উত্তরে −০.৫০`}
+            </Text>
           </View>
-          <Text className="text-black/50" style={{ fontFamily: FONT.digits, fontSize: 12 }}>
-            {toBn(st.idx + 1)}/{toBn(list.length)}
-          </Text>
-        </View>
-        <View className="mb-4 h-1 bg-black/10">
-          <View className="h-1 bg-ink" style={{ width: `${((st.idx + 1) / list.length) * 100}%` }} />
-        </View>
-        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 20, lineHeight: 32, marginBottom: q.question ? 12 : 0 }}>
-          {q.question || '(ছবিতে প্রশ্ন দেখুন)'}
-        </Bn>
-        {(q.question_image_urls ?? []).map((u) => (
-          <View key={u} className="mb-4 items-center border border-black/10 bg-white p-3">
-            <Image source={{ uri: u }} style={{ width: '100%', height: 240 }} contentFit="contain" />
-          </View>
-        ))}
-        <View className="gap-2.5">
-          {OPT_KEYS.map((k) => {
-            const txt = optText(q, k);
-            const disabled = noAns || !txt;
-            let state: OptState = 'idle';
-            if (st.answers[st.idx] === k) state = 'selected';
-            else if (disabled) state = 'disabled';
-            return <OptBtn key={k} k={k} text={txt} state={state} onPress={() => st.answer(st.idx, k)} />;
-          })}
-        </View>
-        <View className="mt-5 flex-row flex-wrap justify-between gap-2 border-t border-black/10 pt-5">
-          <View className="flex-row gap-2">
-            <Btn title="← আগের" disabled={st.idx === 0} onPress={() => st.goto(st.idx - 1)} />
-            <Btn title="পরের →" disabled={st.idx === list.length - 1} onPress={() => st.goto(st.idx + 1)} />
-          </View>
-          <View className="flex-row gap-2">
-            <ReviewToggle active={marked} onPress={() => st.toggleMarked(st.idx)} />
-            <Btn title="মুছুন" onPress={() => st.clear(st.idx)} />
+
+          <View className="flex-row items-center gap-4">
+            <View className="items-center">
+              <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
+                {fmtTime(st.remain)}
+              </Text>
+              <Text className="text-white/70" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
+                সময় বাকি
+              </Text>
+            </View>
+
+            <View className="h-8 w-px bg-white/20" />
+
+            <View className="items-center">
+              <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
+                {`${toBn(answeredCount)}/${toBn(list.length)}`}
+              </Text>
+              <Text className="text-white/70" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
+                উত্তর সম্পন্ন
+              </Text>
+            </View>
+
+            <Btn
+              title="জমা দিন"
+              variant="accent"
+              onPress={() => onSubmit(false)}
+            />
           </View>
         </View>
       </View>
 
-      <View className="border border-black/10 bg-surface p-5">
-        <Bn className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 14, marginBottom: 12 }}>
-          {`প্রশ্নপত্র · ${toBn(answeredCount)}/${toBn(list.length)} উত্তর`}
-        </Bn>
-        <Palette
-          total={list.length}
-          current={st.idx}
-          answered={(i) => st.answers[i] !== undefined}
-          noAnswer={(i) => !list[i].correct_answer}
-          marked={(i) => !!st.marked[i]}
-          onJump={(i) => st.goto(i)}
-        />
-        <View className="mt-4 flex-row items-center justify-between gap-2">
-          <Text className="text-accent" style={{ fontFamily: FONT.ui, fontSize: 12 }}>ভুলে −০.২৫</Text>
+      {/* All Questions Stack */}
+      <View className="gap-4">
+        {list.map((q, i) => (
+          <ExamQuestionCard
+            key={q.id}
+            q={q}
+            index={i}
+            subjectLabel={subjectName(q.subject_id)}
+            picked={st.answers[i]}
+            onAnswer={st.answer}
+          />
+        ))}
+
+        {/* Bottom Submit Banner */}
+        <View className="mt-4 rounded-xl border border-black/15 bg-surface p-6 sm:p-8 items-center shadow-xs">
+          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, marginBottom: 4 }}>
+            সবগুলো প্রশ্নের উত্তর নিশ্চিত করেছেন?
+          </Bn>
+          <Text className="text-black/60 mb-5 text-center" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
+            মোট {toBn(list.length)}টি প্রশ্নের মধ্যে {toBn(answeredCount)}টির উত্তর দেওয়া হয়েছে।
+            {answeredCount < list.length ? ` এখনও ${toBn(list.length - answeredCount)}টি বাকি।` : ''}
+          </Text>
           <Btn
-            title={`জমা দিন${answeredCount < list.length ? ` (${toBn(list.length - answeredCount)} বাকি)` : ''}`}
+            title={`মক এক্সাম জমা দিন (${toBn(answeredCount)}/${toBn(list.length)})`}
             variant="accent"
             onPress={() => onSubmit(false)}
           />
         </View>
       </View>
-      </Cols>
     </View>
   );
 }
 
-/* ================= Result ================= */
+
+
+/* ================= Result View ================= */
 function ExamResultView({
   list,
   subjectName,
@@ -574,8 +725,14 @@ function ExamResultView({
 
   return (
     <View className="gap-4">
-      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'মক পরীক্ষা', onPress: () => st.backToPicker() }, { label: 'ফলাফল' }]} />
-      <View className="items-center border border-black bg-surface p-8">
+      <Breadcrumb
+        trail={[
+          { label: 'হোম', href: '/' },
+          { label: 'মক এক্সাম', onPress: () => st.backToPicker() },
+          { label: 'ফলাফল' },
+        ]}
+      />
+      <View className="items-center border border-black bg-surface p-8 rounded-xl shadow-xs">
         <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: 40 }}>
           {`${r.score.toLocaleString('en-US')} / ${r.scorable}`}
         </Bn>
@@ -583,21 +740,24 @@ function ExamResultView({
           {`${r.label} — ফলাফল${r.auto ? ' · সময় শেষে স্বয়ংক্রিয় জমা' : ''}`}
         </Bn>
       </View>
-      <View className="flex-row flex-wrap border border-black/10 bg-surface">
+      <View className="flex-row flex-wrap border border-black/10 bg-surface rounded-xl overflow-hidden shadow-xs">
         {[
           ['সঠিক', toBn(r.right), true, false],
           ['ভুল', toBn(r.wrong), false, true],
           ['ফাঁকা', toBn(r.skipped), false, false],
-          ['নেগেটিভ', `-${toBn(r.wrong * 0.25)}`, false, true],
+          ['নেগেটিভ', `-${toBn(r.wrong * 0.5)}`, false, true],
         ].map(([l, v, good, bad]) => (
-          <View key={l as string} className="min-w-[40%] flex-1 items-center p-4">
-            <Text className={good ? 'text-ok' : bad ? 'text-accent' : ''} style={{ fontFamily: FONT.digits, fontSize: 24, fontWeight: '700' }}>
+          <View key={l as string} className="min-w-[40%] flex-1 items-center p-4 border-r border-b border-black/10">
+            <Text
+              className={good ? 'text-ok' : bad ? 'text-accent' : ''}
+              style={{ fontFamily: FONT.digits, fontSize: 24, fontWeight: '700' }}>
               {v}
             </Text>
             <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>{l}</Text>
           </View>
         ))}
       </View>
+
       <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, marginTop: 8 }}>বিষয়ভিত্তিক নির্ভুলতা</Bn>
       {Object.keys(r.bySubject).length ? (
         Object.entries(r.bySubject).map(([sid, d]) => {
@@ -608,7 +768,7 @@ function ExamResultView({
                 <Text style={{ fontFamily: FONT.ui, fontSize: 14 }}>{subjectName(parseInt(sid, 10))}</Text>
                 <Text style={{ fontFamily: FONT.digits, fontSize: 13 }}>{toBn(acc)}%</Text>
               </View>
-              <View className="h-2 bg-black/10">
+              <View className="h-2 bg-black/10 rounded-full overflow-hidden">
                 <View className="h-2 bg-accent" style={{ width: `${acc}%` }} />
               </View>
             </View>
@@ -617,6 +777,7 @@ function ExamResultView({
       ) : (
         <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 14 }}>কোনো মূল্যায়নযোগ্য উত্তর নেই।</Text>
       )}
+
       <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, marginTop: 8 }}>উত্তরপত্র পর্যালোচনা</Bn>
       {r.review.length ? (
         r.review.map((rv) => {
@@ -632,35 +793,34 @@ function ExamResultView({
               <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, marginBottom: 6 }}>
                 {q.question || '(ছবির প্রশ্ন)'}
               </Bn>
-              {(q.question_image_urls ?? []).map((u) => (
-                <View key={u} className="mb-2 border border-black/10 bg-white p-2" style={{ maxWidth: 420 }}>
-                  <Image source={{ uri: u }} style={{ width: '100%', height: 180 }} contentFit="contain" />
-                </View>
-              ))}
-              <Bn className={rv.st === 'wrong' ? 'text-accent' : 'text-ok'} style={{ fontFamily: FONT.ui, fontSize: 14, marginBottom: 2 }}>
-                {rv.st === 'skip'
-                  ? 'আপনার উত্তর: ফাঁকা রাখা হয়েছে'
-                  : `আপনার উত্তর: ${rv.pick} — ${optText(q, rv.pick ?? '')}`}
-              </Bn>
-              <Bn className="text-ok" style={{ fontFamily: FONT.ui, fontSize: 14, marginBottom: 6 }}>
-                {`সঠিক উত্তর: ${q.correct_answer} — ${optText(q, q.correct_answer ?? '')}`}
-              </Bn>
-              {!!q.solve_note || !!(q.solve_note_image_urls ?? []).length ? (
-                <Feedback
-                  kind="info"
-                  title="ব্যাখ্যা"
-                  note={q.solve_note || undefined}
-                  images={q.solve_note_image_urls}
-                />
+              {rv.pick ? (
+                <Bn className={rv.st === 'wrong' ? 'text-accent' : 'text-ok'} style={{ fontFamily: FONT.ui, fontSize: 14, marginBottom: 2 }}>
+                  {`আপনার উত্তর: ${rv.pick} — ${optText(q, rv.pick)}`}
+                </Bn>
+              ) : (
+                <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 14, marginBottom: 2 }}>
+                  উত্তর দেননি
+                </Bn>
+              )}
+              {q.correct_answer ? (
+                <Bn className="text-ok" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
+                  {`সঠিক উত্তর: ${q.correct_answer} — ${optText(q, q.correct_answer)}`}
+                </Bn>
+              ) : null}
+              {q.solve_note ? (
+                <Bn className="text-black/70" style={{ fontFamily: FONT.ui, fontSize: 13, marginTop: 4 }}>
+                  {q.solve_note}
+                </Bn>
               ) : null}
             </View>
           );
         })
       ) : (
-        <Text style={{ fontFamily: FONT.uiBold, fontSize: 16 }}>সবগুলো সঠিক — চমৎকার!</Text>
+        <Text style={{ fontFamily: FONT.uiBold, fontSize: 16 }}>সবগুলো সঠিক — অসাধারণ!</Text>
       )}
-      <View className="flex-row flex-wrap gap-2">
-        <Btn title="নতুন মক পরীক্ষা" variant="dark" onPress={onRetry} />
+
+      <View className="mt-4 flex-row flex-wrap gap-2">
+        <Btn title="আবার পরীক্ষা দিন" variant="dark" onPress={onRetry} />
       </View>
     </View>
   );

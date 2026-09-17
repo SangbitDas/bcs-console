@@ -1,11 +1,12 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
-import { AlertTriangle, ArrowRight, Bookmark, BookOpen, Check, ChevronRight, Eye, EyeOff, FileText, Filter, Settings, Target, Zap } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, ChevronRight, Clock, Eye, EyeOff, FileText, Filter, Minus, Plus, RotateCcw, Settings, Target, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
-import { ERAS, SUBJECT_COUNT, examLabel, examNum, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
+import { ERAS, SUBJECT_COUNT, calc36sMinutes, examLabel, examNum, fmtTime, formatDurationBn, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
+import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions, type AllocationResult } from '../lib/examAllocation';
 import { useLibrary, type RerunConfig } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
@@ -209,7 +210,7 @@ export function QuestionsFlashList({
 const MODE_META: Record<Exclude<PracticeMode, 'bookmarks' | 'wrong'>, { title: string; desc: string }> = {
   exam: { title: 'বিসিএস পরীক্ষা', desc: 'একটি পূর্ণ প্রশ্নপত্র বেছে অনুশীলন করুন।' },
   subject: { title: 'বিষয়ভিত্তিক অনুশীলন', desc: 'পছন্দের বিষয়গুলো নির্বাচন করে সরাসরি অনুশীলনে প্রবেশ করুন।' },
-  custom: { title: 'নিজের পরীক্ষা তৈরি করুন', desc: 'পরিসর, বিষয়, সংখ্যা ও ধরন নিজে ঠিক করুন।' },
+  custom: { title: 'কাস্টম এক্সাম তৈরি করুন', desc: 'পরিসর, বিষয়, সংখ্যা ও ধরন নিজে ঠিক করুন।' },
 };
 
 export function PracticeScreen({
@@ -217,7 +218,7 @@ export function PracticeScreen({
 }: {
   initialMode?: PracticeMode | null;
 }) {
-  const params = useLocalSearchParams<{ id?: string; subject?: string; exam?: string; mode?: string }>();
+  const params = useLocalSearchParams<{ id?: string; subject?: string; exam?: string; slug?: string; mode?: string }>();
   const s = usePracticeStore();
   const lib = useLibrary();
   const { data: subjects } = useSubjects();
@@ -248,10 +249,11 @@ export function PracticeScreen({
       return;
     }
 
-    if (params.exam) {
-      if (s.mode !== 'exam' || s.exam !== params.exam || !s.started) {
+    const examSlug = params.slug ?? params.exam;
+    if (examSlug) {
+      if (s.mode !== 'exam' || s.exam !== examSlug || !s.started) {
         s.setMode('exam');
-        s.setExam(String(params.exam));
+        s.setExam(String(examSlug));
         s.start();
       }
       return;
@@ -268,13 +270,13 @@ export function PracticeScreen({
     // 3. Sub-route mode switching or browser back navigation
     if (initialMode !== undefined && s.mode !== initialMode) {
       s.setMode(initialMode);
-    } else if (initialMode === 'exam' && s.started && !params.exam) {
+    } else if (initialMode === 'exam' && s.started && !examSlug) {
       s.backToPicker();
     } else if (initialMode === 'subject' && s.started && !rawSubId && s.subjects.length <= 1) {
       s.backToPicker();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialMode, params.id, params.subject, params.exam, params.mode]);
+  }, [initialMode, params.id, params.subject, params.exam, params.slug, params.mode]);
 
   const subjectName = useCallback(
     (id: number) => subjects?.find((x) => x.id === id)?.subject_bn ?? `বিষয় ${id}`,
@@ -296,11 +298,13 @@ export function PracticeScreen({
       };
     }
     if (s.mode === 'custom' && s.started) {
-      const slugs = s.exams.length > 0 ? s.exams : slugsInRange(s.fromN, s.toN, exams);
+      const slugs = s.exams;
       const subs = s.subjects.length ? s.subjects : undefined;
       return {
         key: `custom-${[...slugs].sort().join(',')}-${[...s.subjects].sort().join(',')}`,
-        slugs, subjectIds: subs, enabled: slugs.length > 0,
+        slugs,
+        subjectIds: subs,
+        enabled: slugs.length > 0,
       };
     }
     if (s.mode === 'bookmarks' && s.started)
@@ -313,25 +317,56 @@ export function PracticeScreen({
 
   const pool = useQuestionPool({ ...(poolArgs as { key: string; slugs?: string[]; subjectIds?: number[]; ids?: number[] }), enabled: poolArgs.enabled ?? false });
 
+  const allocationRef = useRef<AllocationResult | null>(null);
+
   const session = useMemo(() => {
     const p = pool.data ?? [];
-    const ordered =
-      s.order === 'random' && s.mode === 'custom'
-        ? shuffle(p)
-        : [...p].sort((a, b) => {
-            const ea = examNum(a.exam_slug);
-            const eb = examNum(b.exam_slug);
-            if (ea !== eb) return eb - ea; // Newest BCS exam first (50th down to 10th)
-            return a.question_number - b.question_number;
-          });
-    return s.count != null && s.mode === 'custom' ? ordered.slice(0, s.count) : ordered;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool.data, s.count, s.order, s.mode, s.runId]);
+
+    // --- Custom mode: use capacity-aware proportional allocation ---
+    if (s.mode === 'custom' && p.length > 0) {
+      const N = s.count ?? 200;
+      // Determine which subjects to allocate across
+      const selectedSubjectIds = s.subjects.length > 0 ? s.subjects : [...new Set(p.map(q => q.subject_id))];
+      // Compute available counts per subject from the pool, excluding defective questions
+      const availableCounts = computeAvailableCounts(p);
+      // Build inputs with official weights and real available counts
+      const inputs = buildSubjectInputs(selectedSubjectIds, availableCounts);
+      // Run the allocator (Hamilton + water-filling)
+      const result = allocateQuestionCounts(N, inputs);
+      allocationRef.current = result;
+      // Sample the exact allocated count per subject
+      const sampled = sampleQuestions(p, result.perSubject);
+      // Sort: newest BCS first, then by question_number within each exam
+      return sampled.sort((a, b) => {
+        const ea = examNum(a.exam_slug);
+        const eb = examNum(b.exam_slug);
+        if (ea !== eb) return eb - ea;
+        return a.question_number - b.question_number;
+      });
+    }
+
+    // --- Non-custom modes (subject, exam, bookmarks, wrong): return all questions in pool ---
+    allocationRef.current = null;
+    const ordered = [...p].sort((a, b) => {
+      const ea = examNum(a.exam_slug);
+      const eb = examNum(b.exam_slug);
+      if (ea !== eb) return eb - ea;
+      return a.question_number - b.question_number;
+    });
+    return ordered;
+  }, [pool.data, s.count, s.order, s.mode, s.runId, s.subjects]);
 
   const applyRerun = (r: RerunConfig) => {
     if (r.mode === 'bookmarks' || r.mode === 'wrong') {
       s.setMode(r.mode);
       s.start();
+      return;
+    }
+    if (r.mode === 'exam' && r.exam) {
+      s.setMode('exam');
+      s.setExam(r.exam);
+      s.start();
+      router.push(`/practice/exam/${r.exam}` as any);
       return;
     }
     s.setMode(r.mode);
@@ -352,11 +387,11 @@ export function PracticeScreen({
     if (s.mode === 'exam') return s.exam ? examLabel(s.exam) : '';
     if (s.mode === 'bookmarks') return 'বুকমার্ক';
     if (s.mode === 'wrong') return 'ভুল হওয়া প্রশ্ন';
-    const examPart = s.exams.length > 0 && exams
-      ? s.exams.length === exams.length
-        ? 'সব বিসিএস'
-        : `${toBn(s.exams.length)}টি বিসিএস`
-      : `${toBn(Math.min(s.fromN, s.toN))}–${toBn(Math.max(s.fromN, s.toN))}তম`;
+    const examPart = exams && s.exams.length === exams.length
+      ? 'সব বিসিএস'
+      : s.exams.length > 0
+        ? `${toBn(s.exams.length)}টি বিসিএস`
+        : 'কোনো পরীক্ষা নির্বাচিত নয়';
     const subs = s.subjects.length
       ? s.subjects.map((id) => subjectName(id)).join(', ')
       : 'সব বিষয়';
@@ -381,7 +416,7 @@ export function PracticeScreen({
   /* Virtualized list modes need a bounded-height container (no outer
      ScrollView) so FlashList can recycle rows instead of mounting all. */
   const isVirtualList =
-    s.started && !s.finished && (s.mode === 'exam' || s.mode === 'subject') && !pool.isPending && !pool.isError && session.length > 0;
+    s.started && !s.finished && (s.mode === 'exam' || s.mode === 'subject' || s.mode === 'custom') && !pool.isPending && !pool.isError && session.length > 0;
 
   if (isVirtualList) {
     return (
@@ -402,8 +437,10 @@ export function PracticeScreen({
               exams={exams ?? []}
               subjectIds={s.subjects}
               subjectName={subjectName}
+              mode={s.mode}
+              allocationResult={allocationRef.current}
               onFinish={finishSession}
-              onBack={() => { s.backToPicker(); router.push('/practice/subject' as any); }}
+              onBack={() => { s.backToPicker(); router.push(s.mode === 'custom' ? '/custom' as any : '/practice/subject' as any); }}
             />
           )}
         </View>
@@ -446,8 +483,16 @@ export function PracticeScreen({
             session={session}
             subjectName={subjectName}
             onRetry={() => s.start()}
-            onPicker={() => s.backToPicker()}
-            onHub={() => { s.backToHub(); router.push('/practice' as any); }}
+            onPicker={() => {
+              s.backToPicker();
+              if (s.mode === 'exam') router.push('/practice/exam' as any);
+              else if (s.mode === 'subject') router.push('/practice/subject' as any);
+              else if (s.mode === 'custom') router.push('/custom' as any);
+            }}
+            onHub={() => {
+              s.backToHub();
+              router.push(s.mode === 'custom' ? '/' as any : '/practice' as any);
+            }}
           />
         ) : pool.isPending ? (
           <View className="py-20 items-center justify-center gap-3">
@@ -475,14 +520,16 @@ export function PracticeScreen({
             onFinish={finishSession}
             onBack={() => { s.backToPicker(); router.push('/practice/exam' as any); }}
           />
-        ) : s.mode === 'subject' ? (
+        ) : s.mode === 'subject' || s.mode === 'custom' ? (
           <SubjectAllQuestionsView
             session={session}
             exams={exams ?? []}
             subjectIds={s.subjects}
             subjectName={subjectName}
+            mode={s.mode}
+            allocationResult={allocationRef.current}
             onFinish={finishSession}
-            onBack={() => { s.backToPicker(); router.push('/practice/subject' as any); }}
+            onBack={() => { s.backToPicker(); router.push(s.mode === 'custom' ? '/custom' as any : '/practice/subject' as any); }}
           />
         ) : (
           <RunnerView session={session} subjectName={subjectName} scope={scopeLabel()} onFinish={finishSession} />
@@ -568,15 +615,6 @@ function HubView({
                   <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>১০টি বিষয়</Text>
                 </View>
               </Pressable>
-              <Pressable
-                onPress={() => onMode('custom')}
-                className="min-h-[100px] flex-1 basis-[140px] justify-between rounded-xl border border-black/10 bg-surface p-4 transition-colors active:bg-black/[0.02]">
-                <Settings size={20} color="#0A0A0A" strokeWidth={1.8} />
-                <View className="mt-2">
-                  <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>নিজের পরীক্ষা</Bn>
-                  <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>তৈরি করুন</Text>
-                </View>
-              </Pressable>
             </View>
           </View>
 
@@ -648,7 +686,7 @@ function HubView({
   );
 }
 
-/* ================= Configure (Screen 3: নিজের পরীক্ষা তৈরি করুন) ================= */
+/* ================= Configure (Screen 3: Custom Exam তৈরি করুন) ================= */
 function ConfigureView({
   exams,
   subjects,
@@ -666,20 +704,10 @@ function ConfigureView({
   const meta =
     s.mode === 'exam' || s.mode === 'subject' || s.mode === 'custom' ? MODE_META[s.mode] : null;
 
-  const examGroups = ERAS.map((era) => ({
-    ...era,
-    list: exams
-      .filter((e) => {
-        const m = e.slug.match(/^(\d+)/);
-        const n = m ? parseInt(m[1], 10) : 0;
-        return n >= era.from && n <= era.to;
-      })
-      .sort((a, b) => {
-        const na = parseInt(a.slug, 10);
-        const nb = parseInt(b.slug, 10);
-        return nb - na;
-      }),
-  }));
+  const sortedExams = useMemo(() => {
+    return [...exams].sort((a, b) => examNum(b.slug) - examNum(a.slug));
+  }, [exams]);
+
 
   const examNumOptions = useMemo(() => {
     return Array.from({ length: 41 }, (_, i) => 10 + i).map((n) => ({
@@ -688,9 +716,9 @@ function ConfigureView({
     }));
   }, []);
 
-  const countOptions = [200, 150, 100, 50, 30, 20, 10].map((n) => ({
+  const countOptions = [200, 120, 80, 60, 30].map((n) => ({
     value: n,
-    label: toBn(n),
+    label: `${toBn(n)}টি প্রশ্ন`,
   }));
 
   const isCustomOrSubject = s.mode === 'custom' || s.mode === 'subject';
@@ -698,47 +726,58 @@ function ConfigureView({
   /* Sidebar for config: mode nav + summary */
   const configSidebar = (
     <View className="gap-4">
-      {/* Back to hub */}
-      <Pressable
-        onPress={() => { s.backToHub(); router.push('/practice' as any); }}
-        className="flex-row items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2.5">
-        <Text style={{ fontSize: 14 }}>←</Text>
-        <Text className="text-black/70" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-          অনুশীলন হাবে ফিরুন
-        </Text>
-      </Pressable>
+      {/* Back button */}
+      {isWide ? (
+        <Pressable
+          onPress={() => {
+            if (s.mode === 'custom') {
+              router.push('/' as any);
+            } else {
+              s.backToHub();
+              router.push('/practice' as any);
+            }
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={s.mode === 'custom' ? 'হোমে ফিরুন' : 'অনুশীলন হাবে ফিরুন'}
+          className="h-10 w-10 items-center justify-center rounded-xl bg-ink transition-all hover:bg-black/80 hover:shadow-xs active:scale-95">
+          <ArrowLeft size={18} color="#FFFFFF" strokeWidth={2.2} />
+        </Pressable>
+      ) : null}
 
       {/* Summary card */}
-      {s.mode === 'subject' ? (
+      {s.mode === 'custom' ? (
         <SummaryCard
           rows={[
-            ['মোড', 'বিষয়ভিত্তিক অনুশীলন'],
-            ['উৎস', '১০টি বিষয়'],
-            ['প্রশ্ন পরিসর', '১০ম–৫০তম বিসিএস'],
-            ['পদ্ধতি', 'যেকোনো বিষয় বেছে নিন'],
-          ]}
-        />
-      ) : s.mode === 'custom' ? (
-        <SummaryCard
-          rows={[
-            ['বিসিএস পরিসর', s.exams.length === 0 || (exams && s.exams.length === exams.length) ? 'সব বিসিএস (১০ম–৫০তম)' : `${toBn(s.exams.length)}টি বিসিএস`],
+            [
+              'বিসিএস পরিসর',
+              exams && s.exams.length === exams.length
+                ? 'সব বিসিএস (১০ম–৫০তম)'
+                : s.exams.length > 0
+                ? `${toBn(s.exams.length)}টি বিসিএস`
+                : 'কোনোটি নির্বাচিত নয়',
+            ],
             ['বিষয়', s.subjects.length ? `${toBn(s.subjects.length)}টি (নির্বাচিত)` : 'সব বিষয়'],
-            ['প্রশ্ন সংখ্যা', s.count != null ? `${toBn(s.count)}টি` : '২০০টি'],
-            ['মোড', 'নিজের পরীক্ষা'],
+            ['প্রশ্ন সংখ্যা', `${toBn(s.count ?? 200)}টি`],
+            [
+              'সময়সীমা',
+              s.isTimed
+                ? `${formatDurationBn(s.timeMinutes)}`
+                : 'সময় ছাড়া (স্বাভাবিক)',
+            ],
+            ['মোড', 'কাস্টম এক্সাম'],
           ]}
           cta="অনুশীলন শুরু করুন →"
           onCta={() => s.start()}
+          disabled={s.exams.length === 0}
         />
-      ) : s.mode === 'exam' ? (
+      ) : s.mode === 'exam' && isWide ? (
         <SummaryCard
           rows={[
-            ['বাছাই', s.exam ? examLabel(s.exam) : 'যেকোনো একটি পরীক্ষা বেছে নিন'],
-            ['প্রশ্ন', s.exam ? `${toBn(exams.find((e) => e.slug === s.exam)?.total_questions ?? 0)}টি` : '১০০–২০০টি'],
-            ['পদ্ধতি', 'সকল প্রশ্ন এক সাথে'],
+            ['মোড', 'বিসিএস পরীক্ষা'],
+            ['উৎস', '৪১টি বিসিএস পরীক্ষা'],
+            ['প্রশ্ন পরিসর', '১০ম–৫০তম বিসিএস'],
+            ['পদ্ধতি', 'যেকোনো পরীক্ষা বেছে নিন'],
           ]}
-          cta="প্রশ্নপত্র দেখুন →"
-          onCta={() => s.start()}
-          disabled={!s.exam}
         />
       ) : null}
 
@@ -748,12 +787,18 @@ function ConfigureView({
           items={
             s.mode === 'subject'
               ? [
-                  'এক বা একাধিক বিষয় বেছে নিয়ে অনুশীলনে প্রবেশ করুন।',
+                  'একটি বিষয় নির্বাচন করে অনুশীলন করুন।',
                   'ভেতরে প্রবেশের পর পাশের সাইডবার থেকে ১০ম–৫০তম বিসিএস ফিল্টার করতে পারবেন।',
                   'প্রতিটি উত্তরের সাথে বিস্তারিত ব্যাখ্যা ও ছবি দেখতে পারবেন।',
                 ]
+              : s.mode === 'exam'
+              ? [
+                  'যেকোনো বিসিএস পরীক্ষার ওপর ক্লিক করলেই সরাসরি প্রশ্নপত্রে নিয়ে যাবে।',
+                  'ভেতরে প্রবেশের পর বিষয়ভিত্তিক ফিল্টার করে চর্চা করতে পারবেন।',
+                  'প্রতিটি উত্তরের সাথে সাথে বিস্তারিত ব্যাখ্যা ও ছবি দেখা যাবে।',
+                ]
               : [
-                  'নিজের পরীক্ষায় পছন্দের যেকোনো বিষয় ও বিসিএস নির্বাচন করা যায়।',
+                  'কাস্টম এক্সাম-এ যেকোনো বিষয় এবং বিসিএস পরীক্ষা নির্বাচন করতে পারবেন।',
                   'প্রশ্নগুলো বিসিএসের সিলেবাস ও ট্যাক্সোনমি অনুযায়ী বাছাই করা হবে।',
                   'প্রতিটি উত্তরের সাথে সাথে বিস্তারিত ব্যাখ্যা ও ছবি দেখা যাবে।',
                 ]
@@ -766,14 +811,23 @@ function ConfigureView({
   return (
     <View>
       <Breadcrumb
-        trail={[
-          { label: 'হোম', href: '/' },
-          { label: 'অনুশীলন', onPress: () => { s.backToHub(); router.push('/practice' as any); } },
-          { label: meta?.title ?? '' },
-        ]}
+        trail={
+          s.mode === 'custom'
+            ? [
+                { label: 'হোম', href: '/' },
+                { label: meta?.title ?? 'কাস্টম এক্সাম তৈরি করুন' },
+              ]
+            : [
+                { label: 'হোম', href: '/' },
+                { label: 'অনুশীলন', onPress: () => { s.backToHub(); router.push('/practice' as any); } },
+                { label: meta?.title ?? '' },
+              ]
+        }
       />
 
-      <SidebarLayout sidebar={configSidebar} reverseOnMobile={true}>
+      <SidebarLayout
+        sidebar={!isWide && (s.mode === 'exam' || s.mode === 'subject') ? null : configSidebar}
+        reverseOnMobile={true}>
         {/* Main content */}
         <View>
           {/* Red accent line */}
@@ -788,37 +842,51 @@ function ConfigureView({
             {meta?.desc ?? ''}
           </Text>
 
-          {/* Exam selection mode */}
+          {/* Exam selection mode: styled like bcs porishor card without tickmarks */}
           {s.mode === 'exam' ? (
-            <View className="mb-8">
-              <Text style={{ fontFamily: FONT.uiBold, fontSize: 17, marginBottom: 12 }}>বিসিএস প্রশ্নপত্র বেছে নিন</Text>
-              {examGroups.map((g) =>
-                g.list.length ? (
-                  <View key={g.label} className="mb-6 rounded-xl border border-black/10 bg-surface p-5 shadow-sm">
-                    <Bn className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 14, marginBottom: 12 }}>
-                      {`${g.label} (${toBn(g.from)}–${toBn(g.to)}তম)`}
-                    </Bn>
-                    <View className="flex-row flex-wrap gap-2.5">
-                      {g.list.map((e) => {
-                        const active = s.exam === e.slug;
-                        return (
-                          <Chip
-                            key={e.slug}
-                            main={examLabel(e.slug)}
-                            sub={e.total_questions}
-                            active={active}
-                            onPress={() => {
-                              s.setExam(e.slug);
-                              s.start();
-                              router.push(`/practice/exam?exam=${e.slug}` as any);
-                            }}
-                          />
-                        );
-                      })}
-                    </View>
-                  </View>
-                ) : null,
-              )}
+            <View className="mb-8 rounded-xl border border-black/15 bg-surface p-5 shadow-sm">
+              {/* Header */}
+              <View className="mb-4 flex-row flex-wrap items-center justify-between gap-2">
+                <View>
+                  <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>
+                    বিসিএস প্রশ্নপত্র বেছে নিন
+                  </Bn>
+                  <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                    অনুশীলন শুরু করতে পছন্দের বিসিএস পরীক্ষায় ক্লিক করুন
+                  </Text>
+                </View>
+                <Bn className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                  {`মোট ${toBn(exams?.length ?? 41)}টি পরীক্ষা`}
+                </Bn>
+              </View>
+
+              {/* 50th down to 10th (grid of buttons like bcs porishor card without tickmark) */}
+              <View className="flex-row flex-wrap gap-2">
+                {sortedExams.map((e) => {
+                  const active = s.exam === e.slug && s.started;
+                  const n = examNum(e.slug);
+                  const label = n ? `${toBn(n)}${n === 10 ? 'ম' : 'তম'}` : e.slug;
+
+                  return (
+                    <Pressable
+                      key={e.slug}
+                      onPress={() => {
+                        s.setExam(e.slug);
+                        s.start();
+                        router.push(`/practice/exam/${e.slug}` as any);
+                      }}
+                      className={`flex-row items-center rounded-lg border px-3 py-2 transition-all hover:border-black/35 hover:shadow-xs active:scale-[0.98] ${
+                        active ? 'border-black bg-black/[0.04]' : 'border-black/15 bg-surface'
+                      }`}>
+                      <Bn
+                        className={active ? 'text-black font-semibold' : 'text-black/75'}
+                        style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 13.5 }}>
+                        {label}
+                      </Bn>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           ) : null}
 
@@ -881,113 +949,295 @@ function ConfigureView({
 
           {/* Custom Practice Builder (Full Controls) */}
           {s.mode === 'custom' ? (
-            <View className="overflow-hidden rounded-xl border border-black/15 bg-surface shadow-sm">
+            <View className="gap-4">
               {/* ১. বিসিএস পরিসর - টিক মার্ক সিস্টেম */}
-              <BcsTickPicker
-                exams={exams ?? []}
-                selected={s.exams}
-                onToggle={(slug) => s.toggleExam(slug)}
-                onSelectAll={() => exams && s.selectAllExams(exams.map((e) => e.slug))}
-                onClear={() => s.clearExams()}
-                title="১. বিসিএস পরিসর"
-                subtitle="কোন বিসিএসের প্রশ্ন অন্তর্ভুক্ত করবেন? পছন্দমতো টিক দিন।"
-              />
-
-              {/* ২. বিষয় নির্বাচন */}
-              <View className="border-b border-black/10 p-5">
-                <View className="mb-3 flex-row items-center justify-between">
-                  <View>
-                    <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>২. বিষয় নির্বাচন</Bn>
-                    <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
-                      পছন্দের বিষয়গুলো বেছে নিন
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => {
-                      if (s.subjects.length === subjects.length) {
-                        subjects.forEach((sub) => {
-                          if (s.subjects.includes(sub.id)) s.toggleSubject(sub.id);
-                        });
-                      } else {
-                        subjects.forEach((sub) => {
-                          if (!s.subjects.includes(sub.id)) s.toggleSubject(sub.id);
-                        });
-                      }
-                    }}>
-                    <Text className="text-black/70 underline" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-                      {s.subjects.length === subjects.length ? 'সব মুছুন' : 'সব নির্বাচন করুন'}
-                    </Text>
-                  </Pressable>
-                </View>
-
-                <View className="rounded-lg border border-black/10 overflow-hidden">
-                  {subjects.map((sub) => {
-                    const active = s.subjects.includes(sub.id);
-                    return (
-                      <Pressable
-                        key={sub.id}
-                        onPress={() => s.toggleSubject(sub.id)}
-                        className={`flex-row items-center justify-between border-b border-black/5 px-3.5 py-3 transition-colors ${
-                          active ? 'bg-black/[0.03]' : 'bg-surface'
-                        }`}>
-                        <View className="flex-row items-center gap-3">
-                          <View
-                            className={`h-5 w-5 items-center justify-center rounded border ${
-                              active ? 'border-black bg-ink' : 'border-black/30 bg-surface'
-                            }`}>
-                            {active ? <Check size={14} color="#FFFFFF" strokeWidth={3} /> : null}
-                          </View>
-                          <Bn
-                            className={active ? 'text-black font-semibold' : 'text-black/80'}
-                            style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 14 }}>
-                            {sub.subject_bn}
-                          </Bn>
-                        </View>
-                        <View className="flex-row items-center gap-2">
-                          <Bn className="text-black/45" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-                            {`${toBn((SUBJECT_COUNT[sub.id] ?? 0).toLocaleString('en-US'))} প্রশ্ন`}
-                          </Bn>
-                          <ChevronRight size={16} color="rgba(0,0,0,0.3)" />
-                        </View>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+              <View className="rounded-xl border border-black/15 bg-surface shadow-sm">
+                <BcsTickPicker
+                  exams={exams ?? []}
+                  selected={s.exams}
+                  onToggle={(slug) => s.toggleExam(slug)}
+                  onSelectAll={() => exams && s.selectAllExams(exams.map((e) => e.slug))}
+                  onClear={() => s.clearExams()}
+                  title="১. বিসিএস পরিসর"
+                  subtitle="কোন বিসিএসের প্রশ্ন অন্তর্ভুক্ত করবেন? পছন্দমতো টিক দিন।"
+                  noBorder={true}
+                />
               </View>
 
-              {/* ৩. প্রশ্ন সংখ্যা & ৪. প্রশ্নের ধরন */}
-              <View className="p-5 flex-row gap-4">
-                <View className="flex-1">
-                  <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>৩. প্রশ্ন সংখ্যা</Bn>
-                  <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 12 }}>
-                    মোট কতটি প্রশ্ন চান?
-                  </Text>
-                  <DropdownSelect
-                    value={s.count ?? 200}
-                    options={countOptions}
-                    onChange={(val) => s.setCount(Number(val))}
-                    label={s.count != null ? toBn(s.count) : '২০০'}
-                  />
-                </View>
+              {/* ২. বিষয় নির্বাচন (Left) & ৩. প্রশ্ন সংখ্যা (Right) side-by-side */}
+              <View
+                className={`gap-4 items-start ${isWide ? 'flex-row' : 'flex-col'}`}
+                style={{ overflow: 'visible', position: 'relative', zIndex: 40 }}>
+                {/* ২. বিষয় নির্বাচন Card (Compact Grid) */}
+                <View className="flex-1 rounded-xl border border-black/15 bg-surface p-5 shadow-sm w-full">
+                  <View className="mb-3 flex-row items-center justify-between gap-2">
+                    <View>
+                      <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>২. বিষয় নির্বাচন</Bn>
+                      <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                        পছন্দের বিষয়গুলো বেছে নিন
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => {
+                        if (s.subjects.length === subjects.length) {
+                          subjects.forEach((sub) => {
+                            if (s.subjects.includes(sub.id)) s.toggleSubject(sub.id);
+                          });
+                        } else {
+                          subjects.forEach((sub) => {
+                            if (!s.subjects.includes(sub.id)) s.toggleSubject(sub.id);
+                          });
+                        }
+                      }}>
+                      <Text className="text-black/70 underline" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                        {s.subjects.length === subjects.length ? 'সব মুছুন' : 'সব নির্বাচন করুন'}
+                      </Text>
+                    </Pressable>
+                  </View>
 
-                <View className="flex-1">
-                  <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>৪. প্রশ্নের ধরন</Bn>
-                  <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 12 }}>
-                    বাছাই পদ্ধতি
-                  </Text>
-                  <View className="flex-col gap-2 pt-1">
-                    <RadioCircleOption
-                      label="এলোমেলো (Random)"
-                      selected={s.order === 'random'}
-                      onPress={() => s.setOrder('random')}
-                    />
-                    <RadioCircleOption
-                      label="ক্রমানুযায়ী (Seq)"
-                      selected={s.order === 'seq'}
-                      onPress={() => s.setOrder('seq')}
-                    />
+                  {/* Compact Subject Grid */}
+                  <View className="flex-row flex-wrap gap-2 pt-1">
+                    {subjects.map((sub) => {
+                      const active = s.subjects.includes(sub.id);
+                      return (
+                        <Pressable
+                          key={sub.id}
+                          onPress={() => s.toggleSubject(sub.id)}
+                          className={`flex-row items-center gap-2.5 rounded-lg border px-3 py-2 transition-all hover:border-black/35 hover:shadow-xs active:scale-[0.98] ${
+                            active ? 'border-black bg-black/[0.04]' : 'border-black/15 bg-surface'
+                          }`}
+                          style={{
+                            width: 'calc(50% - 4px)' as any,
+                            minWidth: 130,
+                          }}>
+                          <View
+                            className={`h-4 w-4 items-center justify-center rounded border ${
+                              active ? 'border-black bg-ink' : 'border-black/30 bg-surface'
+                            }`}>
+                            {active ? <Check size={11} color="#FFFFFF" strokeWidth={3.5} /> : null}
+                          </View>
+                          <Bn
+                            className={active ? 'text-black font-semibold' : 'text-black/75'}
+                            style={{
+                              fontFamily: active ? FONT.uiBold : FONT.uiSemi,
+                              fontSize: 13,
+                              flexShrink: 1,
+                              lineHeight: 18,
+                            }}>
+                            {sub.subject_bn}
+                          </Bn>
+                        </Pressable>
+                      );
+                    })}
                   </View>
                 </View>
+
+                {/* Right Column: ৩. প্রশ্ন সংখ্যা & ৪. সময় নির্ধারণ */}
+                {(() => {
+                  const customCount = s.count ?? 200;
+                  const paceStations = [
+                    { paceSec: 24, label: 'দ্রুত', mins: Math.round((customCount * 24) / 60) },
+                    { paceSec: 30, label: 'মাঝারি', mins: Math.round((customCount * 30) / 60) },
+                    { paceSec: 36, label: 'আদর্শ ★', mins: Math.round((customCount * 36) / 60), isDefault: true },
+                    { paceSec: 45, label: 'শিথিল', mins: Math.round((customCount * 45) / 60) },
+                    { paceSec: 60, label: 'ধীর', mins: Math.round((customCount * 60) / 60) },
+                  ];
+
+                  return (
+                    <View
+                      className="gap-4 w-full"
+                      style={{
+                        width: isWide ? 310 : '100%',
+                        overflow: 'visible',
+                        zIndex: 60,
+                        position: 'relative',
+                      }}>
+                      {/* ৩. প্রশ্ন সংখ্যা Card */}
+                      <View
+                        className="rounded-xl border border-black/15 bg-surface p-5 shadow-sm"
+                        style={{
+                          overflow: 'visible',
+                          zIndex: 60,
+                          position: 'relative',
+                        }}>
+                        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, marginBottom: 4 }}>৩. প্রশ্ন সংখ্যা</Bn>
+                        <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginBottom: 14 }}>
+                          মোট কতটি প্রশ্ন চান?
+                        </Text>
+                        <View style={{ position: 'relative', zIndex: 50 }}>
+                          <DropdownSelect
+                            value={s.count ?? 200}
+                            options={countOptions}
+                            onChange={(val) => s.setCount(Number(val))}
+                          />
+                        </View>
+                      </View>
+
+                      {/* ৪. সময় নির্ধারণ Card (proshhno sonkghka card er niche) */}
+                      <View className="rounded-xl border border-black/15 bg-surface p-5 shadow-sm">
+                        <View className="mb-3">
+                          <View className="flex-row items-center gap-1.5 mb-1">
+                            <Clock size={16} color="#0A0A0A" />
+                            <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16 }}>৪. সময় নির্ধারণ</Bn>
+                          </View>
+                          <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12.5 }}>
+                            সময় ছাড়া বা স্লাইডারে পছন্দমতো সময়সীমা
+                          </Text>
+                        </View>
+
+                        {/* ২ বোতাম: সময় ছাড়া এবং সময়সীমা সহ */}
+                        <View className="flex-row gap-2 mb-3.5">
+                          <Pressable
+                            onPress={() => s.setIsTimed(false)}
+                            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border py-2.5 px-2 transition-all active:scale-[0.98] ${
+                              !s.isTimed
+                                ? 'border-black bg-ink shadow-xs'
+                                : 'border-black/15 bg-surface hover:border-black/30'
+                            }`}>
+                            <Text
+                              className={!s.isTimed ? 'text-white' : 'text-black/80'}
+                              style={{ fontFamily: !s.isTimed ? FONT.uiBold : FONT.uiSemi, fontSize: 12.5 }}>
+                              সময় ছাড়া
+                            </Text>
+                          </Pressable>
+
+                          <Pressable
+                            onPress={() => s.setIsTimed(true)}
+                            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border py-2.5 px-2 transition-all active:scale-[0.98] ${
+                              s.isTimed
+                                ? 'border-black bg-ink shadow-xs'
+                                : 'border-black/15 bg-surface hover:border-black/30'
+                            }`}>
+                            <Clock size={13} color={s.isTimed ? '#FFFFFF' : '#0A0A0A'} />
+                            <Text
+                              className={s.isTimed ? 'text-white' : 'text-black/80'}
+                              style={{ fontFamily: s.isTimed ? FONT.uiBold : FONT.uiSemi, fontSize: 12.5 }}>
+                              সময়সীমা সহ
+                            </Text>
+                          </Pressable>
+                        </View>
+
+                        {/* Content: If somoy shima, in a horizontal slider with checkpoint station give time */}
+                        {s.isTimed ? (
+                          <View className="gap-3 rounded-lg border border-black/10 bg-black/[0.02] p-3.5">
+                            {/* Current Selected Time Banner */}
+                            <View className="items-center py-1">
+                              <Bn style={{ fontFamily: FONT.displayBlack, fontSize: 22, color: '#0A0A0A' }}>
+                                {formatDurationBn(s.timeMinutes)}
+                              </Bn>
+                              <Text className="text-black/50 text-xs mt-0.5" style={{ fontFamily: FONT.ui }}>
+                                স্লাইডার টেনে বা স্টেশনে ক্লিক করে সময় বদলান
+                              </Text>
+                            </View>
+
+                            {/* Horizontal Slider (Web range input with smooth interaction) */}
+                            <View className="px-1 pt-1">
+                              <input
+                                type="range"
+                                min={paceStations[0].mins}
+                                max={paceStations[paceStations.length - 1].mins}
+                                step={1}
+                                value={s.timeMinutes}
+                                onChange={(e: any) => s.setTimeMinutes(Number(e.target.value))}
+                                style={{
+                                  width: '100%',
+                                  height: '6px',
+                                  borderRadius: '4px',
+                                  background: 'rgba(0,0,0,0.12)',
+                                  outline: 'none',
+                                  cursor: 'pointer',
+                                  accentColor: '#0A0A0A',
+                                }}
+                              />
+                            </View>
+
+                            {/* Checkpoint Stations Track */}
+                            <View className="flex-row items-start justify-between">
+                              {paceStations.map((st) => {
+                                const active = s.timeMinutes === st.mins;
+                                return (
+                                  <Pressable
+                                    key={st.paceSec}
+                                    onPress={() => s.setTimeMinutes(st.mins)}
+                                    className="items-center py-1 active:scale-95"
+                                    style={{ width: `${100 / paceStations.length}%` }}>
+                                    {/* Station node dot */}
+                                    <View
+                                      className={`h-3.5 w-3.5 rounded-full border-2 items-center justify-center transition-all ${
+                                        active
+                                          ? st.isDefault
+                                            ? 'border-[#EA0000] bg-[#EA0000]'
+                                            : 'border-black bg-ink'
+                                          : 'border-black/30 bg-surface'
+                                      }`}>
+                                      {active ? <View className="h-1 w-1 rounded-full bg-white" /> : null}
+                                    </View>
+
+                                    {/* Station Minutes */}
+                                    <Bn
+                                      className={`mt-1 text-[11px] ${
+                                        active ? 'text-black font-bold' : 'text-black/70 font-medium'
+                                      }`}
+                                      style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi }}>
+                                      {`${toBn(st.mins)} মি.`}
+                                    </Bn>
+
+                                    {/* Station Pace Tag */}
+                                    <Text
+                                      className={`text-[9.5px] ${
+                                        active
+                                          ? st.isDefault
+                                            ? 'text-[#EA0000] font-bold'
+                                            : 'text-black font-semibold'
+                                          : st.isDefault
+                                          ? 'text-[#EA0000] font-medium'
+                                          : 'text-black/45'
+                                      }`}
+                                      style={{ fontFamily: FONT.ui }}>
+                                      {st.label}
+                                    </Text>
+                                  </Pressable>
+                                );
+                              })}
+                            </View>
+
+                            {/* Stepper buttons to adjust time */}
+                            <View className="flex-row items-center justify-between pt-2 border-t border-black/10 gap-1.5">
+                              <Pressable
+                                onPress={() => s.setTimeMinutes(Math.max(5, s.timeMinutes - 5))}
+                                className="flex-1 flex-row items-center justify-center gap-1 rounded-md border border-black/15 bg-surface py-1.5 active:scale-95">
+                                <Minus size={12} color="#0A0A0A" />
+                                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>-৫ মি.</Text>
+                              </Pressable>
+
+                              {s.timeMinutes !== calc36sMinutes(customCount) ? (
+                                <Pressable
+                                  onPress={() => s.setTimeMinutes(calc36sMinutes(customCount))}
+                                  className="px-2.5 py-1.5 rounded-md border border-black/15 bg-surface active:scale-95"
+                                  accessibilityLabel="আদর্শ সময় রিসেট">
+                                  <RotateCcw size={12} color="#0A0A0A" />
+                                </Pressable>
+                              ) : null}
+
+                              <Pressable
+                                onPress={() => s.setTimeMinutes(s.timeMinutes + 5)}
+                                className="flex-1 flex-row items-center justify-center gap-1 rounded-md border border-black/15 bg-surface py-1.5 active:scale-95">
+                                <Plus size={12} color="#0A0A0A" />
+                                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>+৫ মি.</Text>
+                              </Pressable>
+                            </View>
+                          </View>
+                        ) : (
+                          <View className="rounded-lg border border-black/10 bg-black/[0.02] p-3.5">
+                            <Text className="text-black/60 text-xs text-center leading-5" style={{ fontFamily: FONT.ui }}>
+                              সময়সীমা ছাড়া স্বাভাবিক অনুশীলন সক্রিয়। কোনো টাইমার চলবে না, নিজের সুবিধাজনক গতিতে প্রতিটি প্রশ্ন চর্চা করতে পারবেন।
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })()}
               </View>
             </View>
           ) : null}
@@ -1446,6 +1696,8 @@ function SubjectAllQuestionsView({
   exams,
   subjectIds,
   subjectName,
+  mode,
+  allocationResult,
   onFinish,
   onBack,
 }: {
@@ -1453,6 +1705,8 @@ function SubjectAllQuestionsView({
   exams: { slug: string; total_questions?: number }[];
   subjectIds: number[];
   subjectName: (id: number) => string;
+  mode?: PracticeMode | null;
+  allocationResult?: AllocationResult | null;
   onFinish: () => void;
   onBack: () => void;
 }) {
@@ -1460,6 +1714,36 @@ function SubjectAllQuestionsView({
   const doneMap = usePracticeStore((st) => st.done);
   const right = usePracticeStore((st) => st.right);
   const wrong = usePracticeStore((st) => st.wrong);
+  const isTimed = usePracticeStore((st) => st.isTimed);
+  const timeMinutes = usePracticeStore((st) => st.timeMinutes);
+  const runId = usePracticeStore((st) => st.runId);
+
+  const activeTimed = mode === 'custom' && isTimed && (timeMinutes ?? 0) > 0;
+  const [remain, setRemain] = useState(() => (activeTimed ? timeMinutes * 60 : 0));
+  const [timeExpired, setTimeExpired] = useState(false);
+
+  useEffect(() => {
+    if (activeTimed) {
+      setRemain(timeMinutes * 60);
+      setTimeExpired(false);
+    }
+  }, [activeTimed, timeMinutes, runId]);
+
+  useEffect(() => {
+    if (!activeTimed || timeExpired) return;
+    const timer = setInterval(() => {
+      setRemain((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setTimeExpired(true);
+          onFinish();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [activeTimed, timeExpired, onFinish]);
 
   // Selected exam slugs for filtering (default: empty = all questions appear, but no tickmarks)
   const [selectedExamSlugs, setSelectedExamSlugs] = useState<string[]>([]);
@@ -1475,10 +1759,15 @@ function SubjectAllQuestionsView({
     return counts;
   }, [session]);
 
-  // Sorted exams 50th down to 10th
+  // Sorted exams 50th down to 10th (for custom mode, only include exams present in this session)
   const sortedExams = useMemo(() => {
-    return [...exams].sort((a, b) => examNum(b.slug) - examNum(a.slug));
-  }, [exams]);
+    const customList =
+      mode === 'custom'
+        ? exams.filter((e) => (examQuestionCounts[e.slug] ?? 0) > 0)
+        : [];
+    const list = customList.length > 0 ? customList : [...exams];
+    return list.sort((a, b) => examNum(b.slug) - examNum(a.slug));
+  }, [exams, examQuestionCounts, mode]);
 
   const toggleExam = (slug: string) => {
     setSelectedExamSlugs((prev) =>
@@ -1524,7 +1813,7 @@ function SubjectAllQuestionsView({
       q,
       indexLabel: toBn(base + i + 1),
       subjectLabel: subjectName(q.subject_id),
-      examBadge: `${examLabel(q.exam_slug)} বিসিএস (প্রশ্ন #${toBn(q.question_number)})`,
+      examBadge: `${examLabel(q.exam_slug)} (প্রশ্ন #${toBn(q.question_number)})`,
     }));
   }, [filteredQuestions, subjectName]);
 
@@ -1540,15 +1829,21 @@ function SubjectAllQuestionsView({
         <View className="mb-1.5 flex-row items-center gap-2">
           <View className="h-2 w-2 rounded-full bg-[#EA0000]" />
           <Text className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
-            বিষয়ভিত্তিক অনুশীলন
+            {mode === 'custom' ? 'কাস্টম অনুশীলন' : 'বিষয়ভিত্তিক অনুশীলন'}
           </Text>
         </View>
         <Bn style={{ fontFamily: FONT.displayBlack, fontSize: 18, lineHeight: 26 }}>
-          {subjectTitles.length === 1
-            ? subjectTitles[0]
-            : subjectTitles.length === 10
-              ? 'সব বিষয় (১০টি বিষয়)'
-              : `নির্বাচিত ${toBn(subjectTitles.length)}টি বিষয়`}
+          {mode === 'custom'
+            ? subjectTitles.length === 0 || subjectTitles.length === 10
+              ? 'কাস্টম অনুশীলন (সব বিষয়)'
+              : subjectTitles.length === 1
+                ? `কাস্টম অনুশীলন (${subjectTitles[0]})`
+                : `কাস্টম অনুশীলন (${toBn(subjectTitles.length)}টি বিষয়)`
+            : subjectTitles.length === 1
+              ? subjectTitles[0]
+              : subjectTitles.length === 10
+                ? 'সব বিষয় (১০টি বিষয়)'
+                : `নির্বাচিত ${toBn(subjectTitles.length)}টি বিষয়`}
         </Bn>
       </View>
 
@@ -1561,6 +1856,67 @@ function SubjectAllQuestionsView({
             {`${toBn(session.length)}টি`}
           </Bn>
         </View>
+
+        {/* Live Timer or Untimed Status in summary for custom mode */}
+        {activeTimed ? (
+          <View className={`rounded-xl p-3 items-center justify-center border ${
+            remain <= 300 ? 'border-rose-300 bg-rose-50' : 'border-black/10 bg-black/[0.03]'
+          }`}>
+            <View className="flex-row items-center gap-1.5 mb-0.5">
+              <Clock size={13} color={remain <= 300 ? '#E11D48' : '#0A0A0A'} />
+              <Text
+                className={remain <= 300 ? 'text-rose-700' : 'text-black/60'}
+                style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>
+                {remain <= 300 ? 'সময় প্রায় শেষ!' : 'অবশিষ্ট সময়'}
+              </Text>
+            </View>
+            <Text
+              style={{
+                fontFamily: FONT.displayBlack,
+                fontSize: 22,
+                color: remain <= 300 ? '#E11D48' : '#0A0A0A',
+              }}>
+              {fmtTime(remain)}
+            </Text>
+            <Text className="text-black/75 text-xs font-semibold mt-0.5" style={{ fontFamily: FONT.uiSemi }}>
+              {`${toBn(Math.ceil(remain / 60))} মিনিট বাকি`}
+            </Text>
+            <Text className="text-black/40 text-[11px] mt-0.5" style={{ fontFamily: FONT.ui }}>
+              {`মোট সময়: ${formatDurationBn(timeMinutes)}`}
+            </Text>
+          </View>
+        ) : mode === 'custom' ? (
+          <View className="flex-row items-center justify-between border-b border-black/5 pb-2.5">
+            <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+              সময়সীমা
+            </Text>
+            <Bn className="text-black/70" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
+              সময় ছাড়া (স্বাভাবিক)
+            </Bn>
+          </View>
+        ) : null}
+
+        {/* Shortfall warning in summary */}
+        {mode === 'custom' && allocationResult && allocationResult.shortfall > 0 ? (
+          <View className="flex-row items-center gap-2 rounded-md border border-amber-300/80 bg-amber-50 px-2.5 py-1.5">
+            <AlertTriangle size={13} color="#B45309" />
+            <Text style={{ fontFamily: FONT.ui, fontSize: 12, color: '#92400E', flex: 1 }}>
+              {`${toBn(allocationResult.requested)}টি চেয়েছিলেন — ${toBn(allocationResult.shortfall)}টি কম পাওয়া গেছে`}
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Allocation method indicator */}
+        {mode === 'custom' && allocationResult ? (
+          <View className="flex-row items-center justify-between border-b border-black/5 pb-2.5">
+            <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+              বণ্টন পদ্ধতি
+            </Text>
+            <Bn className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
+              সিলেবাস অনুপাত
+            </Bn>
+          </View>
+        ) : null}
 
         <View className="flex-row items-center justify-between border-b border-black/5 pb-2.5">
           <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
@@ -1601,7 +1957,7 @@ function SubjectAllQuestionsView({
           onPress={onBack}
           className="min-h-[40px] w-full items-center justify-center rounded-lg border border-black/10 bg-paper px-4 transition-colors active:bg-black/5">
           <Text className="text-black/75" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-            বিষয় পরিবর্তন করুন
+            {mode === 'custom' ? 'বাছাই পরিবর্তন করুন' : 'বিষয় পরিবর্তন করুন'}
           </Text>
         </Pressable>
       </View>
@@ -1638,7 +1994,7 @@ function SubjectAllQuestionsView({
             <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>বিসিএস ফিল্টার</Bn>
           </View>
           <Bn className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
-            ১০ম–৫০তম
+            {mode === 'custom' ? `${toBn(sortedExams.length)}টি বিসিএস` : '১০ম–৫০তম'}
           </Bn>
         </View>
         <View className="mt-2 flex-row items-center justify-between pt-1 border-t border-black/5">
@@ -1733,7 +2089,7 @@ function SubjectAllQuestionsView({
   const sidebarContent = (
     <View className="gap-3.5">
       {summaryCard}
-      {filterCard}
+      {sortedExams.length > 1 ? filterCard : null}
       {controlsCard}
     </View>
   );
@@ -1754,17 +2110,64 @@ function SubjectAllQuestionsView({
 
   const listHeader = (
     <View>
+      {/* Timed Custom Exam Live Banner */}
+      {activeTimed && (
+        <View
+          className={`mb-4 flex-row flex-wrap items-center justify-between gap-3 rounded-xl p-3.5 px-4 shadow-xs border ${
+            remain <= 300
+              ? 'bg-rose-700 border-rose-800'
+              : 'bg-ink border-black'
+          }`}>
+          <View className="flex-row items-center gap-2.5">
+            <View className="h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+              <Clock size={16} color="#FFFFFF" />
+            </View>
+            <View>
+              <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 13.5 }}>
+                কাস্টম পরীক্ষা চলছে
+              </Bn>
+              <Text className="text-white/75" style={{ fontFamily: FONT.ui, fontSize: 11.5 }}>
+                {`মোট সময়: ${formatDurationBn(timeMinutes)}`}
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row items-center gap-4">
+            <View className="items-end">
+              <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
+                {fmtTime(remain)}
+              </Text>
+              <Text className="text-white/75" style={{ fontFamily: FONT.uiSemi, fontSize: 10.5 }}>
+                {remain <= 300 ? '⚠️ সময় প্রায় শেষ!' : `${toBn(Math.ceil(remain / 60))} মিনিট বাকি`}
+              </Text>
+            </View>
+
+            <View className="h-7 w-px bg-white/20" />
+
+            <Pressable
+              onPress={onFinish}
+              className="rounded-lg bg-white px-3 py-1.5 active:opacity-90">
+              <Text className="text-black font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 12 }}>
+                জমা দিন
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       <View className="mb-3 h-1 w-10 rounded-full bg-[#EA0000]" />
       <View className="mb-6 flex-row flex-wrap items-start justify-between gap-3 border-b border-black/10 pb-4">
         <View className="flex-1 min-w-[260px]">
           <Bn style={{ fontFamily: FONT.displayBlack, fontSize: 28, lineHeight: 38, marginBottom: 4 }}>
-            {subjectTitles.length === 1
-              ? `${subjectTitles[0]} প্রশ্নভান্ডার`
-              : subjectTitles.length === 10
-                ? '১০টি বিষয়ের সমন্বিত প্রশ্নভান্ডার'
-                : `নির্বাচিত ${toBn(subjectTitles.length)}টি বিষয়ের প্রশ্নভান্ডার`}
+            {mode === 'custom'
+              ? 'কাস্টম অনুশীলন প্রশ্নপত্র'
+              : subjectTitles.length === 1
+                ? `${subjectTitles[0]} প্রশ্নভান্ডার`
+                : subjectTitles.length === 10
+                  ? '১০টি বিষয়ের সমন্বিত প্রশ্নভান্ডার'
+                  : `নির্বাচিত ${toBn(subjectTitles.length)}টি বিষয়ের প্রশ্নভান্ডার`}
           </Bn>
-          {subjectTitles.length > 1 && (
+          {(mode !== 'custom' || !allocationResult) && subjectTitles.length > 0 && subjectTitles.length < 10 && (
             <View className="mt-1.5 mb-2.5 flex-row flex-wrap gap-1.5">
               {subjectTitles.map((title) => (
                 <View
@@ -1779,12 +2182,52 @@ function SubjectAllQuestionsView({
               ))}
             </View>
           )}
-          <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
-            {`১০ম–৫০তম বিসিএস • মোট ${toBn(session.length)}টি প্রশ্ন`}
-            {selectedExamSlugs.length > 0
-              ? ` (${toBn(selectedExamSlugs.length)}টি বিসিএস ফিল্টারে ${toBn(filteredQuestions.length)}টি প্রদর্শিত)`
-              : ''}
-          </Text>
+          {mode !== 'custom' && (
+            <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
+              {`১০ম–৫০তম বিসিএস • মোট ${toBn(session.length)}টি প্রশ্ন`}
+              {selectedExamSlugs.length > 0
+                ? ` (${toBn(selectedExamSlugs.length)}টি বিসিএস ফিল্টারে ${toBn(filteredQuestions.length)}টি প্রদর্শিত)`
+                : ''}
+            </Text>
+          )}
+
+          {/* Shortfall warning for custom mode */}
+          {mode === 'custom' && allocationResult && allocationResult.shortfall > 0 ? (
+            <View className="mt-2.5 flex-row items-start gap-2.5 rounded-lg border border-amber-400/60 bg-amber-50 px-3.5 py-2.5">
+              <AlertTriangle size={16} color="#B45309" style={{ marginTop: 2 }} />
+              <View className="flex-1">
+                <Text style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#92400E' }}>
+                  {`আপনি ${toBn(allocationResult.requested)}টি প্রশ্ন চেয়েছেন, কিন্তু এই বাছাইতে সর্বোচ্চ ${toBn(allocationResult.achieved)}টি প্রশ্ন পাওয়া সম্ভব (${toBn(allocationResult.shortfall)}টি কম)`}
+                </Text>
+                {allocationResult.cappedSubjects.length > 0 ? (
+                  <Text className="mt-0.5" style={{ fontFamily: FONT.ui, fontSize: 12, color: '#A16207' }}>
+                    {`সীমিত বিষয়: ${allocationResult.cappedSubjects.map(id => subjectName(id)).join(', ')}`}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+
+          {/* Per-subject allocation breakdown for custom mode */}
+          {mode === 'custom' && allocationResult ? (
+            <View className="mt-2.5 flex-row flex-wrap gap-1.5">
+              {Object.entries(allocationResult.perSubject)
+                .filter(([, count]) => count > 0)
+                .sort(([, a], [, b]) => b - a)
+                .map(([id, count]) => (
+                  <View
+                    key={id}
+                    className="flex-row items-center gap-1 rounded-md border border-black/10 bg-black/[0.03] px-2 py-0.5">
+                    <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11, color: 'rgba(0,0,0,0.6)' }}>
+                      {subjectName(Number(id))}
+                    </Text>
+                    <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: 'rgba(0,0,0,0.8)' }}>
+                      {toBn(count)}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          ) : null}
         </View>
 
         <Pressable
@@ -1816,17 +2259,32 @@ function SubjectAllQuestionsView({
     <View style={{ flex: 1 }} onLayout={(e) => setViewportH(e.nativeEvent.layout.height)}>
       <View onLayout={(e) => setChromeH(e.nativeEvent.layout.height)}>
         <Breadcrumb
-          trail={[
-            { label: 'হোম', href: '/' },
-            { label: 'অনুশীলন', onPress: () => { backToHub(); router.push('/practice' as any); } },
-            { label: 'বিষয়ভিত্তিক অনুশীলন', onPress: onBack },
-            {
-              label:
-                subjectTitles.length === 1
-                  ? subjectTitles[0]
-                  : `${toBn(subjectTitles.length)}টি বিষয়`,
-            },
-          ]}
+          trail={
+            mode === 'custom'
+              ? [
+                  { label: 'হোম', href: '/' },
+                  { label: 'কাস্টম এক্সাম', onPress: onBack },
+                  {
+                    label:
+                      subjectTitles.length === 1
+                        ? `${subjectTitles[0]} (${toBn(session.length)}টি প্রশ্ন)`
+                        : subjectTitles.length === 0 || subjectTitles.length === 10
+                          ? `${toBn(session.length)}টি প্রশ্ন`
+                          : `${toBn(subjectTitles.length)}টি বিষয় (${toBn(session.length)}টি প্রশ্ন)`,
+                  },
+                ]
+              : [
+                  { label: 'হোম', href: '/' },
+                  { label: 'অনুশীলন', onPress: () => { backToHub(); router.push('/practice' as any); } },
+                  { label: 'বিষয়ভিত্তিক অনুশীলন', onPress: onBack },
+                  {
+                    label:
+                      subjectTitles.length === 1
+                        ? subjectTitles[0]
+                        : `${toBn(subjectTitles.length)}টি বিষয়`,
+                  },
+                ]
+          }
         />
       </View>
 
@@ -1874,41 +2332,43 @@ function SubjectAllQuestionsView({
                 </Text>
               </Pressable>
 
-              {/* Right: ফিল্টার Button */}
-              <Pressable
-                onPress={() => setMobilePanel((v) => (v === 'filter' ? null : 'filter'))}
-                accessibilityRole="button"
-                className={`flex-1 flex-row items-center justify-between rounded-xl border px-3.5 py-3 transition-all ${
-                  mobilePanel === 'filter'
-                    ? 'border-black bg-ink text-white shadow-xs'
-                    : 'border-black/10 bg-surface active:bg-black/[0.03]'
-                }`}>
-                <View className="flex-row items-center gap-2">
-                  <Filter size={15} color={mobilePanel === 'filter' ? '#FFFFFF' : '#0A0A0A'} />
-                  <Bn
-                    className={mobilePanel === 'filter' ? 'text-white font-bold' : 'text-black/90 font-semibold'}
-                    style={{ fontFamily: mobilePanel === 'filter' ? FONT.uiBold : FONT.uiSemi, fontSize: 13.5 }}>
-                    ফিল্টার
-                  </Bn>
-                  {selectedExamSlugs.length > 0 ? (
-                    <View
-                      className={`rounded-full px-1.5 py-0.5 ${
-                        mobilePanel === 'filter' ? 'bg-white/20' : 'bg-[#EA0000]/10'
-                      }`}>
-                      <Bn
-                        className={mobilePanel === 'filter' ? 'text-white' : 'text-[#EA0000]'}
-                        style={{ fontFamily: FONT.uiBold, fontSize: 11 }}>
-                        {toBn(selectedExamSlugs.length)}
-                      </Bn>
-                    </View>
-                  ) : null}
-                </View>
-                <Text
-                  className={mobilePanel === 'filter' ? 'text-white/80' : 'text-black/50'}
-                  style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-                  {mobilePanel === 'filter' ? 'লুকান ↑' : 'দেখুন ↓'}
-                </Text>
-              </Pressable>
+              {/* Right: ফিল্টার Button (only if multiple exams) */}
+              {sortedExams.length > 1 ? (
+                <Pressable
+                  onPress={() => setMobilePanel((v) => (v === 'filter' ? null : 'filter'))}
+                  accessibilityRole="button"
+                  className={`flex-1 flex-row items-center justify-between rounded-xl border px-3.5 py-3 transition-all ${
+                    mobilePanel === 'filter'
+                      ? 'border-black bg-ink text-white shadow-xs'
+                      : 'border-black/10 bg-surface active:bg-black/[0.03]'
+                  }`}>
+                  <View className="flex-row items-center gap-2">
+                    <Filter size={15} color={mobilePanel === 'filter' ? '#FFFFFF' : '#0A0A0A'} />
+                    <Bn
+                      className={mobilePanel === 'filter' ? 'text-white font-bold' : 'text-black/90 font-semibold'}
+                      style={{ fontFamily: mobilePanel === 'filter' ? FONT.uiBold : FONT.uiSemi, fontSize: 13.5 }}>
+                      ফিল্টার
+                    </Bn>
+                    {selectedExamSlugs.length > 0 ? (
+                      <View
+                        className={`rounded-full px-1.5 py-0.5 ${
+                          mobilePanel === 'filter' ? 'bg-white/20' : 'bg-[#EA0000]/10'
+                        }`}>
+                        <Bn
+                          className={mobilePanel === 'filter' ? 'text-white' : 'text-[#EA0000]'}
+                          style={{ fontFamily: FONT.uiBold, fontSize: 11 }}>
+                          {toBn(selectedExamSlugs.length)}
+                        </Bn>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text
+                    className={mobilePanel === 'filter' ? 'text-white/80' : 'text-black/50'}
+                    style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+                    {mobilePanel === 'filter' ? 'লুকান ↑' : 'দেখুন ↓'}
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
 
@@ -2085,7 +2545,21 @@ function PracticeResult({
 
   return (
     <View className="gap-4">
-      <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'অনুশীলন', onPress: () => { s.backToHub(); router.push('/practice' as any); } }, { label: 'ফলাফল' }]} />
+      <Breadcrumb
+        trail={
+          s.mode === 'custom'
+            ? [
+                { label: 'হোম', href: '/' },
+                { label: 'কাস্টম এক্সাম', onPress: () => { s.backToPicker(); router.push('/custom' as any); } },
+                { label: 'ফলাফল' },
+              ]
+            : [
+                { label: 'হোম', href: '/' },
+                { label: 'অনুশীলন', onPress: () => { s.backToHub(); router.push('/practice' as any); } },
+                { label: 'ফলাফল' },
+              ]
+        }
+      />
       <View className="items-center border border-black bg-surface p-8">
         <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: 40 }}>
           {`${toBn(s.right)} / ${toBn(total)}`}

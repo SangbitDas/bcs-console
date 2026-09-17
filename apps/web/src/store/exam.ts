@@ -1,18 +1,17 @@
 import { create } from 'zustand';
-import type { OrderKind } from './practice';
 
-export type ExamSource = 'full' | 'exam' | 'subject' | 'custom';
+export type MockPresetCount = 200 | 120 | 100 | 60;
+
+export const MOCK_PRESET_MAP: Record<MockPresetCount, { count: MockPresetCount; minutes: number }> = {
+  200: { count: 200, minutes: 120 },
+  120: { count: 120, minutes: 72 },
+  100: { count: 100, minutes: 60 },
+  60: { count: 60, minutes: 36 },
+};
 
 export interface ExamConfig {
-  source: ExamSource;
-  exam: string;
-  exams: string[];
-  fromN: number;
-  toN: number;
-  subjects: number[];
-  count: number | null;
-  minutes: number | null;
-  order: OrderKind;
+  count: MockPresetCount;
+  minutes: number;
 }
 
 export interface ExamResult {
@@ -37,11 +36,8 @@ interface ExamState {
   remain: number;
   running: boolean;
   result: ExamResult | null;
+  setPreset: (count: MockPresetCount) => void;
   setConfig: (p: Partial<ExamConfig>) => void;
-  toggleSubject: (id: number) => void;
-  toggleExam: (slug: string) => void;
-  selectAllExams: (slugs: string[]) => void;
-  clearExams: () => void;
   toggleMarked: (i: number) => void;
   begin: (poolKey: string) => void;
   ready: (minutes: number) => void;
@@ -55,15 +51,8 @@ interface ExamState {
 }
 
 const DEFAULT_CONFIG: ExamConfig = {
-  source: 'full',
-  exam: '',
-  exams: [],
-  fromN: 10,
-  toN: 50,
-  subjects: [],
   count: 200,
   minutes: 120,
-  order: 'random',
 };
 
 export const useExamStore = create<ExamState>()((set) => ({
@@ -75,29 +64,11 @@ export const useExamStore = create<ExamState>()((set) => ({
   remain: 0,
   running: false,
   result: null,
+  setPreset: (count) =>
+    set({ config: MOCK_PRESET_MAP[count] ?? MOCK_PRESET_MAP[200] }),
   setConfig: (p) => set((s) => ({ config: { ...s.config, ...p } })),
-  toggleSubject: (id) =>
-    set((s) => ({
-      config: {
-        ...s.config,
-        subjects: s.config.subjects.includes(id)
-          ? s.config.subjects.filter((x) => x !== id)
-          : [...s.config.subjects, id],
-      },
-    })),
   toggleMarked: (i) =>
     set((s) => ({ marked: { ...s.marked, [i]: !s.marked[i] } })),
-  toggleExam: (slug) =>
-    set((s) => ({
-      config: {
-        ...s.config,
-        exams: s.config.exams.includes(slug)
-          ? s.config.exams.filter((x) => x !== slug)
-          : [...s.config.exams, slug],
-      },
-    })),
-  selectAllExams: (slugs) => set((s) => ({ config: { ...s.config, exams: slugs } })),
-  clearExams: () => set((s) => ({ config: { ...s.config, exams: [] } })),
   begin: (poolKey) =>
     set({ poolKey, idx: 0, answers: {}, marked: {}, remain: 0, running: false, result: null }),
   ready: (minutes) =>

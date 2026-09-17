@@ -14,7 +14,8 @@ export function TopBar() {
   const navs = [
     { label: 'হোম', href: '/' },
     { label: 'অনুশীলন', href: '/practice' },
-    { label: 'মক পরীক্ষা', href: '/exam' },
+    { label: 'মক এক্সাম', href: '/exam' },
+    { label: 'কাস্টম এক্সাম', href: '/custom' },
     { label: 'বুকমার্ক', href: '/bookmarks' },
     { label: 'ভুল প্রশ্ন', href: '/wrong' },
   ];
@@ -117,7 +118,7 @@ export function Chip({
   return (
     <Pressable
       onPress={onPress}
-      className={`min-h-[42px] flex-row items-center rounded-full border px-4 py-2 ${
+      className={`min-h-[42px] flex-row items-center rounded-full border px-4 py-2 transition-all hover:border-black/35 hover:shadow-xs active:scale-[0.98] ${
         active ? 'border-black bg-ink' : 'border-black/10 bg-surface'
       } ${dashed ? 'border-dashed' : ''}`}>
       <Bn

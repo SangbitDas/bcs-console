@@ -16,6 +16,7 @@ import {
   Landmark,
   Layers,
   Scale,
+  SlidersHorizontal,
   Timer,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -151,7 +152,7 @@ export default function Home() {
               marginTop: 18,
               marginBottom: 32,
             }}>
-            বছরভিত্তিক বিগত প্রশ্নে অনুশীলন করুন, বিষয় ধরে ধরে দুর্বলতা কাটান, আর ঘড়ি ধরে পূর্ণাঙ্গ মক পরীক্ষা দিন।
+            বছরভিত্তিক বিগত প্রশ্নে অনুশীলন করুন, বিষয় ধরে ধরে দুর্বলতা কাটান, আর ঘড়ি ধরে পূর্ণাঙ্গ মক এক্সাম দিন।
           </Text>
 
           {/* Hero Action Buttons */}
@@ -168,7 +169,14 @@ export default function Home() {
             <Link href="/exam" asChild>
               <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-black/20 bg-surface px-8 shadow-sm transition-all hover:border-black/40 hover:bg-black/[0.02] active:scale-[0.98]">
                 <Timer size={18} color="#0A0A0A" />
-                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>মক পরীক্ষা দিন</Text>
+                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>মক এক্সাম</Text>
+                <ArrowRight size={17} color="#0A0A0A" />
+              </Pressable>
+            </Link>
+            <Link href="/custom" asChild>
+              <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-black/20 bg-surface px-8 shadow-sm transition-all hover:border-black/40 hover:bg-black/[0.02] active:scale-[0.98]">
+                <SlidersHorizontal size={18} color="#0A0A0A" />
+                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>কাস্টম এক্সাম</Text>
                 <ArrowRight size={17} color="#0A0A0A" />
               </Pressable>
             </Link>
@@ -276,7 +284,7 @@ export default function Home() {
         </View>
 
         {/* Unified Section: Preparation Modes */}
-        <SectionHead kicker="কীভাবে প্রস্তুতি নেবেন" title="প্রস্তুতির দুটি শক্তিশালী মাধ্যম।" />
+        <SectionHead kicker="কীভাবে প্রস্তুতি নেবেন" title="প্রস্তুতির তিনটি শক্তিশালী মাধ্যম।" />
         <View className="mb-14">
           <View className="flex-row flex-wrap" style={{ gap: 14 }}>
             {/* Practice Card */}
@@ -284,7 +292,7 @@ export default function Home() {
               onPress={() => router.push('/practice' as any)}
               style={
                 {
-                  width: width > 768 ? 'calc(50% - 7px)' : '100%',
+                  width: width > 990 ? 'calc(33.333% - 10px)' : width > 640 ? 'calc(50% - 7px)' : '100%',
                   minHeight: 320,
                 } as any
               }
@@ -344,7 +352,7 @@ export default function Home() {
               onPress={() => router.push('/exam')}
               style={
                 {
-                  width: width > 768 ? 'calc(50% - 7px)' : '100%',
+                  width: width > 990 ? 'calc(33.333% - 10px)' : width > 640 ? 'calc(50% - 7px)' : '100%',
                   minHeight: 320,
                 } as any
               }
@@ -372,14 +380,14 @@ export default function Home() {
                 <Text
                   className="text-black/70"
                   style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 14 }}>
-                  আসল বিসিএস পরীক্ষার মতো নির্ধারিত সময়সীমা ও কড়া নেগেティブ মার্কিংয়ের অধীনে পরীক্ষা দিন। পরীক্ষার হলের আবহাওয়ায় সময় ব্যবস্থাপনা ও বাস্তব প্রস্তুতি যাচাই করুন।
+                  আসল বিসিএস পরীক্ষার মতো নির্ধারিত সময়সীমা ও কড়া নেগেটিভ মার্কিংয়ের অধীনে পরীক্ষা দিন। পরীক্ষার হলের আবহাওয়ায় সময় ব্যবস্থাপনা ও বাস্তব প্রস্তুতি যাচাই করুন।
                 </Text>
 
                 <View className="gap-2.5">
                   {[
                     '১২০ মিনিটের কাউন্টডাউন টাইমার ও স্বয়ংক্রিয় ওএমআর জমা',
                     'ডিজিটাল ওএমআর শিট ও এক নজরে সম্পূর্ণ প্রশ্ন প্যালেট',
-                    'ভুল উত্তরের জন্য −০.২৫ নেগেティブ মার্কিং সহ নির্ভুল স্কোর বিশ্লেষণ',
+                    'ভুল উত্তরের জন্য −০.২৫ নেগেটিভ মার্কিং সহ নির্ভুল স্কোর বিশ্লেষণ',
                   ].map((feat) => (
                     <View key={feat} className="flex-row items-center gap-2.5">
                       <CheckCircle2 size={15} color="#16a34a" />
@@ -392,7 +400,67 @@ export default function Home() {
               </View>
 
               <View className="flex-row items-center justify-between border-t border-black/5 pt-4 mt-6">
-                <Text style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>মক পরীক্ষা শুরু করুন</Text>
+                <Text style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>মক এক্সাম শুরু করুন</Text>
+                <View className="h-8 w-8 items-center justify-center rounded-full bg-ink">
+                  <ArrowRight size={15} color="#fff" />
+                </View>
+              </View>
+            </Pressable>
+
+            {/* Custom Exam Card */}
+            <Pressable
+              onPress={() => router.push('/custom' as any)}
+              style={
+                {
+                  width: width > 990 ? 'calc(33.333% - 10px)' : width > 640 ? 'calc(50% - 7px)' : '100%',
+                  minHeight: 320,
+                } as any
+              }
+              className="justify-between rounded-2xl border border-black/10 bg-surface p-6 sm:p-7 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:scale-[0.99]">
+              <View>
+                <View className="mb-5 flex-row items-center justify-between">
+                  <View className="h-12 w-12 items-center justify-center rounded-xl bg-black/[0.04]">
+                    <SlidersHorizontal size={24} color="#0A0A0A" />
+                  </View>
+                  <View className="rounded-full bg-black/[0.04] px-3 py-1">
+                    <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
+                      কাস্টমাইজড · পূর্ণ স্বাধীনতা
+                    </Text>
+                  </View>
+                </View>
+
+                <Text
+                  className="text-black/50"
+                  style={{ fontFamily: FONT.uiSemi, fontSize: 11, marginBottom: 6 }}>
+                  CUSTOM EXAM · কাস্টম এক্সাম
+                </Text>
+                <Text style={{ fontFamily: FONT.display, fontSize: 21, lineHeight: 29, marginBottom: 8 }}>
+                  পছন্দমতো বিষয় ও প্রশ্ন সেট তৈরি করুন
+                </Text>
+                <Text
+                  className="text-black/70"
+                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 14 }}>
+                  পছন্দের বিসিএস ব্যাপ্তি (১০ম–৫০তম), নির্দিষ্ট বিষয় এবং প্রশ্নের সংখ্যা বেছে নিয়ে সম্পূর্ণ নিজস্ব আঙ্গিকে পরীক্ষা সাজিয়ে নিন।
+                </Text>
+
+                <View className="gap-2.5">
+                  {[
+                    '১০ম–৫০তম বিসিএস ব্যাপ্তি ও একাধিক বিষয়ের স্বাধীন নির্বাচন',
+                    '২০০, ১২০, ৮০, ৬০ বা ৩০টি প্রশ্নের আনুপাতিক বা স্বনির্ধারিত সেট',
+                    'স্বয়ংক্রিয় প্রশ্ন বণ্টন ও তাৎক্ষণিক ফলাফল পর্যালোচনা',
+                  ].map((feat) => (
+                    <View key={feat} className="flex-row items-center gap-2.5">
+                      <CheckCircle2 size={15} color="#16a34a" />
+                      <Text className="text-black/80 flex-1" style={{ fontFamily: FONT.ui, fontSize: 13, lineHeight: 19 }}>
+                        {feat}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              <View className="flex-row items-center justify-between border-t border-black/5 pt-4 mt-6">
+                <Text style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>কাস্টম এক্সাম তৈরি করুন</Text>
                 <View className="h-8 w-8 items-center justify-center rounded-full bg-ink">
                   <ArrowRight size={15} color="#fff" />
                 </View>

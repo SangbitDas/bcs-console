@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { calc36sMinutes } from '../lib/format';
 
 export type PracticeMode = 'exam' | 'subject' | 'custom' | 'bookmarks' | 'wrong';
 export type OrderKind = 'seq' | 'random';
@@ -18,6 +19,8 @@ interface PracticeState {
   toN: number;
   count: number | null;
   order: OrderKind;
+  isTimed: boolean;
+  timeMinutes: number;
   started: boolean;
   finished: boolean;
   runId: number;
@@ -36,6 +39,8 @@ interface PracticeState {
   setRange: (from: number, to: number) => void;
   setCount: (c: number | null) => void;
   setOrder: (o: OrderKind) => void;
+  setIsTimed: (timed: boolean) => void;
+  setTimeMinutes: (mins: number) => void;
   start: () => void;
   answer: (qid: number, pick: string, ok: boolean) => void;
   reveal: (qid: number) => void;
@@ -55,6 +60,8 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   toN: 50,
   count: null,
   order: 'seq',
+  isTimed: true,
+  timeMinutes: 120,
   started: false,
   finished: false,
   runId: 0,
@@ -79,8 +86,10 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
     })),
   setSubjects: (subjects) => set({ subjects }),
   setRange: (fromN, toN) => set({ fromN, toN }),
-  setCount: (count) => set({ count }),
+  setCount: (count) => set({ count, timeMinutes: calc36sMinutes(count ?? 200) }),
   setOrder: (order) => set({ order }),
+  setIsTimed: (isTimed) => set({ isTimed }),
+  setTimeMinutes: (timeMinutes) => set({ timeMinutes: Math.max(1, timeMinutes) }),
   start: () =>
     set((s) => ({ started: true, finished: false, idx: 0, right: 0, wrong: 0, done: {}, runId: s.runId + 1 })),
   answer: (qid, pick, ok) =>

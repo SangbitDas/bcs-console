@@ -15,6 +15,22 @@ export const examLabel = (slug: string): string => {
 export const examMinutes = (totalMarks: number | null, qLen: number): number =>
   Math.max(10, Math.round((totalMarks || qLen || 100) * 0.6));
 
+/** 36 seconds per question in whole minutes: Math.round((count * 36) / 60) */
+export const calc36sMinutes = (count: number): number =>
+  Math.max(1, Math.round((count * 36) / 60));
+
+/** Format minutes into clean Bengali duration: e.g. "১২০ মিনিট (২ ঘণ্টা)", "৭২ মিনিট (১ ঘণ্টা ১২ মি.)", "৩৬ মিনিট" */
+export const formatDurationBn = (mins: number): string => {
+  if (mins >= 60) {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const hourPart = `${toBn(h)} ঘণ্টা`;
+    const minPart = m > 0 ? ` ${toBn(m)} মি.` : '';
+    return `${toBn(mins)} মিনিট (${hourPart}${minPart})`;
+  }
+  return `${toBn(mins)} মিনিট`;
+};
+
 export const optText = (q: QuestionRow, k: string): string =>
   (q as unknown as Record<string, string>)['option_' + k.toLowerCase()] ?? '';
 

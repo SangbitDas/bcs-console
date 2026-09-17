@@ -50,8 +50,15 @@ export default function RootLayout() {
         <Tabs.Screen
           name="exam"
           options={{
-            title: 'পরীক্ষা',
+            title: 'মক এক্সাম',
             tabBarIcon: ({ color }) => <MaterialIcons name="timer" size={22} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="custom"
+          options={{
+            title: 'কাস্টম এক্সাম',
+            tabBarIcon: ({ color }) => <MaterialIcons name="tune" size={22} color={color} />,
           }}
         />
         <Tabs.Screen

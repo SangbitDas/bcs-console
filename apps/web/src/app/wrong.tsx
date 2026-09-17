@@ -121,7 +121,7 @@ export default function WrongQuestionsScreen() {
               কোনো ভুল প্রশ্ন সংরক্ষিত নেই
             </Text>
             <Text className="max-w-md text-center text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 20 }}>
-              অনুশীলন বা মক পরীক্ষা সম্পন্ন করার সময় যে প্রশ্নগুলোর উত্তর ভুল হবে, তা স্বয়ংক্রিয়ভাবে এখানে জমা থাকবে যাতে পরে চর্চা করতে পারেন।
+              অনুশীলন বা মক এক্সাম সম্পন্ন করার সময় যে প্রশ্নগুলোর উত্তর ভুল হবে, তা স্বয়ংক্রিয়ভাবে এখানে জমা থাকবে যাতে পরে চর্চা করতে পারেন।
             </Text>
             <Pressable
               onPress={() => router.push('/practice' as any)}
