@@ -403,11 +403,14 @@ export function PracticeScreen({
       .filter(([, d]) => !d.ok && !d.reveal && d.pick)
       .map(([qid]) => parseInt(qid, 10));
     if (wrongIds.length) lib.addWrong(wrongIds);
+    const customScore = s.mode === 'custom' ? s.right - s.wrong * 0.5 : undefined;
     lib.pushRecent({
       kind: 'practice',
       label: scopeLabel(),
       total: session.length,
       right: s.right,
+      wrong: s.wrong,
+      score: customScore,
       rerun: { mode: s.mode as RerunConfig['mode'], exam: s.exam, subjects: s.subjects, fromN: s.fromN, toN: s.toN, count: s.count, order: s.order },
     });
     s.finish();
@@ -640,10 +643,18 @@ function HubView({
                   <RecentPracticeRow
                     key={r.id}
                     title={r.label}
-                    sub="অনুশীলন"
-                    scoreText={`${toBn(r.right)} / ${toBn(r.total)}`}
-                    pctText={`${toBn(Math.round((r.right / Math.max(1, r.total)) * 100))}% সম্পন্ন`}
-                    pct={(r.right / Math.max(1, r.total)) * 100}
+                    sub={r.score !== undefined ? 'কাস্টম এক্সাম' : 'অনুশীলন'}
+                    scoreText={
+                      r.score !== undefined
+                        ? `${toBn(r.score % 1 === 0 ? r.score : r.score.toFixed(1))} / ${toBn(r.total)}`
+                        : `${toBn(r.right)} / ${toBn(r.total)}`
+                    }
+                    pctText={
+                      r.score !== undefined
+                        ? `${toBn(Math.max(0, Math.round((r.score / Math.max(1, r.total)) * 100)))}% স্কোর`
+                        : `${toBn(Math.round((r.right / Math.max(1, r.total)) * 100))}% সম্পন্ন`
+                    }
+                    pct={r.score !== undefined ? Math.max(0, (r.score / Math.max(1, r.total)) * 100) : (r.right / Math.max(1, r.total)) * 100}
                     onPress={() => r.rerun && onRerun(r.rerun)}
                   />
                 ))
@@ -764,6 +775,7 @@ function ConfigureView({
                 ? `${formatDurationBn(s.timeMinutes)}`
                 : 'সময় ছাড়া (স্বাভাবিক)',
             ],
+            ['মার্কিং সিস্টেম', 'সঠিক: +১.০০ · ভুল: −০.৫০'],
             ['মোড', 'কাস্টম এক্সাম'],
           ]}
           cta="অনুশীলন শুরু করুন →"
@@ -799,8 +811,9 @@ function ConfigureView({
                 ]
               : [
                   'কাস্টম এক্সাম-এ যেকোনো বিষয় এবং বিসিএস পরীক্ষা নির্বাচন করতে পারবেন।',
+                  'মার্কিং সিস্টেম: প্রতিটি সঠিক উত্তরের জন্য +১.০০ এবং ভুল উত্তরের জন্য −০.৫০ নম্বর কাটা যাবে।',
                   'প্রশ্নগুলো বিসিএসের সিলেবাস ও ট্যাক্সোনমি অনুযায়ী বাছাই করা হবে।',
-                  'প্রতিটি উত্তরের সাথে সাথে বিস্তারিত ব্যাখ্যা ও ছবি দেখা যাবে।',
+                  'প্রতিটি উত্তরের সাথে বিস্তারিত ব্যাখ্যা ও সমাধান দেখতে পারবেন।',
                 ]
           }
         />
@@ -2124,10 +2137,10 @@ function SubjectAllQuestionsView({
             </View>
             <View>
               <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 13.5 }}>
-                কাস্টম পরীক্ষা চলছে
+                কাস্টম এক্সাম চলছে
               </Bn>
               <Text className="text-white/75" style={{ fontFamily: FONT.ui, fontSize: 11.5 }}>
-                {`মোট সময়: ${formatDurationBn(timeMinutes)}`}
+                {`মোট সময়: ${formatDurationBn(timeMinutes)} · সঠিক: +১.০০ · ভুল: −০.৫০`}
               </Text>
             </View>
           </View>
@@ -2160,13 +2173,18 @@ function SubjectAllQuestionsView({
         <View className="flex-1 min-w-[260px]">
           <Bn style={{ fontFamily: FONT.displayBlack, fontSize: 28, lineHeight: 38, marginBottom: 4 }}>
             {mode === 'custom'
-              ? 'কাস্টম অনুশীলন প্রশ্নপত্র'
+              ? 'কাস্টম এক্সাম প্রশ্নপত্র'
               : subjectTitles.length === 1
                 ? `${subjectTitles[0]} প্রশ্নভান্ডার`
                 : subjectTitles.length === 10
                   ? '১০টি বিষয়ের সমন্বিত প্রশ্নভান্ডার'
                   : `নির্বাচিত ${toBn(subjectTitles.length)}টি বিষয়ের প্রশ্নভান্ডার`}
           </Bn>
+          {mode === 'custom' && (
+            <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13.5, marginTop: 2, marginBottom: 4 }}>
+              {`পূর্ণমান: ${toBn(session.length)} · সঠিক: +১.০০ · ভুল: −০.৫০ নম্বর`}
+            </Text>
+          )}
           {(mode !== 'custom' || !allocationResult) && subjectTitles.length > 0 && subjectTitles.length < 10 && (
             <View className="mt-1.5 mb-2.5 flex-row flex-wrap gap-1.5">
               {subjectTitles.map((title) => (
@@ -2538,6 +2556,9 @@ function PracticeResult({
   const total = session.length;
   const attempted = Object.keys(s.done).length;
   const acc = attempted ? Math.round((s.right / attempted) * 100) : 0;
+  const netScore = s.right - s.wrong * 0.5;
+  const netScoreStr = netScore % 1 === 0 ? `${netScore}` : netScore.toFixed(1);
+  const selectedSubjectIds = Array.from(new Set(session.map((q) => q.subject_id)));
   const wrongList = session.filter((q) => {
     const d = s.done[q.id];
     return d && !d.ok && d.pick && q.correct_answer;
@@ -2560,21 +2581,31 @@ function PracticeResult({
               ]
         }
       />
-      <View className="items-center border border-black bg-surface p-8">
+      <View className="items-center border border-black bg-surface p-8 rounded-xl shadow-xs">
         <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: 40 }}>
-          {`${toBn(s.right)} / ${toBn(total)}`}
+          {s.mode === 'custom' ? `${toBn(netScoreStr)} / ${toBn(total)}` : `${toBn(s.right)} / ${toBn(total)}`}
         </Bn>
         <Bn className="text-black/70" style={{ fontFamily: FONT.ui, fontSize: 14, marginTop: 6 }}>
-          {`নির্ভুলতা ${toBn(acc)}% · ${toBn(attempted)}টির উত্তর দিয়েছেন`}
+          {s.mode === 'custom'
+            ? `প্রাপ্ত স্কোর (সঠিক: +১.০০ · ভুল: −০.৫০) · নির্ভুলতা ${toBn(acc)}%`
+            : `নির্ভুলতা ${toBn(acc)}% · ${toBn(attempted)}টির উত্তর দিয়েছেন`}
         </Bn>
       </View>
-      <View className="flex-row flex-wrap border border-black/10 bg-surface">
-        {[
-          ['সঠিক', toBn(s.right), true, false],
-          ['ভুল', toBn(s.wrong), false, true],
-          ['দেখা হয়নি', toBn(total - attempted), false, false],
-        ].map(([l, v, good, bad]) => (
-          <View key={l as string} className="min-w-[30%] flex-1 items-center p-4">
+      <View className="flex-row flex-wrap border border-black/10 bg-surface rounded-xl overflow-hidden shadow-xs">
+        {(s.mode === 'custom'
+          ? [
+              ['সঠিক', `+${toBn(s.right)}`, true, false],
+              ['ভুল', `-${toBn(s.wrong)}`, false, true],
+              ['নেগেটিভ মার্ক', `-${toBn(s.wrong * 0.5)}`, false, true],
+              ['উত্তরহীন', toBn(total - attempted), false, false],
+            ]
+          : [
+              ['সঠিক', toBn(s.right), true, false],
+              ['ভুল', toBn(s.wrong), false, true],
+              ['দেখা হয়নি', toBn(total - attempted), false, false],
+            ]
+        ).map(([l, v, good, bad]) => (
+          <View key={l as string} className="min-w-[24%] flex-1 items-center p-4 border-r border-black/10 last:border-r-0">
             <Text className={good ? 'text-ok' : bad ? 'text-accent' : ''} style={{ fontFamily: FONT.digits, fontSize: 24, fontWeight: '700' }}>
               {v}
             </Text>
@@ -2582,6 +2613,43 @@ function PracticeResult({
           </View>
         ))}
       </View>
+
+      {/* Subject-wise breakdown for custom mode with multiple subjects */}
+      {s.mode === 'custom' && selectedSubjectIds.length > 1 ? (
+        <View className="mt-2">
+          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, marginBottom: 8 }}>বিষয়ভিত্তিক স্কোর ও নির্ভুলতা</Bn>
+          <View className="rounded-xl border border-black/10 bg-surface p-4 shadow-xs">
+            {selectedSubjectIds.map((sid) => {
+              const qList = session.filter((q) => q.subject_id === sid);
+              if (!qList.length) return null;
+              const rCount = qList.filter((q) => s.done[q.id]?.ok).length;
+              const wCount = qList.filter((q) => s.done[q.id]?.pick && !s.done[q.id]?.ok).length;
+              const subScore = rCount - wCount * 0.5;
+              const subScoreStr = subScore % 1 === 0 ? `${subScore}` : subScore.toFixed(1);
+              const subAttempted = rCount + wCount;
+              const subAcc = subAttempted ? Math.round((rCount / subAttempted) * 100) : 0;
+              return (
+                <View key={sid} className="border-b border-black/5 py-2.5 last:border-b-0">
+                  <View className="mb-1 flex-row items-center justify-between">
+                    <Text style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>{subjectName(sid)}</Text>
+                    <Text style={{ fontFamily: FONT.digits, fontSize: 13, color: '#0A0A0A' }}>
+                      {`স্কোর: ${toBn(subScoreStr)} / ${toBn(qList.length)}`}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+                      {`সঠিক: ${toBn(rCount)} · ভুল: ${toBn(wCount)} · উত্তরহীন: ${toBn(qList.length - subAttempted)}`}
+                    </Text>
+                    <Text className="text-black/60" style={{ fontFamily: FONT.digits, fontSize: 12 }}>
+                      {`নির্ভুলতা ${toBn(subAcc)}%`}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
       {wrongList.length ? (
         <View>
           <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, marginBottom: 8 }}>{`ভুল হওয়া প্রশ্ন (${toBn(wrongList.length)})`}</Bn>

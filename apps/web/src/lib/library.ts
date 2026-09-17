@@ -30,6 +30,8 @@ export interface RecentSession {
   label: string;
   total: number;
   right: number;
+  wrong?: number;
+  score?: number;
   at: number;
   rerun?: RerunConfig;
   mockRerun?: MockRerunConfig;
