@@ -66,7 +66,7 @@ export default function WrongQuestionsScreen() {
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={true}>
       <View className="mx-auto w-full max-w-[1000px] px-5 py-8">
-        <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'ভুল প্রশ্ন' }]} />
+        <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'ভুলসমূহ' }]} />
 
         {/* Header section */}
         <View className="mb-6 border-b border-black/10 pb-6">
@@ -74,7 +74,7 @@ export default function WrongQuestionsScreen() {
           <View className="flex-row flex-wrap items-center justify-between gap-4">
             <View>
               <Text style={{ fontFamily: FONT.displayBlack, fontSize: 26, lineHeight: 34 }}>
-                ভুল হওয়া প্রশ্ন
+                ভুলসমূহ
               </Text>
               <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, marginTop: 4 }}>
                 অনুশীলন ও পরীক্ষায় ভুল উত্তর দেওয়া প্রশ্নগুলো পুনরায় সমাধান করে দুর্বলতা কাটিয়ে উঠুন।
@@ -118,7 +118,7 @@ export default function WrongQuestionsScreen() {
               <CheckCircle2 size={32} color="#059669" />
             </View>
             <Text style={{ fontFamily: FONT.uiBold, fontSize: 18, marginBottom: 6 }}>
-              কোনো ভুল প্রশ্ন সংরক্ষিত নেই
+              কোনো ভুল সংরক্ষিত নেই
             </Text>
             <Text className="max-w-md text-center text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 20 }}>
               অনুশীলন বা মক এক্সাম সম্পন্ন করার সময় যে প্রশ্নগুলোর উত্তর ভুল হবে, তা স্বয়ংক্রিয়ভাবে এখানে জমা থাকবে যাতে পরে চর্চা করতে পারেন।
@@ -137,7 +137,7 @@ export default function WrongQuestionsScreen() {
           <View className="py-20 items-center justify-center gap-3">
             <ActivityIndicator size="small" color="#0A0A0A" />
             <Text className="text-black/60" style={{ fontFamily: FONT.uiMed, fontSize: 14 }}>
-              ভুল প্রশ্নসমূহ আনা হচ্ছে…
+              ভুলসমূহ আনা হচ্ছে…
             </Text>
           </View>
         ) : (

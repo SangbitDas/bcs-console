@@ -17,7 +17,7 @@ export function TopBar() {
     { label: 'মক এক্সাম', href: '/exam' },
     { label: 'কাস্টম এক্সাম', href: '/custom' },
     { label: 'বুকমার্ক', href: '/bookmarks' },
-    { label: 'ভুল প্রশ্ন', href: '/wrong' },
+    { label: 'ভুলসমূহ', href: '/wrong' },
   ];
 
   return (

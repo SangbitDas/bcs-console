@@ -386,7 +386,7 @@ export function PracticeScreen({
   const scopeLabel = () => {
     if (s.mode === 'exam') return s.exam ? examLabel(s.exam) : '';
     if (s.mode === 'bookmarks') return 'বুকমার্ক';
-    if (s.mode === 'wrong') return 'ভুল হওয়া প্রশ্ন';
+    if (s.mode === 'wrong') return 'ভুলসমূহ';
     const examPart = exams && s.exams.length === exams.length
       ? 'সব বিসিএস'
       : s.exams.length > 0

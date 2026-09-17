@@ -73,7 +73,7 @@ export default function RootLayout() {
         <Tabs.Screen
           name="wrong"
           options={{
-            title: 'ভুল প্রশ্ন',
+            title: 'ভুলসমূহ',
             tabBarBadge: lib.wrongIds.length > 0 ? toBn(lib.wrongIds.length) : undefined,
             tabBarBadgeStyle: { backgroundColor: '#EA0000', fontSize: 10, fontFamily: FONT.digits },
             tabBarIcon: ({ color }) => <MaterialIcons name="error-outline" size={22} color={color} />,
