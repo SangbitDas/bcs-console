@@ -2557,129 +2557,119 @@ function WrongQuestionCard({
   const [showNote, setShowNote] = useState(true);
   const exam = examLabel(q.exam_slug);
   const qNum = toBn(q.question_number);
-  const userPickText = optText(q, userPick ?? '');
-  const correctText = optText(q, q.correct_answer ?? '');
 
   return (
-    <View className="mb-4 overflow-hidden rounded-2xl border border-black/10 bg-surface shadow-xs transition-shadow hover:shadow-sm">
+    <View className="mb-4 overflow-hidden rounded-xl border border-black/10 bg-surface p-5 sm:p-6 shadow-xs">
       {/* Card Top Header */}
-      <View className="flex-row items-center justify-between border-b border-black/5 bg-black/[0.015] px-4 sm:px-5 py-3">
+      <View className="mb-3 flex-row items-center justify-between">
         <View className="flex-row flex-wrap items-center gap-2">
-          <View className="h-6 items-center justify-center rounded-md bg-rose-600 px-2.5 shadow-xs">
-            <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 11.5 }}>
-              {`ভুল #${toBn(index + 1)}`}
+          <View className="h-6 min-w-[26px] items-center justify-center rounded bg-ink px-2">
+            <Bn className="text-white font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 12 }}>
+              {toBn(index + 1)}
             </Bn>
           </View>
-          <View className="rounded-md border border-black/10 bg-white px-2.5 py-0.5 shadow-xs">
-            <Text className="text-black/80 font-medium" style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>
-              {subjectName}
-            </Text>
-          </View>
-          <View className="rounded-md border border-black/10 bg-white px-2.5 py-0.5 shadow-xs">
-            <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>
-              {`${exam} · প্রশ্ন ${qNum}`}
-            </Text>
-          </View>
+          <Tag warn>ভুল উত্তর</Tag>
+          <Tag>{subjectName}</Tag>
+          <Tag>{`${exam} · প্রশ্ন ${qNum}`}</Tag>
         </View>
 
         <BookmarkBtn active={bookmarked} onPress={onToggleBookmark} />
       </View>
 
-      <View className="p-4 sm:p-5">
-        {/* Question Text */}
-        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16.5, lineHeight: 26, marginBottom: q.question ? 12 : 4, color: '#0A0A0A' }}>
-          {q.question || '(ছবিতে প্রশ্ন দেখুন)'}
-        </Bn>
+      {/* Question Text */}
+      <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, color: '#0A0A0A', marginBottom: q.question ? 14 : 4 }}>
+        {q.question || '(ছবিতে প্রশ্ন দেখুন)'}
+      </Bn>
 
-        {/* Question Images */}
-        {(q.question_image_urls ?? []).map((u) => (
-          <View key={u} className="mb-4 items-center rounded-xl border border-black/10 bg-white p-3">
-            <Image source={{ uri: u }} style={{ width: '100%', height: 220 }} contentFit="contain" />
-          </View>
-        ))}
+      {/* Question Images */}
+      {(q.question_image_urls ?? []).map((u) => (
+        <View key={u} className="mb-4 items-center rounded-lg border border-black/10 bg-white p-3">
+          <Image source={{ uri: u }} style={{ width: '100%', height: 220 }} contentFit="contain" />
+        </View>
+      ))}
 
-        {/* Comparative Answers Grid */}
-        <View className="my-2 gap-2.5">
-          {/* Your Wrong Pick */}
-          <View className="flex-row items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/60 p-3.5">
-            <View className="h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-600 mt-0.5 shadow-xs">
-              <X size={13} color="#FFFFFF" strokeWidth={3} />
-            </View>
-            <View className="flex-1 min-w-0">
-              <View className="flex-row items-center gap-2 mb-1">
-                <Text className="text-rose-700 font-bold tracking-wide" style={{ fontFamily: FONT.uiBold, fontSize: 11.5 }}>
-                  আপনার উত্তর
-                </Text>
-                <View className="h-4 min-w-[20px] px-1.5 rounded bg-rose-200/90 items-center justify-center">
-                  <Text className="text-rose-950 font-bold" style={{ fontFamily: FONT.digitsBold, fontSize: 11 }}>
-                    {userPick || '—'}
-                  </Text>
-                </View>
-              </View>
-              <Bn className="text-rose-950 font-medium" style={{ fontFamily: FONT.ui, fontSize: 14.5, lineHeight: 22 }}>
-                {userPickText ? `${userPick} — ${userPickText}` : (userPick || 'কোনো উত্তর রেকর্ড হয়নি')}
-              </Bn>
-            </View>
-          </View>
+      {/* Question Options in Clean Native Style */}
+      <View className="my-2 flex-col gap-2">
+        {OPT_KEYS.map((k) => {
+          const txt = optText(q, k);
+          if (!txt) return null;
+          const isPicked = userPick === k;
+          const isCorrect = q.correct_answer === k;
 
-          {/* Correct Answer */}
-          <View className="flex-row items-start gap-3 rounded-xl border border-emerald-300 bg-emerald-50/70 p-3.5">
-            <View className="h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 mt-0.5 shadow-xs">
-              <Check size={13} color="#FFFFFF" strokeWidth={3} />
-            </View>
-            <View className="flex-1 min-w-0">
-              <View className="flex-row items-center gap-2 mb-1">
-                <Text className="text-emerald-800 font-bold tracking-wide" style={{ fontFamily: FONT.uiBold, fontSize: 11.5 }}>
+          let btnClass = 'border-black/10 bg-surface text-black/50 opacity-60';
+          let badgeClass = 'border-black/15 bg-paper text-black/50';
+          let statusTag: React.ReactNode = null;
+
+          if (isCorrect) {
+            btnClass = 'border-ok bg-ok/5 text-black font-semibold';
+            badgeClass = 'border-ok bg-ok text-white';
+            statusTag = (
+              <View className="flex-row items-center gap-1 rounded bg-ok/10 px-2 py-0.5">
+                <Check size={12} color="#0A7A3D" strokeWidth={3} />
+                <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: '#0A7A3D' }}>
                   সঠিক উত্তর
                 </Text>
-                <View className="h-4 min-w-[20px] px-1.5 rounded bg-emerald-200/90 items-center justify-center">
-                  <Text className="text-emerald-950 font-bold" style={{ fontFamily: FONT.digitsBold, fontSize: 11 }}>
-                    {q.correct_answer || '—'}
-                  </Text>
-                </View>
               </View>
-              <Bn className="text-emerald-950 font-semibold" style={{ fontFamily: FONT.ui, fontSize: 14.5, lineHeight: 22 }}>
-                {correctText ? `${q.correct_answer} — ${correctText}` : (q.correct_answer || 'উৎসে উত্তর অনুপস্থিত')}
-              </Bn>
-            </View>
-          </View>
-        </View>
-
-        {/* Solve Note / Explanation Box */}
-        {q.solve_note || (q.solve_note_image_urls && q.solve_note_image_urls.length > 0) ? (
-          <View className="mt-3 overflow-hidden rounded-xl border border-amber-200/80 bg-amber-50/40">
-            <Pressable
-              onPress={() => setShowNote(!showNote)}
-              className="flex-row items-center justify-between border-b border-amber-200/50 bg-amber-100/50 px-3.5 py-2.5">
-              <View className="flex-row items-center gap-2">
-                <Lightbulb size={15} color="#B45309" />
-                <Text style={{ fontFamily: FONT.uiBold, fontSize: 12.5, color: '#92400E' }}>
-                  বিস্তারিত ব্যাখ্যা ও সমাধান
+            );
+          } else if (isPicked) {
+            btnClass = 'border-accent bg-accent/5 text-black';
+            badgeClass = 'border-accent bg-accent text-white';
+            statusTag = (
+              <View className="flex-row items-center gap-1 rounded bg-accent/10 px-2 py-0.5">
+                <X size={12} color="#EA0000" strokeWidth={3} />
+                <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: '#EA0000' }}>
+                  আপনার উত্তর
                 </Text>
               </View>
-              <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11.5, color: '#B45309' }}>
-                {showNote ? 'লুকান ↑' : 'দেখুন ↓'}
-              </Text>
-            </Pressable>
+            );
+          }
 
-            {showNote && (
-              <View className="p-3.5 sm:p-4">
-                {q.solve_note ? (
-                  <Bn style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 23, color: '#451A03' }}>
-                    {q.solve_note}
-                  </Bn>
-                ) : null}
-
-                {(q.solve_note_image_urls ?? []).map((u) => (
-                  <View key={u} className="mt-3 items-center rounded-lg border border-black/10 bg-white p-2.5">
-                    <Image source={{ uri: u }} style={{ width: '100%', height: 200 }} contentFit="contain" />
-                  </View>
-                ))}
+          return (
+            <View
+              key={k}
+              className={`flex-row items-center gap-3 rounded-lg border p-3 ${btnClass}`}>
+              <View className={`h-6 w-6 items-center justify-center rounded-full border ${badgeClass}`}>
+                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 12 }}>{k}</Bn>
               </View>
-            )}
-          </View>
-        ) : null}
+              <Bn className="flex-1" style={{ fontFamily: FONT.ui, fontSize: 14.5 }}>
+                {txt}
+              </Bn>
+              {statusTag}
+            </View>
+          );
+        })}
       </View>
+
+      {/* Explanation / Solve Note */}
+      {q.solve_note || (q.solve_note_image_urls && q.solve_note_image_urls.length > 0) ? (
+        <View className="mt-3">
+          <Pressable
+            onPress={() => setShowNote((v) => !v)}
+            className="flex-row items-center gap-1.5 py-1">
+            <Text className="text-black/60 hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+              {showNote ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
+            </Text>
+          </Pressable>
+
+          {showNote ? (
+            <View className="mt-2 rounded-lg border border-black/10 bg-paper p-4">
+              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 4 }}>
+                {`সঠিক উত্তর: ${q.correct_answer || 'উৎসে উত্তর নেই'}`}
+              </Bn>
+              {q.solve_note ? (
+                <Bn style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}>
+                  {q.solve_note}
+                </Bn>
+              ) : null}
+              {(q.solve_note_image_urls ?? []).map((u) => (
+                <View key={u} className="mt-3 items-center rounded border border-black/10 bg-white p-2">
+                  <Image source={{ uri: u }} style={{ width: '100%', height: 180 }} contentFit="contain" />
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -2711,8 +2701,10 @@ function PracticeResult({
     return d && !d.ok && d.pick && q.correct_answer;
   });
 
+  const isWide = width >= 768;
+
   return (
-    <View className="gap-5">
+    <View className="gap-6">
       <Breadcrumb
         trail={
           s.mode === 'custom'
@@ -2729,141 +2721,106 @@ function PracticeResult({
         }
       />
 
-      {/* Top Score Banner */}
-      <View className="relative overflow-hidden rounded-2xl border border-black/10 bg-surface p-6 sm:p-8 shadow-sm">
-        <View className="items-center">
-          {/* Performance Badge */}
-          <View
-            className={`mb-3.5 flex-row items-center gap-1.5 rounded-full px-3.5 py-1 border shadow-2xs ${
-              acc >= 80
-                ? 'border-emerald-200 bg-emerald-50'
-                : acc >= 50
-                  ? 'border-amber-200 bg-amber-50'
-                  : 'border-rose-200 bg-rose-50'
-            }`}>
-            {acc >= 80 ? (
-              <Trophy size={14} color="#059669" />
-            ) : acc >= 50 ? (
-              <Target size={14} color="#D97706" />
-            ) : (
-              <AlertCircle size={14} color="#E11D48" />
-            )}
-            <Text
-              style={{
-                fontFamily: FONT.uiBold,
-                fontSize: 12.5,
-                color: acc >= 80 ? '#065F46' : acc >= 50 ? '#92400E' : '#9F1239',
-              }}>
-              {acc >= 80
-                ? 'চমৎকার প্রস্তুতি!'
-                : acc >= 50
-                  ? 'সন্তোষজনক অগ্রগতি'
-                  : 'আরও নিবিড় অনুশীলন প্রয়োজন'}
+      {/* Header section matching app's standard editorial header */}
+      <View className="border-b border-black/10 pb-5">
+        <View className="mb-2 h-1 w-8 rounded-full bg-[#EA0000]" />
+        <View className="flex-row flex-wrap items-center justify-between gap-3">
+          <View>
+            <Text style={{ fontFamily: FONT.displayBlack, fontSize: 26, lineHeight: 34 }}>
+              ফলাফল ও পর্যালোচনা
+            </Text>
+            <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, marginTop: 4 }}>
+              {s.mode === 'custom'
+                ? 'কাস্টম পরীক্ষার সামগ্রিক মূল্যায়ন ও ভুল হওয়া প্রশ্নগুলোর বিশ্লেষণ।'
+                : 'অনুশীলন সেশনের বিস্তারিত ফলাফল ও ভুল প্রশ্নসমূহের সমাধান।'}
             </Text>
           </View>
+        </View>
+      </View>
 
-          {/* Primary Score Typography */}
-          <View className="flex-row items-baseline justify-center gap-2">
-            <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: width > 600 ? 50 : 38, lineHeight: width > 600 ? 58 : 46, color: '#0A0A0A' }}>
-              {s.mode === 'custom' ? toBn(netScoreStr) : toBn(s.right)}
-            </Bn>
-            <Text className="text-black/30" style={{ fontFamily: FONT.display, fontSize: width > 600 ? 32 : 24 }}>
-              /
+      {/* Main Score & Metrics Board — Single crisp, neat, and clean card */}
+      <View className="rounded-xl border border-black/10 bg-surface p-6 sm:p-7">
+        <View className={isWide ? 'flex-row items-center gap-8' : 'gap-6'}>
+          {/* Left score column */}
+          <View className={isWide ? 'flex-1 border-r border-black/10 pr-8' : 'border-b border-black/10 pb-6'}>
+            <Text className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
+              {s.mode === 'custom' ? 'প্রাপ্ত নিট স্কোর' : 'অর্জিত স্কোর'}
             </Text>
-            <Text className="text-black/50" style={{ fontFamily: FONT.display, fontSize: width > 600 ? 30 : 22 }}>
-              {toBn(total)}
-            </Text>
-          </View>
-
-          {/* Context Line */}
-          <Text className="text-black/65 mt-2 text-center" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
-            {s.mode === 'custom'
-              ? `প্রাপ্ত স্কোর (সঠিক: +১.০০ · ভুল: −০.৫০) · নির্ভুলতা ${toBn(acc)}%`
-              : `নির্ভুলতা ${toBn(acc)}% · ${toBn(attempted)}টি প্রশ্নের উত্তর দিয়েছেন`}
-          </Text>
-
-          {/* Visual Ratio Progress Bar */}
-          <View className="mt-5 w-full max-w-[480px] flex-col gap-2">
-            <View className="h-2.5 w-full overflow-hidden rounded-full bg-black/[0.06] flex-row">
-              {s.right > 0 && (
-                <View
-                  style={{ width: `${Math.max(2, (s.right / total) * 100)}%` }}
-                  className="h-full bg-emerald-500"
-                />
-              )}
-              {s.wrong > 0 && (
-                <View
-                  style={{ width: `${Math.max(2, (s.wrong / total) * 100)}%` }}
-                  className="h-full bg-rose-500"
-                />
-              )}
+            <View className="flex-row items-baseline gap-2 mt-1">
+              <Text style={{ fontFamily: FONT.displayBlack, fontSize: 44, lineHeight: 48, color: '#0A0A0A' }}>
+                {toBn(s.mode === 'custom' ? netScoreStr : s.right)}
+              </Text>
+              <Text className="text-black/30" style={{ fontFamily: FONT.display, fontSize: 24 }}>
+                /
+              </Text>
+              <Text className="text-black/50" style={{ fontFamily: FONT.display, fontSize: 22 }}>
+                {toBn(total)}
+              </Text>
             </View>
-            <View className="flex-row justify-between text-xs px-0.5">
-              <Text className="text-emerald-700 font-semibold" style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>
-                {`সঠিক ${toBn(s.right)}টি (${toBn(total ? Math.round((s.right / total) * 100) : 0)}%)`}
+
+            <Text className="text-black/60 mt-2" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+              {`নির্ভুলতা ${toBn(acc)}% · ${toBn(attempted)}টি প্রশ্নের উত্তর দিয়েছেন`}
+            </Text>
+
+            {/* Clean, disciplined ratio progress bar */}
+            <View className="mt-4 h-2 w-full overflow-hidden rounded-full bg-black/5 flex-row">
+              {s.right > 0 ? (
+                <View className="h-full bg-ok" style={{ width: `${(s.right / total) * 100}%` }} />
+              ) : null}
+              {s.wrong > 0 ? (
+                <View className="h-full bg-accent" style={{ width: `${(s.wrong / total) * 100}%` }} />
+              ) : null}
+            </View>
+          </View>
+
+          {/* Right stat columns — Clean metrics */}
+          <View className={isWide ? 'flex-1 flex-row gap-6' : 'flex-row justify-between gap-4'}>
+            <View className="flex-1">
+              <Text className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 12, marginBottom: 4 }}>
+                সঠিক উত্তর
               </Text>
-              <Text className="text-rose-700 font-semibold" style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>
-                {`ভুল ${toBn(s.wrong)}টি (${toBn(total ? Math.round((s.wrong / total) * 100) : 0)}%)`}
+              <Text style={{ fontFamily: FONT.digitsBold, fontSize: 24, color: '#0A7A3D' }}>
+                {toBn(s.right)}
               </Text>
-              {total - attempted > 0 && (
-                <Text className="text-black/45" style={{ fontFamily: FONT.ui, fontSize: 11.5 }}>
-                  {`দেখা হয়নি ${toBn(total - attempted)}টি`}
-                </Text>
-              )}
+              <Text className="text-black/40 mt-0.5" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+                {`${toBn(total ? Math.round((s.right / total) * 100) : 0)}% হার`}
+              </Text>
+            </View>
+
+            <View className="flex-1">
+              <Text className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 12, marginBottom: 4 }}>
+                ভুল উত্তর
+              </Text>
+              <Text style={{ fontFamily: FONT.digitsBold, fontSize: 24, color: '#EA0000' }}>
+                {toBn(s.wrong)}
+              </Text>
+              <Text className="text-black/40 mt-0.5" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+                {`${toBn(total ? Math.round((s.wrong / total) * 100) : 0)}% হার`}
+              </Text>
+            </View>
+
+            <View className="flex-1">
+              <Text className="text-black/50" style={{ fontFamily: FONT.uiSemi, fontSize: 12, marginBottom: 4 }}>
+                দেখা হয়নি
+              </Text>
+              <Text style={{ fontFamily: FONT.digitsBold, fontSize: 24, color: '#0A0A0A' }}>
+                {toBn(total - attempted)}
+              </Text>
+              <Text className="text-black/40 mt-0.5" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+                বাকি প্রশ্ন
+              </Text>
             </View>
           </View>
         </View>
       </View>
 
-      {/* Metric Breakdown Grid */}
-      <View className="flex-row flex-wrap gap-3">
-        {(s.mode === 'custom'
-          ? [
-              { label: 'সঠিক উত্তর', val: `+${toBn(s.right)}`, sub: `${toBn(total ? Math.round((s.right / total) * 100) : 0)}% সফল`, icon: CheckCircle2, color: 'text-emerald-700', bg: 'border-emerald-200/90 bg-emerald-50/50' },
-              { label: 'ভুল উত্তর', val: `-${toBn(s.wrong)}`, sub: `${toBn(total ? Math.round((s.wrong / total) * 100) : 0)}% ভুল`, icon: XCircle, color: 'text-rose-700', bg: 'border-rose-200/90 bg-rose-50/50' },
-              { label: 'নেগেটিভ মার্ক', val: `-${toBn(s.wrong * 0.5)}`, sub: 'ভুল উত্তরে −০.৫০', icon: AlertTriangle, color: 'text-amber-800', bg: 'border-amber-200/90 bg-amber-50/50' },
-              { label: 'উত্তরহীন', val: toBn(total - attempted), sub: `${toBn(total ? Math.round(((total - attempted) / total) * 100) : 0)}% বাকি`, icon: HelpCircle, color: 'text-black/80', bg: 'border-black/10 bg-surface' },
-            ]
-          : [
-              { label: 'সঠিক উত্তর', val: toBn(s.right), sub: `${toBn(total ? Math.round((s.right / total) * 100) : 0)}% সঠিক হার`, icon: CheckCircle2, color: 'text-emerald-700', bg: 'border-emerald-200/90 bg-emerald-50/50' },
-              { label: 'ভুল উত্তর', val: toBn(s.wrong), sub: `${toBn(total ? Math.round((s.wrong / total) * 100) : 0)}% ভুল হার`, icon: XCircle, color: 'text-rose-700', bg: 'border-rose-200/90 bg-rose-50/50' },
-              { label: 'দেখা হয়নি', val: toBn(total - attempted), sub: `${toBn(total ? Math.round(((total - attempted) / total) * 100) : 0)}% উত্তর দেননি`, icon: HelpCircle, color: 'text-black/80', bg: 'border-black/10 bg-surface' },
-            ]
-        ).map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <View
-              key={stat.label}
-              style={
-                {
-                  width: s.mode === 'custom'
-                    ? (width > 768 ? 'calc(25% - 9px)' : 'calc(50% - 6px)')
-                    : (width > 768 ? 'calc(33.333% - 8px)' : '100%'),
-                } as any
-              }
-              className={`rounded-2xl border p-4 shadow-2xs items-start justify-between ${stat.bg}`}>
-              <View className="flex-row items-center justify-between w-full mb-1">
-                <Text className="text-black/60 font-semibold" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-                  {stat.label}
-                </Text>
-                <Icon size={16} className={stat.color} />
-              </View>
-              <Text className={`${stat.color}`} style={{ fontFamily: FONT.digitsBold, fontSize: 26, fontWeight: '700' }}>
-                {stat.val}
-              </Text>
-              <Text className="text-black/50 mt-0.5" style={{ fontFamily: FONT.ui, fontSize: 11.5 }}>
-                {stat.sub}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-
       {/* Subject-wise breakdown for custom mode with multiple subjects */}
       {s.mode === 'custom' && selectedSubjectIds.length > 1 ? (
         <View className="mt-2">
-          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, marginBottom: 8 }}>বিষয়ভিত্তিক স্কোর ও নির্ভুলতা</Bn>
-          <View className="rounded-2xl border border-black/10 bg-surface p-4 sm:p-5 shadow-xs">
+          <Text style={{ fontFamily: FONT.uiBold, fontSize: 17, marginBottom: 8, color: '#0A0A0A' }}>
+            বিষয়ভিত্তিক নির্ভুলতা
+          </Text>
+          <View className="rounded-xl border border-black/10 bg-surface p-5">
             {selectedSubjectIds.map((sid) => {
               const qList = session.filter((q) => q.subject_id === sid);
               if (!qList.length) return null;
@@ -2876,8 +2833,8 @@ function PracticeResult({
               return (
                 <View key={sid} className="border-b border-black/5 py-3 last:border-b-0">
                   <View className="mb-1 flex-row items-center justify-between">
-                    <Text style={{ fontFamily: FONT.uiBold, fontSize: 14.5 }}>{subjectName(sid)}</Text>
-                    <Text style={{ fontFamily: FONT.digitsBold, fontSize: 13.5, color: '#0A0A0A' }}>
+                    <Text style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>{subjectName(sid)}</Text>
+                    <Text style={{ fontFamily: FONT.digitsBold, fontSize: 13, color: '#0A0A0A' }}>
                       {`স্কোর: ${toBn(subScoreStr)} / ${toBn(qList.length)}`}
                     </Text>
                   </View>
@@ -2885,12 +2842,12 @@ function PracticeResult({
                     <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
                       {`সঠিক: ${toBn(rCount)} · ভুল: ${toBn(wCount)} · উত্তরহীন: ${toBn(qList.length - subAttempted)}`}
                     </Text>
-                    <Text className="text-black/70 font-semibold" style={{ fontFamily: FONT.digitsBold, fontSize: 12.5 }}>
+                    <Text className="text-black/70 font-semibold" style={{ fontFamily: FONT.digitsBold, fontSize: 12 }}>
                       {`নির্ভুলতা ${toBn(subAcc)}%`}
                     </Text>
                   </View>
-                  <View className="h-1.5 w-full bg-black/5 rounded-full overflow-hidden mt-1.5">
-                    <View className="h-full bg-emerald-500" style={{ width: `${subAcc}%` }} />
+                  <View className="h-1.5 w-full bg-black/5 rounded-full overflow-hidden mt-2">
+                    <View className="h-full bg-ok" style={{ width: `${subAcc}%` }} />
                   </View>
                 </View>
               );
@@ -2903,18 +2860,13 @@ function PracticeResult({
       {wrongList.length ? (
         <View className="mt-2">
           <View className="mb-4 flex-row flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-3">
-            <View className="flex-row items-center gap-2.5">
-              <View className="h-8 w-8 items-center justify-center rounded-xl bg-rose-50 border border-rose-200">
-                <AlertCircle size={17} color="#E11D48" />
-              </View>
-              <View>
-                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, color: '#0A0A0A' }}>
-                  {`ভুল হওয়া প্রশ্ন পর্যালোচনা (${toBn(wrongList.length)})`}
-                </Bn>
-                <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-                  ভুল উত্তর ও সঠিক উত্তরের তুলনামূলক বিশ্লেষণ দেখে নিন
-                </Text>
-              </View>
+            <View>
+              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, color: '#0A0A0A' }}>
+                {`ভুল হওয়া প্রশ্ন পর্যালোচনা (${toBn(wrongList.length)})`}
+              </Bn>
+              <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginTop: 2 }}>
+                সঠিক উত্তর ও সমাধানের বিস্তারিত ব্যাখ্যা নিচে দেওয়া হলো:
+              </Text>
             </View>
           </View>
 
@@ -2932,63 +2884,42 @@ function PracticeResult({
           ))}
         </View>
       ) : (
-        <View className="my-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-8 items-center justify-center">
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-emerald-100 mb-3">
-            <Trophy size={24} color="#059669" />
-          </View>
-          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, color: '#065F46', marginBottom: 4 }}>
+        <View className="my-6 rounded-xl border border-black/10 bg-surface p-8 items-center justify-center">
+          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, color: '#0A7A3D', marginBottom: 4 }}>
             সবগুলো সঠিক — চমৎকার দক্ষতা!
           </Bn>
-          <Text className="text-emerald-800/80 text-center" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
-            এই সেশনে কোনো ভুল প্রশ্ন নেই। আপনার প্রস্তুতি প্রশংসনীয়!
+          <Text className="text-black/60 text-center" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
+            এই সেশনে কোনো ভুল প্রশ্ন নেই। আপনার প্রস্তুতি নিখুঁত!
           </Text>
         </View>
       )}
 
-      {/* Bottom Action Controls */}
-      <View className="mt-4 rounded-2xl border border-black/10 bg-surface p-5 sm:p-6 shadow-sm">
-        <View className="mb-3.5 flex-row items-center gap-2">
-          <Sparkles size={16} color="#EA0000" />
-          <Text style={{ fontFamily: FONT.uiBold, fontSize: 14.5, color: '#0A0A0A' }}>
-            পরবর্তী পদক্ষেপ
+      {/* Bottom Action Controls — Clean button row */}
+      <View className="mt-4 flex-row flex-wrap gap-3">
+        <Pressable
+          onPress={onRetry}
+          className="min-h-[48px] flex-row items-center justify-center gap-2 rounded-lg bg-ink px-6 py-3 transition-opacity active:opacity-90">
+          <RotateCcw size={15} color="#FFFFFF" />
+          <Text className="text-white" style={{ fontFamily: FONT.uiSemi, fontSize: 15 }}>
+            পুনরায় অনুশীলন
           </Text>
-        </View>
+        </Pressable>
 
-        <View className="flex-row flex-wrap gap-3">
-          <Pressable
-            onPress={onRetry}
-            className="min-h-[46px] flex-row items-center justify-center gap-2 rounded-xl bg-ink px-6 py-2.5 shadow-xs active:bg-black/90 transition-colors">
-            <RotateCcw size={15} color="#FFFFFF" />
-            <Text className="text-white font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
-              পুনরায় অনুশীলন (নতুন ক্রমে)
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={onPicker}
-            className="min-h-[46px] flex-row items-center justify-center gap-2 rounded-xl border border-black/20 bg-surface px-5 py-2.5 hover:border-black/40 hover:bg-black/[0.02] active:scale-[0.99] transition-all">
-            <Filter size={15} color="#0A0A0A" />
-            <Text className="text-black font-semibold" style={{ fontFamily: FONT.uiSemi, fontSize: 14 }}>
-              নতুন বিষয় / বছর বাছাই
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={onHub}
-            className="min-h-[46px] flex-row items-center justify-center gap-2 rounded-xl border border-black/10 bg-surface px-4 py-2.5 hover:border-black/30 hover:bg-black/[0.02] active:scale-[0.99] transition-all">
-            <ArrowLeft size={15} color="#0A0A0A" />
-            <Text className="text-black/75 font-medium" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
-              অনুশীলন হাবে ফিরুন
-            </Text>
-          </Pressable>
-        </View>
-
-        <View className="mt-4 flex-row items-center gap-2 border-t border-black/5 pt-3">
-          <Zap size={14} color="#666666" />
-          <Text className="text-black/55" style={{ fontFamily: FONT.ui, fontSize: 12.5 }}>
-            ভুল হওয়া প্রশ্নগুলো স্বয়ংক্রিয়ভাবে আপনার "ভুল প্রশ্ন" তালিকায় যুক্ত হয়েছে, যেন পরবর্তীতে রিভিশন দিতে পারেন।
+        <Pressable
+          onPress={onPicker}
+          className="min-h-[48px] flex-row items-center justify-center gap-2 rounded-lg border border-black bg-surface px-5 py-3 transition-colors hover:bg-black/[0.03]">
+          <Text className="text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 15 }}>
+            অন্য পরীক্ষা বা বিষয় বেছে নিন
           </Text>
-        </View>
+        </Pressable>
+
+        <Pressable
+          onPress={onHub}
+          className="min-h-[48px] flex-row items-center justify-center gap-2 rounded-lg border border-black/20 bg-surface px-5 py-3 transition-colors hover:bg-black/[0.03]">
+          <Text className="text-black/70" style={{ fontFamily: FONT.uiSemi, fontSize: 15 }}>
+            অনুশীলন হাবে ফিরুন
+          </Text>
+        </Pressable>
       </View>
     </View>
   );
