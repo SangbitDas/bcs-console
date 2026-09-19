@@ -225,15 +225,36 @@ export function PracticeScreen({
   const { data: subjects } = useSubjects();
   const { data: exams } = useExams();
 
+  const isCustomRoute = pathname === '/custom' || pathname.startsWith('/custom');
+  const isExamRoute = pathname.startsWith('/practice/exam');
+  const isSubjectRoute = pathname.startsWith('/practice/subject');
+  const isPracticeHub = pathname === '/practice';
+
+  const isCurrentRouteActive =
+    (initialMode === 'custom' && isCustomRoute) ||
+    (initialMode === 'exam' && isExamRoute) ||
+    (initialMode === 'subject' && isSubjectRoute) ||
+    (initialMode === null && isPracticeHub) ||
+    (params.mode === 'bookmarks' || params.mode === 'wrong');
+
   // Target mode strictly intended by the active route:
   const targetMode: PracticeMode | null =
     params.mode === 'bookmarks' || params.mode === 'wrong'
       ? params.mode
-      : initialMode ?? null;
+      : isCustomRoute || initialMode === 'custom'
+        ? 'custom'
+        : isExamRoute || initialMode === 'exam'
+          ? 'exam'
+          : isSubjectRoute || initialMode === 'subject'
+            ? 'subject'
+            : null;
 
   useEffect(() => {
+    // If this screen instance is not the currently active route in navigation/tabs, do NOT mutate store
+    if (!isCurrentRouteActive) return;
+
     // 1. If we are on the Hub route (/practice), ensure state resets to Hub so browser Back button works
-    if (targetMode === null) {
+    if (isPracticeHub) {
       if (s.mode !== null || s.started) {
         s.backToHub();
       }
@@ -281,7 +302,7 @@ export function PracticeScreen({
       s.backToPicker();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, targetMode, params.id, params.subject, params.exam, params.slug, params.mode]);
+  }, [pathname, isCurrentRouteActive, isPracticeHub, targetMode, params.id, params.subject, params.exam, params.slug, params.mode]);
 
   const subjectName = useCallback(
     (id: number) => subjects?.find((x) => x.id === id)?.subject_bn ?? `বিষয় ${id}`,
@@ -491,6 +512,7 @@ export function PracticeScreen({
           />
         ) : (s.mode !== targetMode || !s.started) ? (
           <ConfigureView
+            mode={targetMode ?? 'custom'}
             exams={exams ?? []}
             subjects={subjects ?? []}
             subjectName={subjectName}
@@ -714,11 +736,13 @@ function HubView({
 
 /* ================= Configure (Screen 3: Custom Exam তৈরি করুন) ================= */
 function ConfigureView({
+  mode,
   exams,
   subjects,
   subjectName,
   scopeLabel,
 }: {
+  mode?: PracticeMode;
   exams: { slug: string; total_questions: number }[];
   subjects: { id: number; subject_bn: string }[];
   subjectName: (id: number) => string;
@@ -727,8 +751,19 @@ function ConfigureView({
   const s = usePracticeStore();
   const { width } = useWindowDimensions();
   const isWide = width >= 860;
-  const meta =
-    s.mode === 'exam' || s.mode === 'subject' || s.mode === 'custom' ? MODE_META[s.mode] : null;
+  const effectiveMode: 'exam' | 'subject' | 'custom' =
+    mode === 'exam' || mode === 'subject' || mode === 'custom'
+      ? mode
+      : s.mode === 'exam' || s.mode === 'subject' || s.mode === 'custom'
+        ? s.mode
+        : 'custom';
+  const meta = MODE_META[effectiveMode];
+
+  useEffect(() => {
+    if (effectiveMode === 'custom' && exams.length > 0 && s.exams.length === 0) {
+      s.selectAllExams(exams.map((e) => e.slug));
+    }
+  }, [effectiveMode, exams, s.exams.length]);
 
   const sortedExams = useMemo(() => {
     return [...exams].sort((a, b) => examNum(b.slug) - examNum(a.slug));
@@ -747,7 +782,7 @@ function ConfigureView({
     label: `${toBn(n)}টি প্রশ্ন`,
   }));
 
-  const isCustomOrSubject = s.mode === 'custom' || s.mode === 'subject';
+  const isCustomOrSubject = effectiveMode === 'custom' || effectiveMode === 'subject';
 
   /* Sidebar for config: mode nav + summary */
   const configSidebar = (
@@ -756,7 +791,7 @@ function ConfigureView({
       {isWide ? (
         <Pressable
           onPress={() => {
-            if (s.mode === 'custom') {
+            if (effectiveMode === 'custom') {
               router.push('/' as any);
             } else {
               s.backToHub();
@@ -764,14 +799,14 @@ function ConfigureView({
             }
           }}
           accessibilityRole="button"
-          accessibilityLabel={s.mode === 'custom' ? 'হোমে ফিরুন' : 'অনুশীলন হাবে ফিরুন'}
+          accessibilityLabel={effectiveMode === 'custom' ? 'হোমে ফিরুন' : 'অনুশীলন হাবে ফিরুন'}
           className="h-10 w-10 items-center justify-center rounded-xl bg-ink transition-all hover:bg-black/80 hover:shadow-xs active:scale-95">
           <ArrowLeft size={18} color="#FFFFFF" strokeWidth={2.2} />
         </Pressable>
       ) : null}
 
       {/* Summary card */}
-      {s.mode === 'custom' ? (
+      {effectiveMode === 'custom' ? (
         <SummaryCard
           rows={[
             [
@@ -794,10 +829,13 @@ function ConfigureView({
             ['মোড', 'কাস্টম এক্সাম'],
           ]}
           cta="অনুশীলন শুরু করুন →"
-          onCta={() => s.start()}
+          onCta={() => {
+            if (s.mode !== 'custom') s.setMode('custom');
+            s.start();
+          }}
           disabled={s.exams.length === 0}
         />
-      ) : s.mode === 'exam' && isWide ? (
+      ) : effectiveMode === 'exam' && isWide ? (
         <SummaryCard
           rows={[
             ['মোড', 'বিসিএস পরীক্ষা'],
@@ -812,13 +850,13 @@ function ConfigureView({
       {isWide ? (
         <NotesCard
           items={
-            s.mode === 'subject'
+            effectiveMode === 'subject'
               ? [
                   'একটি বিষয় নির্বাচন করে অনুশীলন করুন।',
                   'ভেতরে প্রবেশের পর পাশের সাইডবার থেকে ১০ম–৫০তম বিসিএস ফিল্টার করতে পারবেন।',
                   'প্রতিটি উত্তরের সাথে বিস্তারিত ব্যাখ্যা ও ছবি দেখতে পারবেন।',
                 ]
-              : s.mode === 'exam'
+              : effectiveMode === 'exam'
               ? [
                   'যেকোনো বিসিএস পরীক্ষার ওপর ক্লিক করলেই সরাসরি প্রশ্নপত্রে নিয়ে যাবে।',
                   'ভেতরে প্রবেশের পর বিষয়ভিত্তিক ফিল্টার করে চর্চা করতে পারবেন।',
@@ -840,7 +878,7 @@ function ConfigureView({
     <View>
       <Breadcrumb
         trail={
-          s.mode === 'custom'
+          effectiveMode === 'custom'
             ? [
                 { label: 'হোম', href: '/' },
                 { label: meta?.title ?? 'কাস্টম এক্সাম তৈরি করুন' },
@@ -854,7 +892,7 @@ function ConfigureView({
       />
 
       <SidebarLayout
-        sidebar={!isWide && (s.mode === 'exam' || s.mode === 'subject') ? null : configSidebar}
+        sidebar={!isWide && (effectiveMode === 'exam' || effectiveMode === 'subject') ? null : configSidebar}
         reverseOnMobile={true}>
         {/* Main content */}
         <View>
@@ -871,7 +909,7 @@ function ConfigureView({
           </Text>
 
           {/* Exam selection mode: styled like bcs porishor card without tickmarks */}
-          {s.mode === 'exam' ? (
+          {effectiveMode === 'exam' ? (
             <View className="mb-8 rounded-xl border border-black/15 bg-surface p-5 shadow-sm">
               {/* Header */}
               <View className="mb-4 flex-row flex-wrap items-center justify-between gap-2">
@@ -919,7 +957,7 @@ function ConfigureView({
           ) : null}
 
           {/* Subject Mode: Directly clickable cards (Single subject practice) */}
-          {s.mode === 'subject' ? (
+          {effectiveMode === 'subject' ? (
             <View className="overflow-hidden rounded-xl border border-black/15 bg-surface shadow-sm">
               <View className="border-b border-black/10 bg-black/[0.02] p-5">
                 <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18 }}>বিষয় নির্বাচন করুন</Bn>
@@ -976,7 +1014,7 @@ function ConfigureView({
           ) : null}
 
           {/* Custom Practice Builder (Full Controls) */}
-          {s.mode === 'custom' ? (
+          {effectiveMode === 'custom' ? (
             <View className="gap-4">
               {/* ১. বিসিএস পরিসর - টিক মার্ক সিস্টেম */}
               <View className="rounded-xl border border-black/15 bg-surface shadow-sm">
