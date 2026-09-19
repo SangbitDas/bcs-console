@@ -759,11 +759,16 @@ function ConfigureView({
         : 'custom';
   const meta = MODE_META[effectiveMode];
 
+  const initializedCustomExamsRef = useRef(false);
+
   useEffect(() => {
-    if (effectiveMode === 'custom' && exams.length > 0 && s.exams.length === 0) {
-      s.selectAllExams(exams.map((e) => e.slug));
+    if (effectiveMode === 'custom' && exams.length > 0 && !initializedCustomExamsRef.current) {
+      initializedCustomExamsRef.current = true;
+      if (s.exams.length === 0) {
+        s.selectAllExams(exams.map((e) => e.slug));
+      }
     }
-  }, [effectiveMode, exams, s.exams.length]);
+  }, [effectiveMode, exams]);
 
   const sortedExams = useMemo(() => {
     return [...exams].sort((a, b) => examNum(b.slug) - examNum(a.slug));
