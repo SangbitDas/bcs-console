@@ -23,6 +23,7 @@ import {
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import { Bn, Btn, SectionHead } from '../components/ui';
+import { AnimatedStatNumber } from '../components/animated-number';
 import { useBankStats, useSubjects } from '../hooks/queries';
 import { FONT } from '../lib/fonts';
 import { SUBJECT_COUNT, toBn, type Subject } from '../lib/format';
@@ -187,19 +188,34 @@ export default function Home() {
         <View className="mb-14">
           <View className="flex-row flex-wrap" style={{ gap: width > 600 ? 12 : 10 }}>
             {[
-              { label: 'মোট পরীক্ষা', val: `${toBn(stats?.exams ?? 41)}টি`, icon: GraduationCap, sub: '১০ম–৫০তম বিসিএস' },
+              {
+                label: 'মোট পরীক্ষা',
+                num: stats?.exams ?? 41,
+                icon: GraduationCap,
+                sub: '১০ম–৫০তম বিসিএস',
+                delay: 0,
+              },
               {
                 label: 'মোট প্রশ্ন',
-                val: `${toBn((stats?.questions ?? 5350).toLocaleString('en-US'))}টি`,
+                num: stats?.questions ?? 5350,
+                hasComma: true,
                 icon: HelpCircle,
                 sub: 'যাচাইকৃত প্রশ্নসম্ভার',
+                delay: 120,
               },
-              { label: 'বিষয়', val: `${toBn(displaySubjects.length)}টি`, icon: Layers, sub: 'স্থায়ী সিলেবাস কাঠামো' },
+              {
+                label: 'বিষয়',
+                num: displaySubjects.length || 10,
+                icon: Layers,
+                sub: 'স্থায়ী সিলেবাস কাঠামো',
+                delay: 240,
+              },
               {
                 label: 'ছবিসহ প্রশ্ন',
-                val: `${toBn(stats?.withImages ?? 766)}টি`,
+                num: stats?.withImages ?? 766,
                 icon: ImageIcon,
                 sub: 'ডায়াগ্রাম ও চিত্রব্যাখ্যা',
+                delay: 360,
               },
             ].map((stat) => {
               const Icon = stat.icon;
@@ -212,18 +228,22 @@ export default function Home() {
                       minHeight: width > 600 ? 130 : 118,
                     } as any
                   }
-                  className="justify-between rounded-xl sm:rounded-2xl border border-black/10 bg-surface p-3.5 sm:p-5 shadow-sm transition-all hover:border-black/20">
+                  className="group justify-between rounded-xl sm:rounded-2xl border border-black/10 bg-surface p-3.5 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-black/25 hover:shadow-md">
                   <View className="mb-2 sm:mb-3 flex-row items-center justify-between">
                     <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: width > 600 ? 13 : 11.5 }}>
                       {stat.label}
                     </Text>
-                    <View className="h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-black/[0.04]">
+                    <View className="h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-black/[0.04] transition-colors group-hover:bg-black/[0.08]">
                       <Icon size={width > 600 ? 16 : 14} color="#0A0A0A" />
                     </View>
                   </View>
-                  <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: width > 600 ? 28 : 22, lineHeight: width > 600 ? 34 : 28 }}>
-                    {stat.val}
-                  </Bn>
+                  <AnimatedStatNumber
+                    value={stat.num}
+                    delay={stat.delay}
+                    hasComma={stat.hasComma}
+                    fontSize={width > 600 ? 28 : 22}
+                    lineHeight={width > 600 ? 34 : 28}
+                  />
                   <Text className="text-black/45" style={{ fontFamily: FONT.ui, fontSize: width > 600 ? 11 : 10.5, marginTop: 4 }}>
                     {stat.sub}
                   </Text>
