@@ -1,5 +1,20 @@
 # BCS Console — migration memory (maintained, newest first)
 
+## 2026-09-19 — Added Bengali Typography Counter & Micro-Animation to Home Stat Cards
+- **User Request**: Add typography animation to the four stats cards on the home page (৪১টি, ৫,৩৫০টি, ১০টি, ৭৬৬টি).
+- **Implementation in `apps/web`**:
+  - Created `apps/web/src/components/animated-number.tsx` (`AnimatedStatNumber`):
+    - Smooth `easeOutQuart` deceleration counter using `requestAnimationFrame`.
+    - Real-time Bengali numerals conversion via `toBn(...)` with formatted thousand-separators (৫,৩৫০).
+    - Rock-solid layout stability with `tabular-nums`.
+    - Staggered entrance delays (0ms, 120ms, 240ms, 360ms) across the 4 cards.
+  - Updated `apps/web/src/app/index.tsx`:
+    - Replaced static text with `<AnimatedStatNumber ... />`.
+    - Added subtle hover lift (`hover:-translate-y-1 hover:border-black/25 hover:shadow-md`) and icon pill highlight.
+- **Verification**:
+  - `pnpm exec tsc --noEmit` passed with 0 errors.
+
+
 ## 2026-09-19 — Roadmap Phase 2: Supabase Auth (Google OAuth), Cloud Sync & Schema Refinements
 - **User Request**:
   - Implement User Login and Cloud Synchronization into Supabase Postgres database (NO Firebase/Firestore).
