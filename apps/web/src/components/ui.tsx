@@ -1,4 +1,4 @@
-import { Link, usePathname } from 'expo-router';
+import { Link } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
 import { FONT } from '../lib/fonts';
@@ -7,62 +7,25 @@ import { useExamStore } from '../store/exam';
 
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
-  const pathname = usePathname();
   const remain = useExamStore((s) => s.remain);
   const running = useExamStore((s) => s.running);
 
-  const navs = [
-    { label: 'হোম', href: '/' },
-    { label: 'অনুশীলন', href: '/practice' },
-    { label: 'মক এক্সাম', href: '/exam' },
-    { label: 'কাস্টম এক্সাম', href: '/custom' },
-    { label: 'বুকমার্ক', href: '/bookmarks' },
-    { label: 'ভুলসমূহ', href: '/wrong' },
-  ];
-
   return (
-    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-6 py-2.5">
+    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-6 py-3">
       <Link href="/" asChild>
-        <Pressable className="flex-row items-center gap-2">
+        <Pressable className="flex-row items-center">
           <Text style={{ fontFamily: FONT.displayBlack, fontSize: 18 }}>
             বিসিএস<Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
           </Text>
-          <Text className="text-black/35" style={{ fontFamily: FONT.ui, fontSize: 11 }}>
-            | 10TH-50TH BANK
-          </Text>
         </Pressable>
       </Link>
-      <View className="flex-row items-center gap-6">
-        {running ? (
-          <View className="border border-black/20 bg-surface px-3 py-1.5">
-            <Text style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#EA0000' }}>
-              {fmtTime(remain)}
-            </Text>
-          </View>
-        ) : null}
-        <View className="flex-row items-center gap-5">
-          {navs.map((n) => {
-            const active = pathname === n.href || (n.href !== '/' && pathname.startsWith(n.href));
-            return (
-              <Link key={n.href} href={n.href as never} asChild>
-                <Pressable className="relative py-2 px-1 items-center">
-                  <Text
-                    style={{
-                      fontFamily: active ? FONT.uiBold : FONT.uiSemi,
-                      fontSize: 14,
-                      color: active ? '#0A0A0A' : 'rgba(0,0,0,0.65)',
-                    }}>
-                    {n.label}
-                  </Text>
-                  {active ? (
-                    <View className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#EA0000] rounded-full" />
-                  ) : null}
-                </Pressable>
-              </Link>
-            );
-          })}
+      {running ? (
+        <View className="border border-black/20 bg-surface px-3 py-1.5">
+          <Text style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#EA0000' }}>
+            {fmtTime(remain)}
+          </Text>
         </View>
-      </View>
+      ) : null}
     </View>
   );
 }
