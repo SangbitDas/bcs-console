@@ -1,0 +1,244 @@
+import React, { useState } from 'react';
+import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Svg, Path } from 'react-native-svg';
+import { Bookmark, CheckCircle2, Cloud, LogOut, ShieldCheck, User as UserIcon, X, Zap } from 'lucide-react';
+import { FONT } from '../lib/fonts';
+import { toBn } from '../lib/format';
+import { useAuthStore } from '../lib/auth';
+import { useLibrary } from '../lib/library';
+import { Bn } from './ui';
+
+export function AuthModal({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const { user, profile, loading, signInWithGoogle, signOut, updateProfile } = useAuthStore();
+  const { syncCloud } = useLibrary();
+  const [signingIn, setSigningIn] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleGoogleSignIn = async () => {
+    setSigningIn(true);
+    setErrorMsg(null);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      setErrorMsg('লগইন সম্পন্ন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      setSigningIn(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    onClose();
+  };
+
+  const handleBatchSelect = async (batch: number) => {
+    await updateProfile({ target_bcs_batch: batch });
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}>
+      <View className="flex-1 items-center justify-center bg-black/60 px-4">
+        {/* Backdrop dismiss */}
+        <Pressable className="absolute inset-0" onPress={onClose} />
+
+        {/* Modal Container */}
+        <View
+          className="w-full max-w-[460px] overflow-hidden rounded-2xl border border-black/15 bg-surface p-6 shadow-2xl"
+          style={{ zIndex: 10 }}>
+          {/* Close button */}
+          <Pressable
+            onPress={onClose}
+            className="absolute right-4 top-4 h-8 w-8 items-center justify-center rounded-full bg-black/[0.05] active:scale-95">
+            <X size={16} color="#0A0A0A" />
+          </Pressable>
+
+          {!user ? (
+            /* --- Signed Out State: Login Prompt --- */
+            <View>
+              {/* Header */}
+              <View className="mb-4">
+                <View className="mb-2 h-1 w-8 rounded-full bg-[#EA0000]" />
+                <Text style={{ fontFamily: FONT.displayBlack, fontSize: 22, lineHeight: 30 }}>
+                  বিসিএস ক্লাউড অ্যাকাউন্ট
+                </Text>
+                <Text
+                  className="mt-1 text-black/60"
+                  style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 20 }}>
+                  আপনার প্রস্তুতি ক্লাউডে সুরক্ষিত রাখুন। পিসি ও ফোন যেকোনো ডিভাইস থেকে একই সাথে চর্চা করুন।
+                </Text>
+              </View>
+
+              {/* Feature Points */}
+              <View className="mb-6 gap-2.5 rounded-xl border border-black/10 bg-black/[0.02] p-4">
+                <View className="flex-row items-center gap-2.5">
+                  <Bookmark size={16} color="#EA0000" />
+                  <Bn className="text-black/80 flex-1" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                    ক্লাউড বুকমার্ক: সব ডিভাইসে এক ক্লিকে সিঙ্ক
+                  </Bn>
+                </View>
+                <View className="flex-row items-center gap-2.5">
+                  <Zap size={16} color="#EA0000" />
+                  <Bn className="text-black/80 flex-1" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                    ভুল প্রশ্ন ব্যাংক: দুর্বল বিষয়গুলো স্পেসড রিপিটিশনে রিভিশন
+                  </Bn>
+                </View>
+                <View className="flex-row items-center gap-2.5">
+                  <CheckCircle2 size={16} color="#0A7A3D" />
+                  <Bn className="text-black/80 flex-1" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                    পরীক্ষার পূর্ণাঙ্গ হিস্ট্রি, মার্কশিট ও বিষয়ভিত্তিক দক্ষতা
+                  </Bn>
+                </View>
+              </View>
+
+              {errorMsg ? (
+                <View className="mb-4 rounded-lg bg-[#EA0000]/10 p-3">
+                  <Text className="text-[#EA0000] text-xs text-center" style={{ fontFamily: FONT.uiSemi }}>
+                    {errorMsg}
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* Google Sign In Button */}
+              <Pressable
+                onPress={handleGoogleSignIn}
+                disabled={signingIn}
+                className="flex-row items-center justify-center gap-3 rounded-xl border border-black/20 bg-surface py-3.5 px-4 shadow-xs transition-all hover:border-black/50 hover:shadow-sm active:scale-[0.98]">
+                {signingIn ? (
+                  <ActivityIndicator size="small" color="#0A0A0A" />
+                ) : (
+                  <>
+                    {/* Google G SVG */}
+                    <View className="h-5 w-5 items-center justify-center">
+                      <Svg width={20} height={20} viewBox="0 0 24 24">
+                        <Path
+                          fill="#4285F4"
+                          d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                        />
+                        <Path
+                          fill="#34A853"
+                          d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                        />
+                        <Path
+                          fill="#FBBC05"
+                          d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.04 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                        />
+                        <Path
+                          fill="#EA4335"
+                          d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                        />
+                      </Svg>
+                    </View>
+                    <Text className="text-black font-semibold" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
+                      Google দিয়ে চালিয়ে যান
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+
+              <Text
+                className="mt-4 text-center text-black/40 text-[11px]"
+                style={{ fontFamily: FONT.ui }}>
+                লগইন করার মাধ্যমে আপনি BCS Console-এর শর্তাবলি মেনে নিচ্ছেন।
+              </Text>
+            </View>
+          ) : (
+            /* --- Signed In State: Profile Overview --- */
+            <View>
+              {/* User Info Header */}
+              <View className="mb-5 flex-row items-center gap-3.5 border-b border-black/10 pb-4">
+                {profile?.avatar_url ? (
+                  <Image
+                    source={{ uri: profile.avatar_url }}
+                    className="h-13 w-13 rounded-full border border-black/10"
+                    style={{ width: 52, height: 52, borderRadius: 26 }}
+                  />
+                ) : (
+                  <View className="h-13 w-13 items-center justify-center rounded-full bg-ink" style={{ width: 52, height: 52, borderRadius: 26 }}>
+                    <Text className="text-white font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 20 }}>
+                      {profile?.full_name ? profile.full_name[0].toUpperCase() : 'U'}
+                    </Text>
+                  </View>
+                )}
+                <View className="flex-1">
+                  <Bn className="text-black font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 17 }}>
+                    {profile?.full_name || 'বিসিএস পরীক্ষার্থী'}
+                  </Bn>
+                  <Text className="text-black/50 text-xs mt-0.5" style={{ fontFamily: FONT.ui }}>
+                    {profile?.email || user.email}
+                  </Text>
+                  <View className="mt-1 flex-row items-center gap-1">
+                    <Cloud size={12} color="#0A7A3D" />
+                    <Text className="text-[#0A7A3D] text-[11px]" style={{ fontFamily: FONT.uiSemi }}>
+                      ক্লাউড সিঙ্ক সক্রিয়
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Target BCS Batch Selector */}
+              <View className="mb-5 rounded-xl border border-black/10 bg-black/[0.02] p-4">
+                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14, marginBottom: 2 }}>
+                  টার্গেট বিসিএস ব্যাচ
+                </Bn>
+                <Text className="text-black/50 text-xs mb-3" style={{ fontFamily: FONT.ui }}>
+                  আপনার মূল লক্ষ্য কোন বিসিএস পরীক্ষা?
+                </Text>
+                <View className="flex-row gap-2">
+                  {[51, 50, 49].map((batch) => {
+                    const active = (profile?.target_bcs_batch ?? 51) === batch;
+                    return (
+                      <Pressable
+                        key={batch}
+                        onPress={() => handleBatchSelect(batch)}
+                        className={`flex-1 items-center justify-center rounded-lg border py-2 active:scale-95 ${
+                          active ? 'border-black bg-ink shadow-xs' : 'border-black/15 bg-surface'
+                        }`}>
+                        <Bn
+                          className={active ? 'text-white' : 'text-black/80'}
+                          style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 13 }}>
+                          {`${toBn(batch)}তম বিসিএস`}
+                        </Bn>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Sync Now Button */}
+              <Pressable
+                onPress={async () => {
+                  await syncCloud();
+                  onClose();
+                }}
+                className="mb-3 flex-row items-center justify-center gap-2 rounded-xl border border-black/15 bg-surface py-3 active:scale-[0.98]">
+                <ShieldCheck size={16} color="#0A0A0A" />
+                <Bn style={{ fontFamily: FONT.uiSemi, fontSize: 13.5 }}>
+                  এখনই ক্লাউড সিঙ্ক করুন
+                </Bn>
+              </Pressable>
+
+              {/* Sign Out Button */}
+              <Pressable
+                onPress={handleSignOut}
+                className="flex-row items-center justify-center gap-2 rounded-xl border border-[#EA0000]/20 bg-[#EA0000]/5 py-3 active:scale-[0.98]">
+                <LogOut size={16} color="#EA0000" />
+                <Text className="text-[#EA0000]" style={{ fontFamily: FONT.uiSemi, fontSize: 13.5 }}>
+                  লগআউট করুন
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+}

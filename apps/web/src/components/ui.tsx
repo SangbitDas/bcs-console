@@ -1,14 +1,26 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
+import { User as UserIcon } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { fmtTime, toBn } from '../lib/format';
 import { useExamStore } from '../store/exam';
+import { useAuthStore } from '../lib/auth';
+import { AuthModal } from './auth-modal';
 
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
   const remain = useExamStore((s) => s.remain);
   const running = useExamStore((s) => s.running);
+  const user = useAuthStore((s) => s.user);
+  const profile = useAuthStore((s) => s.profile);
+  const init = useAuthStore((s) => s.init);
+  const [authOpen, setAuthOpen] = useState(false);
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
     <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-6 py-3">
@@ -19,13 +31,56 @@ export function TopBar() {
           </Text>
         </Pressable>
       </Link>
-      {running ? (
-        <View className="border border-black/20 bg-surface px-3 py-1.5">
-          <Text style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#EA0000' }}>
-            {fmtTime(remain)}
-          </Text>
-        </View>
-      ) : null}
+
+      <View className="flex-row items-center gap-3">
+        {running ? (
+          <View className="border border-black/20 bg-surface px-3 py-1.5">
+            <Text style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#EA0000' }}>
+              {fmtTime(remain)}
+            </Text>
+          </View>
+        ) : null}
+
+        {user ? (
+          <Pressable
+            onPress={() => setAuthOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="প্রোফাইল মেনু"
+            className="flex-row items-center gap-2 rounded-full border border-black/15 bg-surface py-1 px-2.5 transition-all hover:border-black/35 hover:shadow-xs active:scale-95">
+            {profile?.avatar_url ? (
+              <Image
+                source={{ uri: profile.avatar_url }}
+                style={{ width: 24, height: 24, borderRadius: 12 }}
+              />
+            ) : (
+              <View className="h-6 w-6 items-center justify-center rounded-full bg-ink" style={{ width: 24, height: 24, borderRadius: 12 }}>
+                <Text className="text-white text-xs font-bold">
+                  {profile?.full_name ? profile.full_name[0].toUpperCase() : 'U'}
+                </Text>
+              </View>
+            )}
+            <Bn
+              className="text-black/80 font-medium"
+              style={{ fontFamily: FONT.uiSemi, fontSize: 13, maxWidth: 120 }}
+              numberOfLines={1}>
+              {profile?.full_name || 'প্রোফাইল'}
+            </Bn>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => setAuthOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="লগইন করুন"
+            className="flex-row items-center gap-1.5 rounded-full border border-black/20 bg-surface py-1.5 px-3.5 shadow-2xs transition-all hover:border-black/50 hover:shadow-xs active:scale-95">
+            <UserIcon size={14} color="#0A0A0A" />
+            <Bn className="text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+              লগইন
+            </Bn>
+          </Pressable>
+        )}
+      </View>
+
+      <AuthModal visible={authOpen} onClose={() => setAuthOpen(false)} />
     </View>
   );
 }

@@ -5,7 +5,7 @@ import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, Che
 import { FONT } from '../lib/fonts';
 import { examLabel, fmtTime, optText, shuffle, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions } from '../lib/examAllocation';
-import { useLibrary, type MockRerunConfig } from '../lib/library';
+import { useLibrary, type MockRerunConfig, type AttemptAnswerInput } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { useExamStore, type MockPresetCount } from '../store/exam';
 import { Btn, Bn, OptBtn, Tag, type OptState } from '../components/ui';
@@ -185,6 +185,37 @@ export default function Exam() {
       total: session.length - excluded,
       right,
       mockRerun: { count: c.count, minutes: c.minutes },
+    });
+
+    // Save full mock attempt to database
+    const answers: AttemptAnswerInput[] = session
+      .filter((q) => !!q.correct_answer)
+      .map((q) => {
+        const idx = session.indexOf(q);
+        const a = s.answers[idx];
+        const isCorrect = a === q.correct_answer;
+        return {
+          question_id: q.id,
+          subject_id: q.subject_id,
+          user_answer: a ?? null,
+          correct_answer: q.correct_answer ?? null,
+          is_correct: isCorrect,
+          time_spent_seconds: 0,
+        };
+      });
+
+    lib.saveExamAttempt({
+      exam_type: 'mock',
+      title: label,
+      total_questions: session.length - excluded,
+      correct_count: right,
+      wrong_count: wrong,
+      unanswered_count: skipped,
+      negative_marking: 0.50,
+      marks_obtained: Math.max(0, right - wrong * 0.5),
+      total_marks: session.length - excluded,
+      time_spent_seconds: Math.max(0, (c.minutes * 60) - s.remain),
+      answers,
     });
   }
 

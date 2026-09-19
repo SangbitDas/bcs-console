@@ -7,7 +7,7 @@ import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, 
 import { FONT } from '../lib/fonts';
 import { ERAS, SUBJECT_COUNT, calc36sMinutes, examLabel, examNum, fmtTime, formatDurationBn, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions, type AllocationResult } from '../lib/examAllocation';
-import { useLibrary, type RerunConfig } from '../lib/library';
+import { useLibrary, type RerunConfig, type AttemptAnswerInput } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
 import { Btn, Bn, Chip, Feedback, OptBtn, ScorePanel, Tag, type OptState } from './ui';
@@ -442,6 +442,36 @@ export function PracticeScreen({
       score: customScore,
       rerun: { mode: s.mode as RerunConfig['mode'], exam: s.exam, subjects: s.subjects, fromN: s.fromN, toN: s.toN, count: s.count, order: s.order },
     });
+
+    if (session.length > 0) {
+      const answers: AttemptAnswerInput[] = session.map((q) => {
+        const d = s.done[q.id];
+        return {
+          question_id: q.id,
+          subject_id: q.subject_id,
+          user_answer: d?.pick ?? null,
+          correct_answer: q.correct_answer ?? null,
+          is_correct: !!d?.ok,
+          time_spent_seconds: 0,
+        };
+      });
+
+      lib.saveExamAttempt({
+        exam_type: s.mode === 'custom' ? 'custom' : s.mode === 'subject' ? 'subject' : 'exam',
+        exam_slug: s.mode === 'exam' ? s.exam : undefined,
+        title: scopeLabel(),
+        total_questions: session.length,
+        correct_count: s.right,
+        wrong_count: s.wrong,
+        unanswered_count: Math.max(0, session.length - (s.right + s.wrong)),
+        negative_marking: 0.50,
+        marks_obtained: Math.max(0, s.right - s.wrong * 0.5),
+        total_marks: session.length,
+        time_spent_seconds: 0,
+        answers,
+      });
+    }
+
     s.finish();
   };
 
