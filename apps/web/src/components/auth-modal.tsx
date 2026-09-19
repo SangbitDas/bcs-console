@@ -1,3 +1,4 @@
+// BCS Console — Auth Modal (Google OAuth & User Profile)
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { Image } from 'expo-image';
