@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Svg, Path } from 'react-native-svg';
-import { Bookmark, CheckCircle2, Cloud, LogOut, ShieldCheck, User as UserIcon, X, Zap } from 'lucide-react';
+import { Bookmark, CheckCircle2, LogOut, ShieldCheck, X, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
-import { toBn } from '../lib/format';
 import { useAuthStore } from '../lib/auth';
 import { useLibrary } from '../lib/library';
 
@@ -35,7 +34,7 @@ export function AuthModal({
   visible: boolean;
   onClose: () => void;
 }) {
-  const { user, profile, loading, signInWithGoogle, signOut, updateProfile } = useAuthStore();
+  const { user, profile, signInWithGoogle, signOut } = useAuthStore();
   const { syncCloud } = useLibrary();
   const [signingIn, setSigningIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -55,10 +54,6 @@ export function AuthModal({
     onClose();
   };
 
-  const handleBatchSelect = async (batch: number) => {
-    await updateProfile({ target_bcs_batch: batch });
-  };
-
   return (
     <Modal
       visible={visible}
@@ -67,16 +62,27 @@ export function AuthModal({
       onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-black/60 px-4">
         {/* Backdrop dismiss */}
-        <Pressable className="absolute inset-0" onPress={onClose} />
+        <Pressable
+          style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, cursor: 'pointer' }}
+          onPress={onClose}
+          // @ts-ignore
+          onClick={onClose}
+        />
 
         {/* Modal Container */}
         <View
-          className="w-full max-w-[460px] overflow-hidden rounded-2xl border border-black/15 bg-surface p-6 shadow-2xl"
+          className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-black/15 bg-surface p-6 shadow-2xl"
           style={{ zIndex: 10 }}>
-          {/* Close button */}
+          {/* Close / Abort button */}
           <Pressable
             onPress={onClose}
-            className="absolute right-4 top-4 h-8 w-8 items-center justify-center rounded-full bg-black/[0.05] active:scale-95">
+            // @ts-ignore
+            onClick={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="বন্ধ করুন"
+            hitSlop={12}
+            style={{ position: 'absolute', top: 16, right: 16, zIndex: 100, cursor: 'pointer' }}
+            className="h-8 w-8 items-center justify-center rounded-full bg-black/[0.06] hover:bg-black/12 active:scale-95">
             <X size={16} color="#0A0A0A" />
           </Pressable>
 
@@ -84,7 +90,7 @@ export function AuthModal({
             /* --- Signed Out State: Login Prompt --- */
             <View>
               {/* Header */}
-              <View className="mb-4">
+              <View className="mb-4 pr-10">
                 <View className="mb-2 h-1 w-8 rounded-full bg-[#EA0000]" />
                 <Text style={{ fontFamily: FONT.displayBlack, fontSize: 22, lineHeight: 30 }}>
                   বিসিএস ক্লাউড অ্যাকাউন্ট
@@ -129,13 +135,15 @@ export function AuthModal({
               {/* Google Sign In Button */}
               <Pressable
                 onPress={handleGoogleSignIn}
+                // @ts-ignore
+                onClick={handleGoogleSignIn}
                 disabled={signingIn}
+                style={{ cursor: 'pointer' }}
                 className="flex-row items-center justify-center gap-3 rounded-xl border border-black/20 bg-surface py-3.5 px-4 shadow-xs transition-all hover:border-black/50 hover:shadow-sm active:scale-[0.98]">
                 {signingIn ? (
                   <ActivityIndicator size="small" color="#0A0A0A" />
                 ) : (
                   <>
-                    {/* Google G SVG */}
                     <View className="h-5 w-5 items-center justify-center">
                       <Svg width={20} height={20} viewBox="0 0 24 24">
                         <Path
@@ -173,62 +181,28 @@ export function AuthModal({
             /* --- Signed In State: Profile Overview --- */
             <View>
               {/* User Info Header */}
-              <View className="mb-5 flex-row items-center gap-3.5 border-b border-black/10 pb-4">
+              <View className="mb-6 flex-row items-center gap-3.5 border-b border-black/10 pb-5 pr-12">
                 {profile?.avatar_url ? (
                   <Image
                     source={{ uri: profile.avatar_url }}
-                    className="h-13 w-13 rounded-full border border-black/10"
-                    style={{ width: 52, height: 52, borderRadius: 26 }}
+                    style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#E5E5E5' }}
                   />
                 ) : (
-                  <View className="h-13 w-13 items-center justify-center rounded-full bg-ink" style={{ width: 52, height: 52, borderRadius: 26 }}>
+                  <View
+                    className="items-center justify-center rounded-full bg-ink"
+                    style={{ width: 52, height: 52, borderRadius: 26 }}>
                     <Text className="text-white font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 20 }}>
                       {profile?.full_name ? profile.full_name[0].toUpperCase() : 'U'}
                     </Text>
                   </View>
                 )}
                 <View className="flex-1">
-                  <Bn className="text-black font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 17 }}>
+                  <Bn className="text-black font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 18 }}>
                     {profile?.full_name || 'বিসিএস পরীক্ষার্থী'}
                   </Bn>
-                  <Text className="text-black/50 text-xs mt-0.5" style={{ fontFamily: FONT.ui }}>
+                  <Text className="text-black/55 text-xs mt-0.5" style={{ fontFamily: FONT.ui }}>
                     {profile?.email || user.email}
                   </Text>
-                  <View className="mt-1 flex-row items-center gap-1">
-                    <Cloud size={12} color="#0A7A3D" />
-                    <Text className="text-[#0A7A3D] text-[11px]" style={{ fontFamily: FONT.uiSemi }}>
-                      ক্লাউড সিঙ্ক সক্রিয়
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Target BCS Batch Selector */}
-              <View className="mb-5 rounded-xl border border-black/10 bg-black/[0.02] p-4">
-                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 14, marginBottom: 2 }}>
-                  টার্গেট বিসিএস ব্যাচ
-                </Bn>
-                <Text className="text-black/50 text-xs mb-3" style={{ fontFamily: FONT.ui }}>
-                  আপনার মূল লক্ষ্য কোন বিসিএস পরীক্ষা?
-                </Text>
-                <View className="flex-row gap-2">
-                  {[51, 50, 49].map((batch) => {
-                    const active = (profile?.target_bcs_batch ?? 51) === batch;
-                    return (
-                      <Pressable
-                        key={batch}
-                        onPress={() => handleBatchSelect(batch)}
-                        className={`flex-1 items-center justify-center rounded-lg border py-2 active:scale-95 ${
-                          active ? 'border-black bg-ink shadow-xs' : 'border-black/15 bg-surface'
-                        }`}>
-                        <Bn
-                          className={active ? 'text-white' : 'text-black/80'}
-                          style={{ fontFamily: active ? FONT.uiBold : FONT.uiSemi, fontSize: 13 }}>
-                          {`${toBn(batch)}তম বিসিএস`}
-                        </Bn>
-                      </Pressable>
-                    );
-                  })}
                 </View>
               </View>
 
@@ -238,9 +212,15 @@ export function AuthModal({
                   await syncCloud();
                   onClose();
                 }}
-                className="mb-3 flex-row items-center justify-center gap-2 rounded-xl border border-black/15 bg-surface py-3 active:scale-[0.98]">
+                // @ts-ignore
+                onClick={async () => {
+                  await syncCloud();
+                  onClose();
+                }}
+                style={{ cursor: 'pointer' }}
+                className="mb-3 flex-row items-center justify-center gap-2 rounded-xl border border-black/15 bg-surface py-3.5 transition-all hover:border-black/35 hover:shadow-xs active:scale-[0.98]">
                 <ShieldCheck size={16} color="#0A0A0A" />
-                <Bn style={{ fontFamily: FONT.uiSemi, fontSize: 13.5 }}>
+                <Bn style={{ fontFamily: FONT.uiSemi, fontSize: 14 }}>
                   এখনই ক্লাউড সিঙ্ক করুন
                 </Bn>
               </Pressable>
@@ -248,9 +228,12 @@ export function AuthModal({
               {/* Sign Out Button */}
               <Pressable
                 onPress={handleSignOut}
-                className="flex-row items-center justify-center gap-2 rounded-xl border border-[#EA0000]/20 bg-[#EA0000]/5 py-3 active:scale-[0.98]">
+                // @ts-ignore
+                onClick={handleSignOut}
+                style={{ cursor: 'pointer' }}
+                className="flex-row items-center justify-center gap-2 rounded-xl border border-[#EA0000]/20 bg-[#EA0000]/5 py-3.5 transition-all hover:bg-[#EA0000]/10 active:scale-[0.98]">
                 <LogOut size={16} color="#EA0000" />
-                <Text className="text-[#EA0000]" style={{ fontFamily: FONT.uiSemi, fontSize: 13.5 }}>
+                <Text className="text-[#EA0000]" style={{ fontFamily: FONT.uiSemi, fontSize: 14 }}>
                   লগআউট করুন
                 </Text>
               </Pressable>
