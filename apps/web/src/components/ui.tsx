@@ -8,6 +8,7 @@ import { fmtTime, toBn } from '../lib/format';
 import { useExamStore } from '../store/exam';
 import { useAuthStore } from '../lib/auth';
 import { AuthModal } from './auth-modal';
+import { UserAvatar } from './avatar';
 
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
@@ -47,23 +48,16 @@ export function TopBar() {
             accessibilityRole="button"
             accessibilityLabel="প্রোফাইল মেনু"
             className="flex-row items-center gap-2 rounded-full border border-black/15 bg-surface py-1 px-2.5 transition-all hover:border-black/35 hover:shadow-xs active:scale-95">
-            {profile?.avatar_url ? (
-              <Image
-                source={{ uri: profile.avatar_url }}
-                style={{ width: 24, height: 24, borderRadius: 12 }}
-              />
-            ) : (
-              <View className="h-6 w-6 items-center justify-center rounded-full bg-ink" style={{ width: 24, height: 24, borderRadius: 12 }}>
-                <Text className="text-white text-xs font-bold">
-                  {profile?.full_name ? profile.full_name[0].toUpperCase() : 'U'}
-                </Text>
-              </View>
-            )}
+            <UserAvatar
+              url={profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture}
+              name={profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name}
+              size={24}
+            />
             <Bn
               className="text-black/80 font-medium"
               style={{ fontFamily: FONT.uiSemi, fontSize: 13, maxWidth: 120 }}
               numberOfLines={1}>
-              {profile?.full_name || 'প্রোফাইল'}
+              {profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'প্রোফাইল'}
             </Bn>
           </Pressable>
         ) : (

@@ -5,6 +5,7 @@ import { Svg, Path } from 'react-native-svg';
 import { Bookmark, CheckCircle2, LogOut, X, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { useAuthStore } from '../lib/auth';
+import { UserAvatar } from './avatar';
 
 function Bn({
   children,
@@ -180,23 +181,14 @@ export function AuthModal({
             <View>
               {/* User Info Header */}
               <View className="mb-6 flex-row items-center gap-3.5 border-b border-black/10 pb-5 pr-12">
-                {profile?.avatar_url ? (
-                  <Image
-                    source={{ uri: profile.avatar_url }}
-                    style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#E5E5E5' }}
-                  />
-                ) : (
-                  <View
-                    className="items-center justify-center rounded-full bg-ink"
-                    style={{ width: 52, height: 52, borderRadius: 26 }}>
-                    <Text className="text-white font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 20 }}>
-                      {profile?.full_name ? profile.full_name[0].toUpperCase() : 'U'}
-                    </Text>
-                  </View>
-                )}
+                <UserAvatar
+                  url={profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture}
+                  name={profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name}
+                  size={52}
+                />
                 <View className="flex-1">
                   <Bn className="text-black font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 18 }}>
-                    {profile?.full_name || 'বিসিএস পরীক্ষার্থী'}
+                    {profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'বিসিএস পরীক্ষার্থী'}
                   </Bn>
                   <Text className="text-black/55 text-xs mt-0.5" style={{ fontFamily: FONT.ui }}>
                     {profile?.email || user.email}
