@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Svg, Path } from 'react-native-svg';
-import { Bookmark, CheckCircle2, LogOut, ShieldCheck, X, Zap } from 'lucide-react';
+import { Bookmark, CheckCircle2, LogOut, X, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { useAuthStore } from '../lib/auth';
-import { useLibrary } from '../lib/library';
 
 function Bn({
   children,
@@ -35,7 +34,6 @@ export function AuthModal({
   onClose: () => void;
 }) {
   const { user, profile, signInWithGoogle, signOut } = useAuthStore();
-  const { syncCloud } = useLibrary();
   const [signingIn, setSigningIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -205,25 +203,6 @@ export function AuthModal({
                   </Text>
                 </View>
               </View>
-
-              {/* Sync Now Button */}
-              <Pressable
-                onPress={async () => {
-                  await syncCloud();
-                  onClose();
-                }}
-                // @ts-ignore
-                onClick={async () => {
-                  await syncCloud();
-                  onClose();
-                }}
-                style={{ cursor: 'pointer' }}
-                className="mb-3 flex-row items-center justify-center gap-2 rounded-xl border border-black/15 bg-surface py-3.5 transition-all hover:border-black/35 hover:shadow-xs active:scale-[0.98]">
-                <ShieldCheck size={16} color="#0A0A0A" />
-                <Bn style={{ fontFamily: FONT.uiSemi, fontSize: 14 }}>
-                  এখনই ক্লাউড সিঙ্ক করুন
-                </Bn>
-              </Pressable>
 
               {/* Sign Out Button */}
               <Pressable
