@@ -7,7 +7,26 @@ import { FONT } from '../lib/fonts';
 import { toBn } from '../lib/format';
 import { useAuthStore } from '../lib/auth';
 import { useLibrary } from '../lib/library';
-import { Bn } from './ui';
+
+function Bn({
+  children,
+  className = '',
+  bold,
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  bold?: boolean;
+  style?: any;
+}) {
+  return (
+    <Text
+      className={className}
+      style={[{ fontFamily: bold ? FONT.uiBold : FONT.ui }, style]}>
+      {children}
+    </Text>
+  );
+}
 
 export function AuthModal({
   visible,
