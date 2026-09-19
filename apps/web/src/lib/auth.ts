@@ -7,7 +7,6 @@ export interface UserProfile {
   full_name: string | null;
   email: string | null;
   avatar_url: string | null;
-  target_bcs_batch: number | null;
   phone: string | null;
   created_at: string;
   updated_at: string;
@@ -22,7 +21,7 @@ interface AuthState {
   init: () => Promise<void>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (data: Partial<Pick<UserProfile, 'full_name' | 'target_bcs_batch' | 'phone'>>) => Promise<void>;
+  updateProfile: (data: Partial<Pick<UserProfile, 'full_name' | 'phone'>>) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
