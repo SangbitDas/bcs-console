@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, CheckCircle2, ChevronRight, Clock, Eye, EyeOff, FileText, Filter, HelpCircle, Lightbulb, Minus, Plus, RotateCcw, Settings, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react';
@@ -218,17 +218,22 @@ export function PracticeScreen({
 }: {
   initialMode?: PracticeMode | null;
 }) {
+  const pathname = usePathname();
   const params = useLocalSearchParams<{ id?: string; subject?: string; exam?: string; slug?: string; mode?: string }>();
   const s = usePracticeStore();
   const lib = useLibrary();
   const { data: subjects } = useSubjects();
   const { data: exams } = useExams();
 
-
+  // Target mode strictly intended by the active route:
+  const targetMode: PracticeMode | null =
+    params.mode === 'bookmarks' || params.mode === 'wrong'
+      ? params.mode
+      : initialMode ?? null;
 
   useEffect(() => {
     // 1. If we are on the Hub route (/practice), ensure state resets to Hub so browser Back button works
-    if (initialMode === null) {
+    if (targetMode === null) {
       if (s.mode !== null || s.started) {
         s.backToHub();
       }
@@ -237,7 +242,7 @@ export function PracticeScreen({
 
     // 2. If params explicitly specify an exam, subject, or mode, handle that
     const rawSubId = params.id ?? params.subject;
-    if (rawSubId) {
+    if (rawSubId && targetMode === 'subject') {
       const id = parseInt(String(rawSubId), 10);
       if (!isNaN(id)) {
         if (s.mode !== 'subject' || !s.started || s.subjects.length !== 1 || s.subjects[0] !== id) {
@@ -250,7 +255,7 @@ export function PracticeScreen({
     }
 
     const examSlug = params.slug ?? params.exam;
-    if (examSlug) {
+    if (examSlug && targetMode === 'exam') {
       if (s.mode !== 'exam' || s.exam !== examSlug || !s.started) {
         s.setMode('exam');
         s.setExam(String(examSlug));
@@ -268,15 +273,15 @@ export function PracticeScreen({
     }
 
     // 3. Sub-route mode switching or browser back navigation
-    if (initialMode !== undefined && s.mode !== initialMode) {
-      s.setMode(initialMode);
-    } else if (initialMode === 'exam' && s.started && !examSlug) {
+    if (targetMode !== null && s.mode !== targetMode) {
+      s.setMode(targetMode);
+    } else if (targetMode === 'exam' && s.started && !examSlug) {
       s.backToPicker();
-    } else if (initialMode === 'subject' && s.started && !rawSubId && s.subjects.length <= 1) {
+    } else if (targetMode === 'subject' && s.started && !rawSubId && s.subjects.length <= 1) {
       s.backToPicker();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialMode, params.id, params.subject, params.exam, params.slug, params.mode]);
+  }, [pathname, targetMode, params.id, params.subject, params.exam, params.slug, params.mode]);
 
   const subjectName = useCallback(
     (id: number) => subjects?.find((x) => x.id === id)?.subject_bn ?? `বিষয় ${id}`,
@@ -286,6 +291,9 @@ export function PracticeScreen({
   /* pool args per mode */
   const poolArgs = useMemo(() => {
     if (!exams) return { key: 'none', enabled: false };
+    if (targetMode === null) return { key: 'none', enabled: false };
+    if (s.mode !== targetMode) return { key: 'none', enabled: false };
+
     if (s.mode === 'exam' && s.exam) return { key: `exam-${s.exam}`, slugs: [s.exam], enabled: true };
     if (s.mode === 'subject' && s.started) {
       const subs = s.subjects.length ? s.subjects : undefined;
@@ -313,7 +321,7 @@ export function PracticeScreen({
       return { key: `wr-${lib.wrongIds.length}`, ids: lib.wrongIds, enabled: lib.wrongIds.length > 0 };
     return { key: 'none', enabled: false };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.mode, s.exam, s.exams, s.subjects, s.fromN, s.toN, s.started, exams, lib.bookmarks.length, lib.wrongIds.length]);
+  }, [targetMode, s.mode, s.exam, s.exams, s.subjects, s.fromN, s.toN, s.started, exams, lib.bookmarks.length, lib.wrongIds.length]);
 
   const pool = useQuestionPool({ ...(poolArgs as { key: string; slugs?: string[]; subjectIds?: number[]; ids?: number[] }), enabled: poolArgs.enabled ?? false });
 
@@ -419,7 +427,14 @@ export function PracticeScreen({
   /* Virtualized list modes need a bounded-height container (no outer
      ScrollView) so FlashList can recycle rows instead of mounting all. */
   const isVirtualList =
-    s.started && !s.finished && (s.mode === 'exam' || s.mode === 'subject' || s.mode === 'custom') && !pool.isPending && !pool.isError && session.length > 0;
+    targetMode !== null &&
+    s.mode === targetMode &&
+    s.started &&
+    !s.finished &&
+    (s.mode === 'exam' || s.mode === 'subject' || s.mode === 'custom') &&
+    !pool.isPending &&
+    !pool.isError &&
+    session.length > 0;
 
   if (isVirtualList) {
     return (
@@ -455,9 +470,9 @@ export function PracticeScreen({
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={true}>
       <View
         className={`mx-auto w-full px-5 py-8 ${
-          s.started ? 'max-w-[1200px]' : 'max-w-[1100px]'
+          s.started && targetMode !== null && s.mode === targetMode ? 'max-w-[1200px]' : 'max-w-[1100px]'
         }`}>
-        {s.mode === null ? (
+        {targetMode === null ? (
           <HubView
             exams={exams ?? []}
             subjects={subjects ?? []}
@@ -469,12 +484,12 @@ export function PracticeScreen({
                 s.setMode(m);
                 if (m === 'exam') router.push('/practice/exam' as any);
                 else if (m === 'subject') router.push('/practice/subject' as any);
-                else if (m === 'custom') router.push('/practice/custom' as any);
+                else if (m === 'custom') router.push('/custom' as any);
               }
             }}
             onRerun={applyRerun}
           />
-        ) : !s.started ? (
+        ) : (s.mode !== targetMode || !s.started) ? (
           <ConfigureView
             exams={exams ?? []}
             subjects={subjects ?? []}
@@ -494,7 +509,7 @@ export function PracticeScreen({
             }}
             onHub={() => {
               s.backToHub();
-              router.push(s.mode === 'custom' ? '/' as any : '/practice' as any);
+              router.push('/practice' as any);
             }}
           />
         ) : pool.isPending ? (
