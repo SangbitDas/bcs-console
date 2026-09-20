@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams, usePathname } from 'expo-router';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, CheckCircle2, ChevronRight, Clock, Eye, EyeOff, FileText, Filter, HelpCircle, Lightbulb, Minus, Plus, RotateCcw, Settings, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
@@ -10,8 +10,9 @@ import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sam
 import { useLibrary, type RerunConfig, type AttemptAnswerInput } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
-import { Btn, Bn, Chip, Feedback, OptBtn, ScorePanel, Tag, type OptState } from './ui';
+import { Btn, Bn, Chip, Feedback, MathText, OptBtn, ScorePanel, Tag, type OptState } from './ui';
 import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
+import { ExplanationImage } from './image-lightbox';
 import { SUBJECT_ICONS } from '../app/index';
 
 const OPT_KEYS = ['A', 'B', 'C', 'D'];
@@ -53,7 +54,7 @@ export const QuestionCard = memo(function QuestionCard({
   const toggleBookmark = useLibrary((st) => st.toggleBookmark);
 
   const isAnswered = !!done;
-  const showExplanation = revealAll || done?.reveal || expanded;
+  const showExplanation = revealAll || done?.reveal || expanded || (!q.correct_answer && isAnswered);
   const showAnswer = isAnswered || revealAll || expanded;
 
   return (
@@ -74,14 +75,19 @@ export const QuestionCard = memo(function QuestionCard({
         </View>
       </View>
 
-      <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, marginBottom: q.question ? 14 : 4 }}>
-        {q.question || '(ছবিতে প্রশ্ন দেখুন)'}
-      </Bn>
+      {q.question ? (
+        <MathText
+          style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, marginBottom: 14 }}
+          text={q.question}
+        />
+      ) : (
+        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, marginBottom: 4 }}>
+          (ছবিতে প্রশ্ন দেখুন)
+        </Bn>
+      )}
 
       {(q.question_image_urls ?? []).map((u) => (
-        <View key={u} className="mb-4 items-center rounded-lg border border-black/10 bg-white p-3">
-          <Image source={{ uri: u }} style={{ width: '100%', height: 220 }} contentFit="contain" />
-        </View>
+        <ExplanationImage key={u} uri={u} title="প্রশ্নের চিত্র" height={220} className="mb-4 mt-0" />
       ))}
 
       <View className="my-2 flex-col gap-2">
@@ -98,9 +104,14 @@ export const QuestionCard = memo(function QuestionCard({
             if (isCorrect) {
               btnClass = 'border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold';
               badgeClass = 'border-emerald-600 bg-emerald-600 text-white';
-            } else if (isPicked && !done?.ok) {
-              btnClass = 'border-rose-500 bg-rose-50 text-rose-950';
-              badgeClass = 'border-rose-500 bg-rose-500 text-white';
+            } else if (isPicked) {
+              if (!q.correct_answer) {
+                btnClass = 'border-black/30 bg-black/[0.04] text-black font-medium';
+                badgeClass = 'border-black bg-ink text-white';
+              } else if (!done?.ok) {
+                btnClass = 'border-rose-500 bg-rose-50 text-rose-950';
+                badgeClass = 'border-rose-500 bg-rose-500 text-white';
+              }
             } else {
               btnClass = 'border-black/10 bg-black/[0.015] text-black/50 opacity-60';
               badgeClass = 'border-black/10 bg-paper text-black/40';
@@ -110,15 +121,18 @@ export const QuestionCard = memo(function QuestionCard({
           return (
             <Pressable
               key={k}
-              onPress={() => answer(q.id, k, k === q.correct_answer)}
+              onPress={() => {
+                answer(q.id, k, k === q.correct_answer);
+                if (!q.correct_answer && !expanded) {
+                  onToggleNote(q.id);
+                }
+              }}
               disabled={isAnswered && !revealAll}
               className={`flex-row items-center gap-3 rounded-lg border p-3 transition-colors ${btnClass}`}>
               <View className={`h-6 w-6 items-center justify-center rounded-full border ${badgeClass}`}>
                 <Bn style={{ fontFamily: FONT.uiBold, fontSize: 12 }}>{k}</Bn>
               </View>
-              <Bn className="flex-1" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
-                {txt}
-              </Bn>
+              <MathText className="flex-1" style={{ fontFamily: FONT.ui, fontSize: 14 }} text={txt} />
               {showAnswer && isCorrect ? (
                 <Check size={16} color="#059669" strokeWidth={2.5} />
               ) : null}
@@ -144,17 +158,16 @@ export const QuestionCard = memo(function QuestionCard({
       {showExplanation ? (
         <View className="mt-3 rounded-lg border border-black/10 bg-paper p-4">
           <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 4 }}>
-            {`সঠিক উত্তর: ${q.correct_answer || 'উৎসে উত্তর অনুপস্থিত'}`}
+            {`সঠিক উত্তর: ${q.correct_answer || 'নেই'}`}
           </Bn>
           {q.solve_note ? (
-            <Bn style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}>
-              {q.solve_note}
-            </Bn>
+            <MathText
+              style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
+              text={q.solve_note}
+            />
           ) : null}
           {(q.solve_note_image_urls ?? []).map((u) => (
-            <View key={u} className="mt-3 items-center rounded border border-black/10 bg-white p-2">
-              <Image source={{ uri: u }} style={{ width: '100%', height: 180 }} contentFit="contain" />
-            </View>
+            <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={180} />
           ))}
         </View>
       ) : null}
@@ -171,6 +184,7 @@ export function QuestionsFlashList({
   onToggleNote,
   header,
   empty,
+  resetScrollKey,
 }: {
   items: DisplayItem[];
   revealAll: boolean;
@@ -178,7 +192,28 @@ export function QuestionsFlashList({
   onToggleNote: (qid: number) => void;
   header?: React.ReactElement | null;
   empty?: React.ReactElement | null;
+  resetScrollKey?: any;
 }) {
+  const listRef = useRef<FlashListRef<DisplayItem>>(null);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (resetScrollKey !== undefined) {
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0 });
+      }
+      const t = setTimeout(() => {
+        listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [resetScrollKey]);
+
   const renderItem = useCallback(
     ({ item }: { item: DisplayItem }) => (
       <View className="mb-4">
@@ -197,6 +232,7 @@ export function QuestionsFlashList({
   );
   return (
     <FlashList
+      ref={listRef}
       data={items}
       renderItem={renderItem}
       keyExtractor={(it) => String(it.q.id)}
@@ -1672,6 +1708,7 @@ function ExamAllQuestionsView({
               onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
+              resetScrollKey={selectedSubjectIds.join(',')}
             />
           </View>
         </SidebarLayout>
@@ -1772,6 +1809,7 @@ function ExamAllQuestionsView({
               onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
+              resetScrollKey={selectedSubjectIds.join(',')}
             />
           </View>
         </View>
@@ -2395,6 +2433,7 @@ function SubjectAllQuestionsView({
               onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
+              resetScrollKey={selectedExamSlugs.join(',')}
             />
           </View>
         </SidebarLayout>
@@ -2495,6 +2534,7 @@ function SubjectAllQuestionsView({
               onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
+              resetScrollKey={selectedExamSlugs.join(',')}
             />
           </View>
         </View>
@@ -2544,9 +2584,16 @@ function RunnerView({
         <View className="mb-4 h-1 bg-black/10">
           <View className="h-1 bg-accent" style={{ width: `${((s.idx + 1) / session.length) * 100}%` }} />
         </View>
-        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 20, lineHeight: 32, marginBottom: q.question ? 12 : 0 }}>
-          {q.question || '(ছবিতে প্রশ্ন দেখুন)'}
-        </Bn>
+        {q.question ? (
+          <MathText
+            style={{ fontFamily: FONT.uiBold, fontSize: 20, lineHeight: 32, marginBottom: 12 }}
+            text={q.question}
+          />
+        ) : (
+          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 20, lineHeight: 32, marginBottom: 0 }}>
+            (ছবিতে প্রশ্ন দেখুন)
+          </Bn>
+        )}
         {(q.question_image_urls ?? []).map((u) => (
           <View key={u} className="mb-4 items-center border border-black/10 bg-white p-3">
             <Image source={{ uri: u }} style={{ width: '100%', height: 240 }} contentFit="contain" />
@@ -2577,7 +2624,7 @@ function RunnerView({
             kind={done.reveal ? 'info' : done.ok ? 'ok' : 'bad'}
             title={
               done.reveal
-                ? `সঠিক উত্তর: ${q.correct_answer}`
+                ? `সঠিক উত্তর: ${q.correct_answer || 'নেই'}`
                 : done.ok
                   ? 'সঠিক উত্তর দিয়েছেন।'
                   : 'উত্তরটি সঠিক হয়নি'
@@ -2654,15 +2701,20 @@ function WrongQuestionCard({
       </View>
 
       {/* Question Text */}
-      <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, color: '#0A0A0A', marginBottom: q.question ? 14 : 4 }}>
-        {q.question || '(ছবিতে প্রশ্ন দেখুন)'}
-      </Bn>
+      {q.question ? (
+        <MathText
+          style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, color: '#0A0A0A', marginBottom: 14 }}
+          text={q.question}
+        />
+      ) : (
+        <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16, lineHeight: 26, color: '#0A0A0A', marginBottom: 4 }}>
+          (ছবিতে প্রশ্ন দেখুন)
+        </Bn>
+      )}
 
       {/* Question Images */}
       {(q.question_image_urls ?? []).map((u) => (
-        <View key={u} className="mb-4 items-center rounded-lg border border-black/10 bg-white p-3">
-          <Image source={{ uri: u }} style={{ width: '100%', height: 220 }} contentFit="contain" />
-        </View>
+        <ExplanationImage key={u} uri={u} title="প্রশ্নের চিত্র" height={220} className="mb-4 mt-0" />
       ))}
 
       {/* Question Options in Clean Native Style */}
@@ -2689,16 +2741,28 @@ function WrongQuestionCard({
               </View>
             );
           } else if (isPicked) {
-            btnClass = 'border-accent bg-accent/5 text-black';
-            badgeClass = 'border-accent bg-accent text-white';
-            statusTag = (
-              <View className="flex-row items-center gap-1 rounded bg-accent/10 px-2 py-0.5">
-                <X size={12} color="#EA0000" strokeWidth={3} />
-                <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: '#EA0000' }}>
-                  আপনার উত্তর
-                </Text>
-              </View>
-            );
+            if (!q.correct_answer) {
+              btnClass = 'border-black/30 bg-black/[0.04] text-black font-semibold';
+              badgeClass = 'border-black bg-ink text-white';
+              statusTag = (
+                <View className="flex-row items-center gap-1 rounded bg-black/10 px-2 py-0.5">
+                  <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: '#0A0A0A' }}>
+                    আপনার উত্তর
+                  </Text>
+                </View>
+              );
+            } else {
+              btnClass = 'border-accent bg-accent/5 text-black';
+              badgeClass = 'border-accent bg-accent text-white';
+              statusTag = (
+                <View className="flex-row items-center gap-1 rounded bg-accent/10 px-2 py-0.5">
+                  <X size={12} color="#EA0000" strokeWidth={3} />
+                  <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: '#EA0000' }}>
+                    আপনার উত্তর
+                  </Text>
+                </View>
+              );
+            }
           }
 
           return (
@@ -2708,9 +2772,7 @@ function WrongQuestionCard({
               <View className={`h-6 w-6 items-center justify-center rounded-full border ${badgeClass}`}>
                 <Bn style={{ fontFamily: FONT.uiBold, fontSize: 12 }}>{k}</Bn>
               </View>
-              <Bn className="flex-1" style={{ fontFamily: FONT.ui, fontSize: 14.5 }}>
-                {txt}
-              </Bn>
+              <MathText className="flex-1" style={{ fontFamily: FONT.ui, fontSize: 14.5 }} text={txt} />
               {statusTag}
             </View>
           );
@@ -2731,17 +2793,16 @@ function WrongQuestionCard({
           {showNote ? (
             <View className="mt-2 rounded-lg border border-black/10 bg-paper p-4">
               <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 4 }}>
-                {`সঠিক উত্তর: ${q.correct_answer || 'উৎসে উত্তর নেই'}`}
+                {`সঠিক উত্তর: ${q.correct_answer || 'নেই'}`}
               </Bn>
               {q.solve_note ? (
-                <Bn style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}>
-                  {q.solve_note}
-                </Bn>
+                <MathText
+                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
+                  text={q.solve_note}
+                />
               ) : null}
               {(q.solve_note_image_urls ?? []).map((u) => (
-                <View key={u} className="mt-3 items-center rounded border border-black/10 bg-white p-2">
-                  <Image source={{ uri: u }} style={{ width: '100%', height: 180 }} contentFit="contain" />
-                </View>
+                <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={180} />
               ))}
             </View>
           ) : null}

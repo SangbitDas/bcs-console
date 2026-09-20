@@ -1824,7 +1824,7 @@
       "option_c": "(0,a)",
       "option_d": "(a,0)",
       "correct_answer": "D",
-      "solve_note": "ax+by=a²…(i)bx−ay=ab…(ii) (i) নং কে a ও (ii) নং কে b দ্বারা গুণ করে, a²x+aby=a²b²x−aby=ab²¯a²x−b²x=a³−ab²⇒(a²−b²)x=a(a²−b²)∴x=a x=a(ii) নং এ বসিয়ে, ba–ay=ab⇒ay=ab–ab=0 ∴ নির্ণেয় সমাধান (x,y)=(4,0).",
+      "solve_note": "ax+by=a²…(i)bx−ay=ab…(ii) (i) নং কে a ও (ii) নং কে b দ্বারা গুণ করে, a²x+aby=a²b²x−aby=ab²¯a²x−b²x=a³−ab²⇒(a²−b²)x=a(a²−b²)∴x=a x=a(ii) নং এ বসিয়ে, ba–ay=ab⇒ay=ab–ab=0 ∴ নির্ণেয় সমাধান (x,y)=(a,0).",
       "question_image_paths": [],
       "solve_note_image_paths": [],
       "has_question_image": 0,

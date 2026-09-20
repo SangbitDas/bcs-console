@@ -1,5 +1,56 @@
 # BCS Console — migration memory (maintained, newest first)
 
+## 2026-09-19 — LaTeX / KaTeX Formula Rendering for Math & Science Questions (Upcoming Item #5)
+- **User Request**:
+  - Implement KaTeX integration for Mathematical Reasoning (Subject 8) and General Science (Subject 6) questions, options, and solve notes.
+  - Beautifully render fractions ($\frac{a}{b}$), square roots ($\sqrt{x}$), exponents/superscripts ($x^2, x^{m+n}$), nested powers ($x^{x^{\sqrt{x}}}$), chemical formulas ($\text{HNO}_3, \text{CO}_2$), and equations ($6x^2-7x-4=0$) without broken text.
+  - **Strict Constraints Enforced**:
+    - Raw plain-text database content remains 100% untouched. All conversions are purely client-side rendering transformations.
+    - Balanced parenthesis/bracket parser prevents any corruption of nested exponents or fractional groupings.
+    - Verified against official PSC answer keys across 41 exams.
+- **Architecture & Implementation in `apps/web`**:
+  - Installed `katex` (v0.16.11) and `@types/katex` (v0.16.7).
+  - Injected KaTeX CDN stylesheet (`katex.min.css`) and Bengali typography fallback in `src/app/+html.tsx`.
+  - Created `src/lib/mathParser.ts`:
+    - `hasMathTokens`: Quick regex guard preventing unnecessary overhead for regular Bengali prose.
+    - `findMatchingClose`: Balanced delimiter matching for nested parentheses, braces, and brackets.
+    - `convertPlainMathToLatex`: Converts degree symbols (`^(∘)`, `°C`), unicode superscripts/subscripts (`²³, ₁₂`), arithmetic/logic operators (`−, ×, ÷, ≠, ≤, ≥, ±, ∞, π, θ, ∆, ∠, ∴, ∵, ⇒`), nested powers (`^(...)`), square roots (`√(expr)`, `√token`), fractions (`(A)/(B)`, `(A)/B`, `A/(B)`, `A/B` with date guards), logarithms, and chemical formulas.
+    - `renderKaTeXHtml`: Fast static HTML generator using `katex.renderToString(..., { throwOnError: false, strict: false })`.
+    - `splitTextAndMath`: Intelligent tokenizer that extracts math expressions from Bengali prose while leaving Bengali words and sentence structure intact.
+  - Created `src/components/math-text.tsx` (`MathText`):
+    - Reusable React component with inline `<span>` HTML rendering on web with baseline vertical alignment.
+  - Updated UI components to render via `MathText`:
+    - `src/components/ui.tsx`: `OptBtn` and `Feedback` note.
+    - `src/components/practice-screen.tsx`: `QuestionRowComponent`, stepper single-card view, and `QuestionCard`.
+    - `src/app/exam.tsx`: `ExamCard` and `ExamReviewCard`.
+- **KaTeX Subscripts, Superscripts, Parentheses & Baseline Glitch Fixes (50th BCS Q48, Q24, Q53)**:
+  - **Issues Reported**:
+    1. 50th BCS Q48: `(x²−2+1/x²)⁷` had small fixed-size parentheses failing to encapsulate tall fraction $\frac{1}{x^2}$; superscript $7$ sat next to small closing bracket; denominator $x^2$ collided with fraction bar when KaTeX CSS was not loaded.
+    2. 50th BCS Q24: `-1+1/2-1/4+1/8-1/16+` had trailing `+` pulling up to numerator height; options with minus signs (`-2/3`) had baseline jumping.
+  - **Root Causes & Solutions**:
+    - **Dynamic CSS Injection**: In Expo dev mode, `+html.tsx` is bypassed. Added direct CSS `@import` in `global.css`, `import 'katex/dist/katex.min.css'` in `_layout.tsx`, and dynamic `<link>` injection in `math-text.tsx` so KaTeX `.vlist` and `.msupsub` table positioning rules always apply.
+    - **Display & Baseline**: Changed wrapper from `inline-flex; align-items: center` to `inline-block; vertical-align: baseline` to let KaTeX `.katex-strut` vertically align symbols on the natural font axis.
+    - **Consecutive Subscripts & Superscripts**: Expanded `SUP_MAP` to include `⁰¹²³⁴⁵⁶⁷⁸⁹ⁿ⁺⁻⁼⁽⁾` and `SUB_MAP` for `₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎`. Grouped contiguous matching (`[⁰¹²³⁴⁵⁶⁷⁸⁹ⁿ⁺⁻⁼⁽⁾]+` -> `^{...}` and `[₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎]+` -> `_{...}`), fixing double-superscript errors on multi-digit powers (`2¹⁴`) and binary base subscripts (`01010010₍₂₎` -> `01010010_{(2)}`).
+    - **Auto-Scaling Delimiters**: Auto-wrap `\left(` and `\right)` around any parenthesized group containing `\frac` while preventing `\left\left` nesting duplication and avoiding artificial enlargement of simple `\sqrt`.
+    - **Radical & Fraction Tokenization**: Handled nested `\sqrt{...}/(balanced)` without mangling square root expressions in numerators (e.g. 49th BCS Q96).
+    - **English Blank Lines & Hyphen Filtering**: Prevented English fill-in-the-blank underscores (`___`) and compound words (`Co-operative`) from being misclassified as math subscripts.
+    - **Isotopes & Recurring Decimals**: Handled recurring decimal overdots (`0.4^(̇)` -> `0.\dot{4}`) and isotope notation (`((_^60)Co)` -> `{}^{60}\text{Co}`).
+    - **Brace Balancing**: Automatically balances unclosed `{` or stray `}` in plain math.
+  - **100% Validation**:
+    - Tested across **all 5,350 questions** in the merged question bank (10th to 50th BCS).
+    - **10,557 math blocks processed -> 0 errors remaining (100% pass rate).**
+    - `pnpm exec tsc --noEmit` passed with 0 errors.
+- **Equation Numerals Text-Size Consistency & Q5 "(Prime)" Latency Fix**:
+  - **Issues Investigated**:
+    1. **Text Size Inconsistency (sometimes bigger, sometimes smaller)**:
+       - In default KaTeX CSS, `.katex` font size is hardcoded to `1.21em` (121%), making regular numbers in equations ($5x + 4y - 1 = 0$) noticeably larger than surrounding 16px Bengali text.
+       - Simultaneously, in inline math mode ($\textstyle$), fractions like $\frac{1}{2}$ shrink numerators and denominators to $0.7\times$ script size (~13.5px), creating a stark disparity between whole numbers and fraction numbers.
+       - **Fix**: Added `.katex { font-size: 1.05em !important; }` in `global.css` to match optical height of `Noto Sans Bengali`. Used `\displaystyle` on pure math options (e.g. $\dfrac{3}{11}$, $\dfrac{1}{2}$) so fraction numerals are rendered at readable, textbook size with balanced vertical metrics.
+    2. **Lag / Delay on 50th BCS Q5 (`মৌলিক (Prime)`)**:
+       - The interval notation regex (`/[[({][0-9a-zA-Z...]+[\])}]/`) erroneously matched parenthesized English words like `(Prime)` in Question 5, classifying the entire question as math.
+       - On client mount, encountering `(Prime)` as the first math token triggered dynamic KaTeX stylesheet and webfont download from CDN over the network, causing a rendering delay / layout flash while converting the plain English word `(Prime)` into math italic variables ($P \cdot r \cdot i \cdot m \cdot e$).
+       - **Fix**: Tightened the interval regex to strictly require a bounding comma (e.g. `[1, 5]`, `(0, 1)`, `[-1, ∞)`). Over 1,200 non-math parenthetical texts across the dataset are now cleanly identified as prose, rendering instantaneously with native fonts without KaTeX overhead.
+
 ## 2026-09-19 — Added Bengali Typography Counter & Micro-Animation to Home Stat Cards
 - **User Request**: Add typography animation to the four stats cards on the home page (৪১টি, ৫,৩৫০টি, ১০টি, ৭৬৬টি).
 - **Implementation in `apps/web`**:

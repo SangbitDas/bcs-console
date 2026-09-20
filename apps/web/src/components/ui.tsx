@@ -9,6 +9,9 @@ import { useExamStore } from '../store/exam';
 import { useAuthStore } from '../lib/auth';
 import { AuthModal } from './auth-modal';
 import { UserAvatar } from './avatar';
+import { MathText } from './math-text';
+import { ExplanationImage } from './image-lightbox';
+export { MathText, ExplanationImage };
 
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
@@ -281,9 +284,11 @@ export function OptBtn({
           {k}
         </Text>
       </View>
-      <Bn className={`flex-1 ${txt}`} style={{ fontFamily: FONT.ui, fontSize: 16, lineHeight: 26 }}>
-        {text || '—'}
-      </Bn>
+      <MathText
+        className={`flex-1 ${txt}`}
+        style={{ fontFamily: FONT.ui, fontSize: 16, lineHeight: 26 }}
+        text={text || '—'}
+      />
     </Pressable>
   );
 }
@@ -309,14 +314,14 @@ export function Feedback({
         {title}
       </Bn>
       {!!note ? (
-        <Bn className="text-black/70" style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 26 }}>
-          {note}
-        </Bn>
+        <MathText
+          className="text-black/70"
+          style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 26 }}
+          text={note}
+        />
       ) : null}
       {(images ?? []).map((u) => (
-        <View key={u} className="mt-3 border border-black/10 bg-white p-3">
-          <Image source={{ uri: u }} style={{ width: '100%', height: 220 }} contentFit="contain" />
-        </View>
+        <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={220} />
       ))}
     </View>
   );
@@ -328,9 +333,7 @@ export function QImages({ urls }: { urls?: string[] }) {
   return (
     <View className="mb-4 gap-4">
       {urls.map((u) => (
-        <View key={u} className="items-center border border-black/10 bg-white p-3">
-          <Image source={{ uri: u }} style={{ width: '100%', height: 240 }} contentFit="contain" />
-        </View>
+        <ExplanationImage key={u} uri={u} title="প্রশ্নের চিত্র" height={240} className="mb-0 mt-0" />
       ))}
     </View>
   );
