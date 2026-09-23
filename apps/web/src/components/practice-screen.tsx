@@ -167,7 +167,7 @@ export const QuestionCard = memo(function QuestionCard({
             />
           ) : null}
           {(q.solve_note_image_urls ?? []).map((u) => (
-            <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={180} />
+            <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
           ))}
         </View>
       ) : null}
@@ -2802,7 +2802,7 @@ function WrongQuestionCard({
                 />
               ) : null}
               {(q.solve_note_image_urls ?? []).map((u) => (
-                <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={180} />
+                <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
               ))}
             </View>
           ) : null}

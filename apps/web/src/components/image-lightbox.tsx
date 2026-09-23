@@ -243,7 +243,7 @@ export interface ExplanationImageProps {
 export function ExplanationImage({
   uri,
   title = 'ব্যাখ্যার ছবি',
-  height = 180,
+  height = 260,
   className = '',
 }: ExplanationImageProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -261,7 +261,7 @@ export function ExplanationImage({
   return (
     <>
       <View
-        className={`group relative mt-3 overflow-hidden rounded-xl border border-black/10 bg-white shadow-xs transition-all hover:border-black/30 hover:shadow-sm ${className}`}>
+        className={`group relative mt-3 overflow-hidden rounded-xl border border-black/10 bg-neutral-50/60 shadow-xs transition-all hover:border-black/30 hover:shadow-sm ${className}`}>
         {/* Top Control Bar with Full Screen Option */}
         <View className="flex-row items-center justify-between border-b border-black/5 bg-black/[0.02] px-3 py-1.5">
           <View className="flex-row items-center gap-1.5">
@@ -316,7 +316,7 @@ export function ExplanationImage({
           style={{
             cursor: 'zoom-in',
           } as any}
-          className="items-center justify-center p-2.5">
+          className="items-center justify-center p-3">
           <Image
             source={{ uri }}
             style={{ width: '100%', height }}

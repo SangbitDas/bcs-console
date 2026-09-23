@@ -1,6 +1,4 @@
-import { convertPlainMathToLatex, renderKaTeXHtml, splitTextAndMath, hasMathTokens } from '../apps/web/src/lib/mathParser.ts';
-import * as fs from 'fs';
-import * as path from 'path';
+import { convertPlainMathToLatex, renderKaTeXHtml, splitTextAndMath, hasMathTokens } from '../apps/web/src/lib/mathParser.ts';  
 
 console.log('=== BCS Console Math & Science KaTeX Rendering Test ===\n');
 
@@ -32,6 +30,35 @@ const testCases = [
     },
     expectedAns: 'A',
     formulaCheck: (optA: string) => optA.replace(/\s+/g, '').includes('\\frac{n}{\\sqrt{2}-1}'),
+  },
+  {
+    exam: '11st_bcs',
+    qnum: 78,
+    topic: 'সরলীকরণ ও এর-এর কাজ',
+    question: '',
+    solveNote: '\\frac{15 \\div 15 \\times 15}{15 \\div 15\\text{এর }15} \\\\[8pt] = \\frac{1 \\times 15}{15 \\div 225} = 15 \\times \\frac{225}{15} = 225',
+    options: {
+      A: '0',
+      B: '1',
+      C: '225',
+      D: '1/225',
+    },
+    expectedAns: 'C',
+    formulaCheck: (latex: string) => latex.includes('\\frac{15 \\div 15 \\times 15}{15 \\div 15\\text{এর }15}'),
+  },
+  {
+    exam: '15th_bcs',
+    qnum: 77,
+    topic: 'বৃহত্তম সংখ্যা ও দশমিকের বর্গমূল',
+    question: 'কোন সংখ্যাটি বৃহত্তম?',
+    options: {
+      A: '০.৩',
+      B: '√০.৩',
+      C: '২/৫',
+      D: '১/৩',
+    },
+    expectedAns: 'B',
+    formulaCheck: (optB: string) => optB.includes('\\sqrt{০.৩}'),
   },
   {
     exam: '17th_bcs',

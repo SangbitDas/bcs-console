@@ -321,7 +321,7 @@ export function Feedback({
         />
       ) : null}
       {(images ?? []).map((u) => (
-        <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={220} />
+        <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
       ))}
     </View>
   );

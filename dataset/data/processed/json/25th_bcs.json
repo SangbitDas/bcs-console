@@ -868,7 +868,7 @@
       "option_c": "0",
       "option_d": "6",
       "correct_answer": "C",
-      "solve_note": "x³+3/x³=(x+/x)³−3x./x(x+/x) (√3)³−3√3=3√3−3√3=0",
+      "solve_note": "x³+1/x³ = (x+1/x)³ − 3x·1/x(x+1/x) = (√3)³ − 3√3 = 3√3 − 3√3 = 0",
       "question_image_paths": [],
       "solve_note_image_paths": [],
       "has_question_image": 0,

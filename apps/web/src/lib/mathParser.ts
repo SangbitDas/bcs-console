@@ -330,6 +330,8 @@ export function convertPlainMathToLatex(raw: string): string {
   s = s.replace(/∴/g, ' \\therefore ');
   s = s.replace(/∵/g, ' \\because ');
   s = s.replace(/⇒/g, ' \\implies ');
+  s = s.replace(/=>/g, ' \\implies ');
+  s = s.replace(/(?<!\\)%/g, '\\%');
 
   // 7. Nested and single-token powers
   s = convertBalancedPowers(s);
@@ -337,7 +339,7 @@ export function convertPlainMathToLatex(raw: string): string {
 
   // 8. Radicals (square roots)
   s = convertBalancedRadicals(s);
-  s = s.replace(/√([0-9a-zA-Z০-৯]+)/g, '\\sqrt{$1}');
+  s = s.replace(/√([0-9a-zA-Z০-৯]*(?:\.[0-9a-zA-Z০-৯]+|[0-9a-zA-Z০-৯]+))/g, '\\sqrt{$1}');
 
   // 9. Fractions
   s = convertFractions(s);
@@ -470,7 +472,7 @@ export function splitTextAndMath(raw: string): TextSegment[] {
 
   // Match contiguous sequences of mathematical characters with optional spacing around operators
   const mathBlockPattern =
-    /([0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!]+(?:\s+[-+−×÷/=><≠≤≥]\s+[0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!]+)*)/g;
+    /([0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!∴⇒%]+(?:\s+[-+−×÷/=><≠≤≥]\s+[0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!∴⇒%]+)*)/g;
 
   let lastIndex = 0;
   let m: RegExpExecArray | null;
