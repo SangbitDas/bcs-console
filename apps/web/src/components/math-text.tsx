@@ -64,7 +64,7 @@ export const MathText = React.memo(function MathText({
   // If running on Web, render inline HTML for KaTeX segments
   if (Platform.OS === 'web') {
     return (
-      <Bn style={[{ whiteSpace: 'pre-wrap' as any }, style]} className={className} numberOfLines={numberOfLines}>
+      <Bn style={[{ whiteSpace: 'pre-wrap' } as any, style]} className={className} numberOfLines={numberOfLines}>
         {segments.map((seg, idx) => {
           if (seg.type === 'math' && seg.html) {
             return (

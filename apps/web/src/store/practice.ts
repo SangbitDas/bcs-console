@@ -42,6 +42,20 @@ interface PracticeState {
   setIsTimed: (timed: boolean) => void;
   setTimeMinutes: (mins: number) => void;
   start: () => void;
+  restoreSession: (params: {
+    mode: PracticeMode;
+    exam?: string;
+    exams?: string[];
+    subjects?: number[];
+    fromN?: number;
+    toN?: number;
+    count?: number | null;
+    order?: OrderKind;
+    done?: Record<number, PracticeDone>;
+    right?: number;
+    wrong?: number;
+    idx?: number;
+  }) => void;
   answer: (qid: number, pick: string, ok: boolean) => void;
   reveal: (qid: number) => void;
   next: (len: number) => void;
@@ -92,6 +106,24 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   setTimeMinutes: (timeMinutes) => set({ timeMinutes: Math.max(1, timeMinutes) }),
   start: () =>
     set((s) => ({ started: true, finished: false, idx: 0, right: 0, wrong: 0, done: {}, runId: s.runId + 1 })),
+  restoreSession: (p) =>
+    set((s) => ({
+      mode: p.mode,
+      exam: p.exam ?? s.exam,
+      exams: p.exams ?? s.exams,
+      subjects: p.subjects ?? s.subjects,
+      fromN: p.fromN ?? s.fromN,
+      toN: p.toN ?? s.toN,
+      count: p.count ?? s.count,
+      order: p.order ?? s.order,
+      done: p.done ?? {},
+      right: p.right ?? 0,
+      wrong: p.wrong ?? 0,
+      idx: p.idx ?? 0,
+      started: true,
+      finished: false,
+      runId: s.runId + 1,
+    })),
   answer: (qid, pick, ok) =>
     set((s) => ({
       done: { ...s.done, [qid]: { pick, ok } },

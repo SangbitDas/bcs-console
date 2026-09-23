@@ -28,7 +28,7 @@ export interface MockRerunConfig {
 
 export interface RecentSession {
   id: string;
-  kind: 'practice' | 'mock';
+  kind: 'practice' | 'mock' | 'custom';
   label: string;
   total: number;
   right: number;
@@ -37,6 +37,9 @@ export interface RecentSession {
   at: number;
   rerun?: RerunConfig;
   mockRerun?: MockRerunConfig;
+  done?: Record<number, { pick: string | null; ok: boolean; reveal?: boolean }>;
+  idx?: number;
+  completed?: boolean;
 }
 
 export interface AttemptAnswerInput {
@@ -83,12 +86,42 @@ export const useLibrary = create<LibraryState>()(
       wrongIds: [],
 
       pushRecent: (r) =>
-        set((s) => ({
-          recents: [
-            { ...r, id: `${Date.now()}-${Math.floor(Math.random() * 1e6)}`, at: Date.now() },
-            ...s.recents,
-          ].slice(0, 8),
-        })),
+        set((s) => {
+          // Find matching recent session by kind, label, exam, and subjects
+          const matchIdx = s.recents.findIndex((item) => {
+            if (item.kind !== r.kind) return false;
+            if (item.label !== r.label) return false;
+            if (item.rerun?.mode !== r.rerun?.mode) return false;
+            if (item.rerun?.exam !== r.rerun?.exam) return false;
+            const itemSubs = (item.rerun?.subjects || []).slice().sort().join(',');
+            const rSubs = (r.rerun?.subjects || []).slice().sort().join(',');
+            return itemSubs === rSubs;
+          });
+
+          const now = Date.now();
+          let nextRecents = [...s.recents];
+
+          if (matchIdx >= 0) {
+            const existing = nextRecents[matchIdx];
+            const updated: RecentSession = {
+              ...existing,
+              ...r,
+              id: existing.id,
+              at: now,
+              done: { ...(existing.done || {}), ...(r.done || {}) },
+            };
+            nextRecents.splice(matchIdx, 1);
+            nextRecents.unshift(updated);
+          } else {
+            nextRecents.unshift({
+              ...r,
+              id: `${now}-${Math.floor(Math.random() * 1e6)}`,
+              at: now,
+            });
+          }
+
+          return { recents: nextRecents.slice(0, 10) };
+        }),
 
       toggleBookmark: async (qid) => {
         const isBookmarked = get().bookmarks.includes(qid);

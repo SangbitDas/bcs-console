@@ -5,13 +5,13 @@ import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, CheckCircle2, ChevronRight, Clock, Eye, EyeOff, FileText, Filter, HelpCircle, Lightbulb, Minus, Plus, RotateCcw, Settings, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
-import { ERAS, SUBJECT_COUNT, calc36sMinutes, examLabel, examNum, fmtTime, formatDurationBn, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
+import { ERAS, SUBJECT_COUNT, calc36sMinutes, examLabel, examNum, fmtTime, formatDateTimeBn, formatDurationBn, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions, type AllocationResult } from '../lib/examAllocation';
-import { useLibrary, type RerunConfig, type AttemptAnswerInput } from '../lib/library';
+import { useLibrary, type RerunConfig, type RecentSession, type AttemptAnswerInput } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
 import { Btn, Bn, Chip, Feedback, MathText, OptBtn, ScorePanel, Tag, type OptState } from './ui';
-import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
+import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeCard, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
 import { ExplanationImage } from './image-lightbox';
 import { SUBJECT_ICONS } from '../app/index';
 
@@ -421,37 +421,110 @@ export function PracticeScreen({
     return ordered;
   }, [pool.data, s.count, s.order, s.mode, s.runId, s.subjects]);
 
-  const applyRerun = (r: RerunConfig) => {
+  const applyRerun = (r: RerunConfig, savedSession?: RecentSession) => {
+    const hasProgress = savedSession?.done && Object.keys(savedSession.done).length > 0;
+
     if (r.mode === 'bookmarks' || r.mode === 'wrong') {
-      s.setMode(r.mode);
-      s.start();
+      if (hasProgress) {
+        s.restoreSession({
+          mode: r.mode,
+          done: savedSession.done,
+          right: savedSession.right,
+          wrong: savedSession.wrong,
+          idx: savedSession.idx ?? 0,
+        });
+      } else {
+        s.setMode(r.mode);
+        s.start();
+      }
       return;
     }
+
     if (r.mode === 'exam' && r.exam) {
-      s.setMode('exam');
-      s.setExam(r.exam);
-      s.start();
+      if (hasProgress) {
+        s.restoreSession({
+          mode: 'exam',
+          exam: r.exam,
+          done: savedSession.done,
+          right: savedSession.right,
+          wrong: savedSession.wrong,
+          idx: savedSession.idx ?? 0,
+        });
+      } else {
+        s.setMode('exam');
+        s.setExam(r.exam);
+        s.start();
+      }
       router.push(`/practice/exam/${r.exam}` as any);
       return;
     }
-    s.setMode(r.mode);
-    s.setExam(r.exam);
-    r.subjects.forEach((id) => {
-      if (!usePracticeStore.getState().subjects.includes(id)) s.toggleSubject(id);
-    });
-    s.setRange(r.fromN, r.toN);
-    if (exams) {
-      s.selectAllExams(slugsInRange(r.fromN, r.toN, exams));
+
+    if (r.mode === 'subject') {
+      const subId = r.subjects?.[0];
+      if (hasProgress) {
+        s.restoreSession({
+          mode: 'subject',
+          subjects: r.subjects,
+          done: savedSession.done,
+          right: savedSession.right,
+          wrong: savedSession.wrong,
+          idx: savedSession.idx ?? 0,
+        });
+      } else {
+        s.setMode('subject');
+        s.setSubjects(r.subjects);
+        s.start();
+      }
+      if (subId) {
+        router.push(`/practice/subject/${subId}` as any);
+      } else {
+        router.push('/practice/subject' as any);
+      }
+      return;
     }
-    s.setCount(r.count);
-    s.setOrder(r.order);
-    s.start();
+
+    const selectedExams = exams ? slugsInRange(r.fromN, r.toN, exams) : [];
+    if (hasProgress) {
+      s.restoreSession({
+        mode: r.mode,
+        exam: r.exam,
+        exams: selectedExams,
+        subjects: r.subjects,
+        fromN: r.fromN,
+        toN: r.toN,
+        count: r.count,
+        order: r.order,
+        done: savedSession.done,
+        right: savedSession.right,
+        wrong: savedSession.wrong,
+        idx: savedSession.idx ?? 0,
+      });
+    } else {
+      s.setMode(r.mode);
+      s.setExam(r.exam);
+      r.subjects.forEach((id) => {
+        if (!usePracticeStore.getState().subjects.includes(id)) s.toggleSubject(id);
+      });
+      s.setRange(r.fromN, r.toN);
+      if (exams) {
+        s.selectAllExams(selectedExams);
+      }
+      s.setCount(r.count);
+      s.setOrder(r.order);
+      s.start();
+    }
   };
 
   const scopeLabel = () => {
     if (s.mode === 'exam') return s.exam ? examLabel(s.exam) : '';
     if (s.mode === 'bookmarks') return 'বুকমার্ক';
     if (s.mode === 'wrong') return 'ভুলসমূহ';
+    if (s.mode === 'subject') {
+      const subs = s.subjects.length
+        ? s.subjects.map((id) => subjectName(id)).join(', ')
+        : 'সব বিষয়';
+      return `সব বিসিএস · ${subs}`;
+    }
     const examPart = exams && s.exams.length === exams.length
       ? 'সব বিসিএস'
       : s.exams.length > 0
@@ -463,6 +536,34 @@ export function PracticeScreen({
     return `${examPart} · ${subs}`;
   };
 
+  // Auto-save in-progress practice progress into recents
+  const answeredCount = Object.keys(s.done).length;
+  useEffect(() => {
+    if (!s.started || s.finished || !s.mode || s.mode === 'custom' || session.length === 0) return;
+    if (answeredCount === 0) return;
+
+    const isCompleted = answeredCount >= session.length;
+    lib.pushRecent({
+      kind: 'practice',
+      label: scopeLabel(),
+      total: session.length,
+      right: s.right,
+      wrong: s.wrong,
+      done: s.done,
+      idx: s.idx,
+      completed: isCompleted,
+      rerun: {
+        mode: s.mode as RerunConfig['mode'],
+        exam: s.exam,
+        subjects: s.subjects,
+        fromN: s.fromN,
+        toN: s.toN,
+        count: s.count,
+        order: s.order,
+      },
+    });
+  }, [answeredCount, s.started, s.finished, s.mode]);
+
   const finishSession = () => {
     const wrongIds = Object.entries(s.done)
       .filter(([, d]) => !d.ok && !d.reveal && d.pick)
@@ -470,12 +571,15 @@ export function PracticeScreen({
     if (wrongIds.length) lib.addWrong(wrongIds);
     const customScore = s.mode === 'custom' ? s.right - s.wrong * 0.5 : undefined;
     lib.pushRecent({
-      kind: 'practice',
+      kind: s.mode === 'custom' ? 'custom' : 'practice',
       label: scopeLabel(),
       total: session.length,
       right: s.right,
       wrong: s.wrong,
       score: customScore,
+      done: s.done,
+      idx: s.idx,
+      completed: true,
       rerun: { mode: s.mode as RerunConfig['mode'], exam: s.exam, subjects: s.subjects, fromN: s.fromN, toN: s.toN, count: s.count, order: s.order },
     });
 
@@ -655,10 +759,12 @@ function HubView({
   exams: { slug: string; total_questions: number }[];
   subjects: { id: number; subject_bn: string }[];
   onMode: (m: PracticeMode) => void;
-  onRerun: (r: RerunConfig) => void;
+  onRerun: (r: RerunConfig, savedSession?: RecentSession) => void;
 }) {
   const lib = useLibrary();
-  const recents = lib.recents.filter((r) => r.kind === 'practice').slice(0, 5);
+  const recents = lib.recents
+    .filter((r) => r.kind === 'practice' && r.rerun?.mode !== 'custom' && r.score === undefined)
+    .slice(0, 5);
 
   const sidebar = (
     <View>
@@ -740,51 +846,56 @@ function HubView({
               </Pressable>
             </View>
 
-            <View className="overflow-hidden rounded-xl border border-black/10 bg-surface shadow-sm">
+            {/* Grid-by-grid Cards Layout */}
+            <View className="flex-row flex-wrap gap-3.5">
               {recents.length > 0 ? (
-                recents.map((r) => (
-                  <RecentPracticeRow
-                    key={r.id}
-                    title={r.label}
-                    sub={r.score !== undefined ? 'কাস্টম এক্সাম' : 'অনুশীলন'}
-                    scoreText={
-                      r.score !== undefined
-                        ? `${toBn(r.score % 1 === 0 ? r.score : r.score.toFixed(1))} / ${toBn(r.total)}`
-                        : `${toBn(r.right)} / ${toBn(r.total)}`
-                    }
-                    pctText={
-                      r.score !== undefined
-                        ? `${toBn(Math.max(0, Math.round((r.score / Math.max(1, r.total)) * 100)))}% স্কোর`
-                        : `${toBn(Math.round((r.right / Math.max(1, r.total)) * 100))}% সম্পন্ন`
-                    }
-                    pct={r.score !== undefined ? Math.max(0, (r.score / Math.max(1, r.total)) * 100) : (r.right / Math.max(1, r.total)) * 100}
-                    onPress={() => r.rerun && onRerun(r.rerun)}
-                  />
-                ))
+                recents.map((r) => {
+                  const isDone = r.completed || (r.done && Object.keys(r.done).length >= r.total);
+                  const answered = r.done ? Object.keys(r.done).length : (r.right + (r.wrong || 0));
+                  return (
+                    <RecentPracticeCard
+                      key={r.id}
+                      title={r.label ? r.label.replace(/^কোনো পরীক্ষা নির্বাচিত নয় ·\s*/, 'সব বিসিএস · ') : ''}
+                      sub="অনুশীলন"
+                      scoreText={`${toBn(r.right)} / ${toBn(r.total)}`}
+                      pctText={`${toBn(Math.round((answered / Math.max(1, r.total)) * 100))}% সম্পন্ন`}
+                      pct={(answered / Math.max(1, r.total)) * 100}
+                      dateText={formatDateTimeBn(r.at)}
+                      actionText={isDone ? 'সম্পন্ন • আবার চর্চা' : 'চালিয়ে যান →'}
+                      onPress={() => r.rerun && onRerun(r.rerun, r)}
+                    />
+                  );
+                })
               ) : (
                 <>
-                  <RecentPracticeRow
+                  <RecentPracticeCard
                     title="৫০তম বিসিএস"
                     sub="পরীক্ষা • ২০০ প্রশ্ন"
                     scoreText="৩৬ / ২০০"
                     pctText="১৮% সম্পন্ন"
                     pct={18}
+                    dateText="ডেমো সেশন"
+                    actionText="শুরু করুন →"
                     onPress={() => onRerun({ mode: 'exam', exam: '50th_bcs', subjects: [], fromN: 50, toN: 50, count: 200, order: 'seq' })}
                   />
-                  <RecentPracticeRow
+                  <RecentPracticeCard
                     title="৪৯তম বিসিএস"
                     sub="পরীক্ষা • ১০০ প্রশ্ন"
                     scoreText="৬৮ / ১০০"
                     pctText="৬৮% সম্পন্ন"
                     pct={68}
+                    dateText="ডেমো সেশন"
+                    actionText="শুরু করুন →"
                     onPress={() => onRerun({ mode: 'exam', exam: '49th_bcs', subjects: [], fromN: 49, toN: 49, count: 100, order: 'seq' })}
                   />
-                  <RecentPracticeRow
+                  <RecentPracticeCard
                     title="৪৮তম বিসিএস"
                     sub="পরীক্ষা • ১০০ প্রশ্ন"
                     scoreText="২১ / ১০০"
                     pctText="২১% সম্পন্ন"
                     pct={21}
+                    dateText="ডেমো সেশন"
+                    actionText="শুরু করুন →"
                     onPress={() => onRerun({ mode: 'exam', exam: '48th_bcs', subjects: [], fromN: 48, toN: 48, count: 100, order: 'seq' })}
                   />
                 </>

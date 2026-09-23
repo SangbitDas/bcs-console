@@ -553,6 +553,8 @@ export function RecentPracticeRow({
   scoreText,
   pctText,
   pct,
+  dateText,
+  actionText,
   onPress,
 }: {
   title: string;
@@ -560,20 +562,36 @@ export function RecentPracticeRow({
   scoreText: string;
   pctText: string;
   pct: number;
+  dateText?: string;
+  actionText?: string;
   onPress: () => void;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center justify-between border-b border-black/5 bg-surface px-5 py-4 transition-colors active:bg-black/[0.02]">
+      className="flex-row items-center justify-between border-b border-black/5 bg-surface px-5 py-4 transition-colors hover:bg-black/[0.015] active:bg-black/[0.03]">
       <View className="flex-1 pr-4">
         <View className="mb-1 flex-row items-center justify-between">
-          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16 }}>{title}</Bn>
+          <View className="flex-row items-center gap-2">
+            <Bn style={{ fontFamily: FONT.uiBold, fontSize: 16 }}>{title}</Bn>
+            {dateText ? (
+              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 12, color: '#0A0A0A' }}>
+                • {dateText}
+              </Bn>
+            ) : null}
+          </View>
           <Bn style={{ fontFamily: FONT.digitsBold, fontSize: 15 }}>{scoreText}</Bn>
         </View>
         <View className="mb-2.5 flex-row items-center justify-between">
           <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>{sub}</Bn>
-          <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>{pctText}</Bn>
+          <View className="flex-row items-center gap-2">
+            <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 12 }}>{pctText}</Bn>
+            {actionText ? (
+              <Bn className="text-[#EA0000] text-xs font-semibold" style={{ fontFamily: FONT.uiBold, fontSize: 12 }}>
+                • {actionText}
+              </Bn>
+            ) : null}
+          </View>
         </View>
         <View className="h-1 w-full overflow-hidden rounded-full bg-black/10">
           <View
@@ -583,6 +601,101 @@ export function RecentPracticeRow({
         </View>
       </View>
       <ChevronRight size={18} color="rgba(0,0,0,0.3)" />
+    </Pressable>
+  );
+}
+
+/* ---------- Recent Practice Grid Card (Grid by Grid View) ---------- */
+export function RecentPracticeCard({
+  title,
+  sub,
+  scoreText,
+  pctText,
+  pct,
+  dateText,
+  actionText,
+  onPress,
+}: {
+  title: string;
+  sub: string;
+  scoreText: string;
+  pctText: string;
+  pct: number;
+  dateText?: string;
+  actionText?: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="group min-h-[148px] flex-1 basis-[280px] justify-between rounded-xl border border-black/10 bg-surface p-4 shadow-xs transition-all hover:border-black/30 hover:shadow-sm active:scale-[0.99] active:bg-black/[0.02]">
+      {/* Top: Title & Date Badge in visible bold black font */}
+      <View>
+        <View className="flex-row items-start justify-between gap-2">
+          <View className="flex-1 pr-1">
+            <Bn
+              style={{ fontFamily: FONT.uiBold, fontSize: 15.5, color: '#0A0A0A', lineHeight: 22 }}
+              numberOfLines={2}>
+              {title}
+            </Bn>
+            <Bn
+              className="mt-0.5 text-black/60"
+              style={{ fontFamily: FONT.ui, fontSize: 12.5 }}>
+              {sub}
+            </Bn>
+          </View>
+
+          {dateText ? (
+            <View className="rounded-md border border-black/15 bg-black/[0.05] px-2.5 py-1">
+              <Bn
+                style={{
+                  fontFamily: FONT.uiBold,
+                  fontSize: 12,
+                  color: '#0A0A0A',
+                }}>
+                {dateText}
+              </Bn>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Middle & Bottom: Score, Progress, and Action button */}
+      <View className="mt-3.5">
+        <View className="mb-1.5 flex-row items-center justify-between">
+          <Bn
+            className="text-black/70"
+            style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
+            {pctText}
+          </Bn>
+          <Bn
+            style={{
+              fontFamily: FONT.digitsBold,
+              fontSize: 14.5,
+              color: '#0A0A0A',
+            }}>
+            {scoreText}
+          </Bn>
+        </View>
+
+        {/* Progress bar */}
+        <View className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+          <View
+            className="h-1.5 rounded-full bg-[#EA0000]"
+            style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+          />
+        </View>
+
+        {/* Action button */}
+        <View className="mt-3 flex-row items-center justify-between border-t border-black/5 pt-2">
+          <Bn
+            className="text-[#EA0000] font-bold"
+            style={{ fontFamily: FONT.uiBold, fontSize: 12.5 }}>
+            {actionText || 'চালিয়ে যান →'}
+          </Bn>
+          <ChevronRight size={15} color="#EA0000" />
+        </View>
+      </View>
     </Pressable>
   );
 }
