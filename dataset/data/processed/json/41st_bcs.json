@@ -3018,7 +3018,7 @@
     {
       "question_number": 153,
       "subject_id": 2,
-      "question": "To win a prize is my ambition.’ The underlined part of the sentence is a/an-",
+      "question": "<u>To win a prize</u> is my ambition.’ The underlined part of the sentence is a/an-",
       "option_a": "adjective phrase",
       "option_b": "noun phrase",
       "option_c": "adverb phrase",
@@ -3151,7 +3151,7 @@
     {
       "question_number": 160,
       "subject_id": 2,
-      "question": "‘I shall help you provided you obey me.’ Here the underlined word is a/an-",
+      "question": "‘I shall help you <u>provided</u> you obey me.’ Here the underlined word is a/an-",
       "option_a": "adverb",
       "option_b": "adjective",
       "option_c": "conjunction",

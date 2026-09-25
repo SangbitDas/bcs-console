@@ -955,7 +955,7 @@
     {
       "question_number": 48,
       "subject_id": 2,
-      "question": "Tell me frankly why you did this. The underlined part is a/an-",
+      "question": "Tell me frankly <u>why you did this</u>. The underlined part is a/an-",
       "option_a": "adjective clause",
       "option_b": "noun clause",
       "option_c": "adverbial clause",

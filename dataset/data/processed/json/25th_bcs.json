@@ -1577,7 +1577,7 @@
     {
       "question_number": 80,
       "subject_id": 2,
-      "question": "The day of my sister’s marriage is drawing near’ The underlined word is a/an",
+      "question": "The day of my sister’s marriage is drawing <u>near</u>’ The underlined word is a/an",
       "option_a": "adjective",
       "option_b": "verb",
       "option_c": "preposition",
@@ -1655,7 +1655,7 @@
     {
       "question_number": 84,
       "subject_id": 2,
-      "question": "The parents became extremely––––when their son had not returned by eleven o’clock.",
+      "question": "The parents became extremely _____ when their son had not returned by eleven o’clock.",
       "option_a": "angry",
       "option_b": "annoyed",
       "option_c": "disturbed",

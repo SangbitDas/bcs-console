@@ -691,7 +691,7 @@
     {
       "question_number": 34,
       "subject_id": 2,
-      "question": "She works hard. What part of speech is the underlined word?",
+      "question": "She works <u>hard</u>. What part of speech is the underlined word?",
       "option_a": "Adjective",
       "option_b": "Adverb",
       "option_c": "Verb",

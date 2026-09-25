@@ -2563,7 +2563,7 @@
     {
       "question_number": 132,
       "subject_id": 2,
-      "question": "The book that she recommended turned out to be very helpful. Here the underlined clause is a -",
+      "question": "The book <u>that she recommended</u> turned out to be very helpful. Here the underlined clause is a -",
       "option_a": "relative clause",
       "option_b": "noun clause",
       "option_c": "adverbial clause",

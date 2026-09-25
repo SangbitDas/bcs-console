@@ -1185,7 +1185,7 @@
     {
       "question_number": 60,
       "subject_id": 2,
-      "question": "‘We know that the earth is a planet’ The underlined part is a/an-",
+      "question": "‘We know <u>that the earth is a planet</u>’ The underlined part is a/an-",
       "option_a": "noun clause",
       "option_b": "adverbial clause",
       "option_c": "adjective clause",

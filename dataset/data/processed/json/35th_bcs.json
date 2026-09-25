@@ -900,7 +900,7 @@
     {
       "question_number": 45,
       "subject_id": 2,
-      "question": "‘He was a rather disagreeable_ man.’ Here the underlined word is a/an-",
+      "question": "‘He was a rather <u>disagreeable</u> man.’ Here the underlined word is a/an-",
       "option_a": "Noun",
       "option_b": "Adjective",
       "option_c": "Adverb",
@@ -1071,7 +1071,7 @@
     {
       "question_number": 54,
       "subject_id": 2,
-      "question": "“It is time to review the protocol_ on testing nuclear weapons”. Here the underlined word means-",
+      "question": "“It is time to review the <u>protocol</u> on testing nuclear weapons”. Here the underlined word means-",
       "option_a": "Record of rules",
       "option_b": "Summary of rules",
       "option_c": "Procedures",
@@ -1109,7 +1109,7 @@
     {
       "question_number": 56,
       "subject_id": 2,
-      "question": "Let us beging by looking at the minutes_ of the meeting. Here the underlined word means−",
+      "question": "Let us beging by looking at the <u>minutes</u> of the meeting. Here the underlined word means−",
       "option_a": "time record",
       "option_b": "time frame",
       "option_c": "written record",
@@ -1128,7 +1128,7 @@
     {
       "question_number": 57,
       "subject_id": 2,
-      "question": "The noise level in Dhaka city has increased exponentially_. Here the underlined word means−",
+      "question": "The noise level in Dhaka city has increased <u>exponentially</u>. Here the underlined word means−",
       "option_a": "amazingly",
       "option_b": "shockingly",
       "option_c": "steadily",
@@ -1223,7 +1223,7 @@
     {
       "question_number": 62,
       "subject_id": 2,
-      "question": "Societies living in the periphery_ are always ignored. Here the underlined word means−",
+      "question": "Societies living in the <u>periphery</u> are always ignored. Here the underlined word means−",
       "option_a": "offshore areas",
       "option_b": "marginal areas",
       "option_c": "remote places",
@@ -1318,7 +1318,7 @@
     {
       "question_number": 67,
       "subject_id": 2,
-      "question": "I am in the process of collecting material_ for my story. The underlined word is a/an−",
+      "question": "I am in the process of collecting <u>material</u> for my story. The underlined word is a/an−",
       "option_a": "Verb",
       "option_b": "Adjective",
       "option_c": "Adverb",
@@ -1337,7 +1337,7 @@
     {
       "question_number": 68,
       "subject_id": 2,
-      "question": "Depression is often hereditary._ The underlined word is a/an−",
+      "question": "Depression is often <u>hereditary</u>. The underlined word is a/an−",
       "option_a": "Adverb",
       "option_b": "Adjective",
       "option_c": "Noun",

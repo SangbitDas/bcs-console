@@ -916,7 +916,7 @@
     {
       "question_number": 43,
       "subject_id": 2,
-      "question": "He died following_ the incident The underlined word is a/an–",
+      "question": "He died <u>following</u> the incident The underlined word is a/an–",
       "option_a": "adjective",
       "option_b": "adverb",
       "option_c": "noun",
@@ -935,7 +935,7 @@
     {
       "question_number": 44,
       "subject_id": 2,
-      "question": "Writing a diary_ is a very good practice to develop the writing skill. The underlined word is a/an--",
+      "question": "<u>Writing a diary</u> is a very good practice to develop the writing skill. The underlined word is a/an--",
       "option_a": "noun phrase",
       "option_b": "verbal phrase",
       "option_c": "adjective phrase",
@@ -992,7 +992,7 @@
     {
       "question_number": 47,
       "subject_id": 2,
-      "question": "Choose the best alternative for the underlined. He went back_ on his promise of voting for me",
+      "question": "Choose the best alternative for the underlined. He <u>went back</u> on his promise of voting for me",
       "option_a": "withdrew",
       "option_b": "forgot",
       "option_c": "reinforced",
@@ -1030,7 +1030,7 @@
     {
       "question_number": 49,
       "subject_id": 2,
-      "question": "He is a man to depend on_. The underlined part is ______ .",
+      "question": "He is a man <u>to depend on</u>. The underlined part is ______ .",
       "option_a": "a noun phrase",
       "option_b": "an adjective phrase",
       "option_c": "an adverbial phrase",
@@ -1049,7 +1049,7 @@
     {
       "question_number": 50,
       "subject_id": 2,
-      "question": "His dream that he will be a B.C.S cadre_ finally came true. The underlined part is ---",
+      "question": "His dream <u>that he will be a B.C.S cadre</u> finally came true. The underlined part is ---",
       "option_a": "a noun clause",
       "option_b": "an adjective clause",
       "option_c": "an independent clause",

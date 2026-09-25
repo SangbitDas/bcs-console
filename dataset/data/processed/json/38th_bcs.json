@@ -872,7 +872,7 @@
     {
       "question_number": 43,
       "subject_id": 2,
-      "question": "A retired_ officer lives nest door.Here,The underlined word is used as a/an:",
+      "question": "A <u>retired</u> officer lives nest door.Here,The underlined word is used as a/an:",
       "option_a": "Gerund",
       "option_b": "adverb",
       "option_c": "Preposition",
@@ -1176,7 +1176,7 @@
     {
       "question_number": 59,
       "subject_id": 2,
-      "question": "Reading_ is an excellent habit.Here,The underlined word is a−",
+      "question": "<u>Reading</u> is an excellent habit.Here,The underlined word is a−",
       "option_a": "Verbal noun",
       "option_b": "Participle",
       "option_c": "Verb",

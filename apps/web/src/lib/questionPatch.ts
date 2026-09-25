@@ -195,6 +195,9 @@ const EXACT_PATCHES: Record<string, QuestionPatch> = {
   '46th_bcs:47': {
     question: (q) => q.replace(/went back_?/i, '<u>went back</u>'),
   },
+  '46th_bcs:49': {
+    question: (q) => q.replace(/to depend on_?/i, '<u>to depend on</u>'),
+  },
   '46th_bcs:50': {
     question: (q) => q.replace(/that he will be a B\.C\.S cadre_?/i, '<u>that he will be a B.C.S cadre</u>'),
   },
