@@ -241,8 +241,25 @@ function cleanGeneralEnglish(text: string): string {
   return cleaned;
 }
 
+const EXACT_UNDERLINE_KEYS = new Set([
+  '14th_bcs:6', '14th_bcs:7', '14th_bcs:9', '14th_bcs:10',
+  '25th_bcs:80', '28th_bcs:32', '32nd_bcs:29',
+  '35th_bcs:45', '35th_bcs:54', '35th_bcs:56', '35th_bcs:57', '35th_bcs:62', '35th_bcs:67', '35th_bcs:68',
+  '37th_bcs:51', '38th_bcs:43', '38th_bcs:59', '40th_bcs:52',
+  '41st_bcs:153', '41st_bcs:160', '43rd_bcs:146', '44th_bcs:75',
+  '45th_bcs:15', '46th_bcs:43', '46th_bcs:44', '46th_bcs:47', '46th_bcs:49', '46th_bcs:50',
+  '47th_bcs:48', '48th_bcs:34', '49th_bcs:60', '50th_bcs:132'
+]);
+
+const EXACT_BLANK_KEYS = new Set([
+  '10th_bcs:19', '13rd_bcs:83', '25th_bcs:84',
+  '26th_bcs:44', '26th_bcs:47', '26th_bcs:57', '26th_bcs:58', '26th_bcs:72',
+  '30th_bcs:39', '34th_bcs:35', '43rd_bcs:160'
+]);
+
 /**
  * Normalizes a single QuestionRow in-memory on the frontend.
+ * Fully idempotent: safe to run whether DB has raw or patched questions.
  */
 export function normalizeQuestion<T extends QuestionRow>(q: T): T {
   if (!q) return q;
@@ -260,7 +277,15 @@ export function normalizeQuestion<T extends QuestionRow>(q: T): T {
   // Apply exact verified patches if matched
   if (patch) {
     if (patch.question && question) {
-      question = patch.question(question);
+      // Idempotency guard: If question already has <u> or _____ from DB update, don't duplicate
+      const alreadyHasUnderline = question.includes('<u>');
+      const alreadyHasBlank = question.includes('_____');
+      const isUnderlinePatch = EXACT_UNDERLINE_KEYS.has(key);
+      const isBlankPatch = EXACT_BLANK_KEYS.has(key);
+
+      if ((!isUnderlinePatch || !alreadyHasUnderline) && (!isBlankPatch || !alreadyHasBlank)) {
+        question = patch.question(question);
+      }
     }
     if (patch.option_a !== undefined) option_a = patch.option_a;
     if (patch.option_b !== undefined) option_b = patch.option_b;
