@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '../lib/supabase';
 import { examNum, type Exam, type QuestionRow, type Subject } from '../lib/format';
+import { normalizeQuestions } from '../lib/questionPatch';
 
 export function useSubjects() {
   return useQuery({
@@ -60,7 +61,7 @@ export function useExamPaper(slug: string | null) {
         .order('question_number')
         .limit(500);
       if (error) throw error;
-      return (data ?? []) as QuestionRow[];
+      return normalizeQuestions((data ?? []) as QuestionRow[]);
     },
   });
 }
@@ -119,7 +120,7 @@ export function useQuestionPool(args: PoolArgs) {
         page++;
       }
 
-      return all;
+      return normalizeQuestions(all);
     },
   });
 }

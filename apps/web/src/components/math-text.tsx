@@ -10,11 +10,58 @@ export interface MathTextProps {
   numberOfLines?: number;
 }
 
+interface FormattedSegment {
+  content: string;
+  isUnderline?: boolean;
+  isBold?: boolean;
+  isItalic?: boolean;
+}
+
+const RICH_TAG_REGEX = /(<\/?(?:u|b|i|strong|em)>)/i;
+
+function parseRichSegments(text: string): FormattedSegment[] {
+  const parts = text.split(RICH_TAG_REGEX);
+  const segments: FormattedSegment[] = [];
+
+  let isUnderline = false;
+  let isBold = false;
+  let isItalic = false;
+
+  for (const part of parts) {
+    if (!part) continue;
+
+    const lower = part.toLowerCase();
+    if (lower === '<u>') {
+      isUnderline = true;
+    } else if (lower === '</u>') {
+      isUnderline = false;
+    } else if (lower === '<b>' || lower === '<strong>') {
+      isBold = true;
+    } else if (lower === '</b>' || lower === '</strong>') {
+      isBold = false;
+    } else if (lower === '<i>' || lower === '<em>') {
+      isItalic = true;
+    } else if (lower === '</i>' || lower === '</em>') {
+      isItalic = false;
+    } else {
+      segments.push({
+        content: part,
+        isUnderline,
+        isBold,
+        isItalic,
+      });
+    }
+  }
+
+  return segments;
+}
+
 /**
  * MathText Component
  *
  * Intelligently renders questions, options, and solve notes.
- * - For non-math text: Passes through directly to `<Bn>` for zero overhead.
+ * - For plain non-math, non-formatted text: Passes through directly to `<Bn>` for zero overhead.
+ * - For rich formatted text: Renders clean, accessible underlines (<u>), bold (<b>), italics (<i>).
  * - For mathematical/scientific expressions: Renders high-fidelity KaTeX equations
  *   inline with proper baseline alignment and typography.
  */
@@ -28,8 +75,11 @@ export const MathText = React.memo(function MathText({
     return null;
   }
 
-  // If there are no mathematical tokens, render standard Bn text
-  if (!hasMathTokens(text)) {
+  const hasRich = RICH_TAG_REGEX.test(text);
+  const hasMath = hasMathTokens(text);
+
+  // If there are no mathematical tokens and no rich tags, render standard Bn text
+  if (!hasRich && !hasMath) {
     return (
       <Bn style={style} className={className} numberOfLines={numberOfLines}>
         {text}
@@ -37,20 +87,8 @@ export const MathText = React.memo(function MathText({
     );
   }
 
-  // Parse into text and math segments
-  const segments: TextSegment[] = useMemo(() => splitTextAndMath(text), [text]);
-
-  // If only 1 text segment, fallback
-  if (segments.length === 1 && segments[0].type === 'text') {
-    return (
-      <Bn style={style} className={className} numberOfLines={numberOfLines}>
-        {segments[0].content}
-      </Bn>
-    );
-  }
-
-  // Ensure KaTeX stylesheet is loaded in browser head
-  if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  // Ensure KaTeX stylesheet is loaded in browser head if math is involved
+  if (Platform.OS === 'web' && typeof document !== 'undefined' && hasMath) {
     if (!document.getElementById('katex-css-cdn')) {
       const link = document.createElement('link');
       link.id = 'katex-css-cdn';
@@ -61,27 +99,77 @@ export const MathText = React.memo(function MathText({
     }
   }
 
-  // If running on Web, render inline HTML for KaTeX segments
+  // Parse rich segments (handling <u>, <b>, etc.)
+  const richSegments = useMemo(() => parseRichSegments(text), [text]);
+
+  // If running on Web, render inline HTML for KaTeX & rich tags
   if (Platform.OS === 'web') {
     return (
       <Bn style={[{ whiteSpace: 'pre-wrap' } as any, style]} className={className} numberOfLines={numberOfLines}>
-        {segments.map((seg, idx) => {
-          if (seg.type === 'math' && seg.html) {
+        {richSegments.map((rSeg, rIdx) => {
+          const innerMath = hasMathTokens(rSeg.content);
+
+          let innerContent: React.ReactNode;
+          if (innerMath) {
+            const mathSegs = splitTextAndMath(rSeg.content);
+            innerContent = mathSegs.map((mSeg, mIdx) => {
+              if (mSeg.type === 'math' && mSeg.html) {
+                return (
+                  <span
+                    key={`m-${rIdx}-${mIdx}`}
+                    style={{
+                      display: 'inline-block',
+                      verticalAlign: 'baseline',
+                      margin: '0 2px',
+                    }}
+                    dangerouslySetInnerHTML={{ __html: mSeg.html }}
+                  />
+                );
+              }
+              return (
+                <span key={`t-${rIdx}-${mIdx}`} style={{ whiteSpace: 'pre-wrap' }}>
+                  {mSeg.content}
+                </span>
+              );
+            });
+          } else {
+            innerContent = rSeg.content;
+          }
+
+          if (rSeg.isUnderline) {
             return (
-              <span
-                key={idx}
+              <u
+                key={rIdx}
                 style={{
-                  display: 'inline-block',
-                  verticalAlign: 'baseline',
-                  margin: '0 2px',
-                }}
-                dangerouslySetInnerHTML={{ __html: seg.html }}
-              />
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '4px',
+                  textDecorationThickness: '2px',
+                  fontWeight: 600,
+                }}>
+                {innerContent}
+              </u>
             );
           }
+
+          if (rSeg.isBold) {
+            return (
+              <strong key={rIdx} style={{ fontWeight: 700 }}>
+                {innerContent}
+              </strong>
+            );
+          }
+
+          if (rSeg.isItalic) {
+            return (
+              <em key={rIdx} style={{ fontStyle: 'italic' }}>
+                {innerContent}
+              </em>
+            );
+          }
+
           return (
-            <span key={idx} style={{ whiteSpace: 'pre-wrap' }}>
-              {seg.content}
+            <span key={rIdx} style={{ whiteSpace: 'pre-wrap' }}>
+              {innerContent}
             </span>
           );
         })}
@@ -89,10 +177,28 @@ export const MathText = React.memo(function MathText({
     );
   }
 
-  // Mobile / Native fallback: renders plain text
+  // Mobile / Native fallback
   return (
     <Bn style={style} className={className} numberOfLines={numberOfLines}>
-      {text}
+      {richSegments.map((rSeg, rIdx) => {
+        const textStyle: TextStyle = {};
+        if (rSeg.isUnderline) {
+          textStyle.textDecorationLine = 'underline';
+          textStyle.fontWeight = 'bold';
+        }
+        if (rSeg.isBold) {
+          textStyle.fontWeight = 'bold';
+        }
+        if (rSeg.isItalic) {
+          textStyle.fontStyle = 'italic';
+        }
+
+        return (
+          <Text key={rIdx} style={textStyle}>
+            {rSeg.content}
+          </Text>
+        );
+      })}
     </Bn>
   );
 });

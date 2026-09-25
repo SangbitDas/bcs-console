@@ -1,0 +1,1838 @@
+[
+  {
+    "exam_slug": "10th_bcs",
+    "examNum": 10,
+    "qNum": 19,
+    "question": "Choose the correct alternative to complete the sentence? ‘He–to see us if he had been able to.’",
+    "correct_answer": "B",
+    "options": {
+      "A": "would come",
+      "B": "would have come",
+      "C": "may have come",
+      "D": "may come"
+    },
+    "solve_note": "If যুক্ত clause-টি past perfect tense থাকলে অন্য clause-এ would/could/might + have + past participle form হয়।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: He–to",
+    "suggestedFormattedSentence": "Choose the correct alternative to complete the sentence? ‘He _____ to see us if he had been able to.’"
+  },
+  {
+    "exam_slug": "13rd_bcs",
+    "examNum": 13,
+    "qNum": 87,
+    "question": "We have recently entered __ an agreement with the Inland Co-operative Society. -Which of the following best fits in the blank space?",
+    "correct_answer": "D",
+    "options": {
+      "A": "no preposition",
+      "B": "upon",
+      "C": "in",
+      "D": "into"
+    },
+    "solve_note": "ভেতরে প্রবেশ করা বা আসা বোঝাতে enter –এর পর কোনো preposition বসে না। অধিকার লাভ করার ক্ষেত্রে enter-এর পর on/upon বসে। নথিভুক্ত করার ক্ষেত্রে enter- এর পর in বসে এবং চুক্তিতে সম্মত হওয়া বোঝাতে enter – এর পর into বসে।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: Co-operative",
+    "suggestedFormattedSentence": "We have recently entered __ an agreement with the Inland Co _____ operative Society. -Which of the following best fits in the blank space?"
+  },
+  {
+    "exam_slug": "14th_bcs",
+    "examNum": 14,
+    "qNum": 7,
+    "question": "The invention of computer has turned over a new leaf in the history of modern technology. –––– Which of the following is nearest in meaning to the italicized idiom above?",
+    "correct_answer": "C",
+    "options": {
+      "A": "created a new history",
+      "B": "began a new civiliztion",
+      "C": "opened a new chapter",
+      "D": "created a sensation"
+    },
+    "solve_note": "Turn over a new leaf- নতুন পাতা উল্টানো। অর্থাৎ নতুন অধ্যায়ের সূচনা করা। Created a new history- নতুন ইতিহাস সৃষ্টি করেছে। Began a new civilization- নতুন সভ্যতার সূচনা করেছে। Opened a new chapter- নতুন অধ্যায়ের সূচনা করেছে। Created a sensation – নতুন উত্তেজনাকর ঘটনার সৃষ্টি করেছে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The invention of computer has turned over a new leaf in the history of modern technology. ______ Which of the following is nearest in meaning to the italicized idiom above?"
+  },
+  {
+    "exam_slug": "14th_bcs",
+    "examNum": 14,
+    "qNum": 36,
+    "question": "To meet trouble half-way means–",
+    "correct_answer": "A",
+    "options": {
+      "A": "To be puzzled",
+      "B": "To get nervous",
+      "C": "To be disappointed",
+      "D": "To bear up"
+    },
+    "solve_note": "To meet trouble- সমস্যা মোকাবেলা করা এবং halfway- অর্ধেক। অর্থাৎ পুরোপুরি মোকাবেলার আগেই হাল ছেড়ে দেয়া। অর্থাৎ হতবুদ্ধি হওয়া। অপশন (ক) To be puzzled – হতবুদ্ধি হওয়া। (খ) To get nervous- ভয় পাওয়া। (গ) To be disappointed – হতাশ হওয়া। (ঘ) To bear up- (নিজেকে) শক্ত রাখা। সুতরাং সঠিক উত্তর (ক)।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: half-way",
+    "suggestedFormattedSentence": "To meet trouble half _____ way means–"
+  },
+  {
+    "exam_slug": "14th_bcs",
+    "examNum": 14,
+    "qNum": 94,
+    "question": "Now-a-days many villages are lit____ electricity. -Which is the correct preposition in the above blank?",
+    "correct_answer": "B",
+    "options": {
+      "A": "With",
+      "B": "by",
+      "C": "from",
+      "D": "on"
+    },
+    "solve_note": "Transitive verb হিসেবে light এর পর by/with দুটি preposition ই বসে। তবে by সর্বাধিক গ্রহণযোগ্য।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: Now-a",
+    "suggestedFormattedSentence": "Now _____ a-days many villages are lit____ electricity. -Which is the correct preposition in the above blank?"
+  },
+  {
+    "exam_slug": "16th_bcs",
+    "examNum": 16,
+    "qNum": 5,
+    "question": "The correct passive of ‘Sheila was writing a letter’ is––",
+    "correct_answer": "C",
+    "options": {
+      "A": "A letter was writing by Sheila",
+      "B": "A letter was being writing by Sheila",
+      "C": "A letter was being written by Sheila",
+      "D": "A letter was been written by Sheila"
+    },
+    "solve_note": "বাক্যটি past continuous tense বলে এর passive রূপ হবে sub (ob) + was + being + v. (p.p) by + ob (sub). Structure অনুযায়ী সঠিক রূপটি রয়েছে (গ) তে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The correct passive of ‘Sheila was writing a letter’ is______"
+  },
+  {
+    "exam_slug": "16th_bcs",
+    "examNum": 16,
+    "qNum": 41,
+    "question": "The word ‘ecological’ is related to––",
+    "correct_answer": "C",
+    "options": {
+      "A": "atmosphare",
+      "B": "pollusion",
+      "C": "environment",
+      "D": "demography"
+    },
+    "solve_note": "Ecological- অর্থ বাস্তুবিদ্যা সংক্রান্ত/পরিবেশ দূষণ সংক্রান্ত। সুতরাং বিষয়টি অবশ্যই পরিবেশের সাথে সম্পৃক্ত।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The word ‘ecological’ is related to______"
+  },
+  {
+    "exam_slug": "16th_bcs",
+    "examNum": 16,
+    "qNum": 42,
+    "question": "The synonym of ‘genesis’ is––",
+    "correct_answer": "C",
+    "options": {
+      "A": "introduction",
+      "B": "preface",
+      "C": "beginning",
+      "D": "foreword"
+    },
+    "solve_note": "Genesis- সূচনা, প্রারম্ভিক বিন্দু। কাজেই এর synonym হবে beginning.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The synonym of ‘genesis’ is______"
+  },
+  {
+    "exam_slug": "16th_bcs",
+    "examNum": 16,
+    "qNum": 43,
+    "question": "The word ‘homogeneous’ means––",
+    "correct_answer": "A",
+    "options": {
+      "A": "of the same kind",
+      "B": "of the same place",
+      "C": "of the same race",
+      "D": "of the same density"
+    },
+    "solve_note": "Homogeneous- সমজাতীয়/সমজাতিক।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The word ‘homogeneous’ means______"
+  },
+  {
+    "exam_slug": "16th_bcs",
+    "examNum": 16,
+    "qNum": 44,
+    "question": "The word ‘imbibe’ means––",
+    "correct_answer": "C",
+    "options": {
+      "A": "to learn",
+      "B": "to tinge",
+      "C": "to drink",
+      "D": "to acquire"
+    },
+    "solve_note": "Imbibe- পান করা, শুষে নেওয়া, হজম করা। যার অন্য অর্থ to drink.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The word ‘imbibe’ means______"
+  },
+  {
+    "exam_slug": "17th_bcs",
+    "examNum": 17,
+    "qNum": 95,
+    "question": "The last word of the proverb, ‘Handsome is that handsome’–––.",
+    "correct_answer": "D",
+    "options": {
+      "A": "Works",
+      "B": "Thinks",
+      "C": "Says",
+      "D": "Does"
+    },
+    "solve_note": "Handsome is that hondsome does অর্থ- সুন্দরেরা যা করে তাই সুন্দর।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The last word of the proverb, ‘Handsome is that handsome’______."
+  },
+  {
+    "exam_slug": "20th_bcs",
+    "examNum": 20,
+    "qNum": 25,
+    "question": "–––– glass is, for all practical purposes, a solid, its molecular structure is that of a liquid.",
+    "correct_answer": "C",
+    "options": {
+      "A": "Because",
+      "B": "Since",
+      "C": "Although",
+      "D": "If"
+    },
+    "solve_note": "দুটি clause যুক্ত এধরনের বাক্যের প্রতিটি clause থেকে Key words সনাক্ত করে এদের সম্পর্ক নির্ণয় করতে হয়। Key word(s) সাধারণত Object এর স্থলে ব্যবহৃত Adjective বা Adverb. এখানে ১ম Clause টির Key words হচ্ছে ‘Solid’ এবং ২য় টির Key words হচ্ছে ‘Liquid’ উভয়ের সম্পর্ক বিপরীতধর্মী। সুতরাং এরা Contrast বা বৈপরীত্য প্রকাশ করেছে। এ ধরনের Contrast indicating conjunction হচ্ছে Although/ Though/Even though ইত্যাদি।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "______ glass is, for all practical purposes, a solid, its molecular structure is that of a liquid."
+  },
+  {
+    "exam_slug": "20th_bcs",
+    "examNum": 20,
+    "qNum": 26,
+    "question": "An intensive search was conducted by the detective to locate those criminals, who ––",
+    "correct_answer": "B",
+    "options": {
+      "A": "have had escaped",
+      "B": "had escaped",
+      "C": "are escaping",
+      "D": "have been escaping"
+    },
+    "solve_note": "এখানে Who দ্বারা দুটি clause যুক্ত হয়েছে। প্রথম clause টিতে যেহেতু past tense ব্যবহৃত হয়েছে কাজেই অপর clause টিতেও past tense ব্যবহার করা আবশ্যক। এখানে শুধু had escaped. তাই past tense ব্যবহার করা হয়েছে (had), অপর তিনটিতে present tense ব্যবহার করা হয়েছে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "An intensive search was conducted by the detective to locate those criminals, who ______"
+  },
+  {
+    "exam_slug": "20th_bcs",
+    "examNum": 20,
+    "qNum": 27,
+    "question": "The intellectual can no longer be said to live ––– the margine of society.",
+    "correct_answer": "B",
+    "options": {
+      "A": "against",
+      "B": "beyond",
+      "C": "inside",
+      "D": "before"
+    },
+    "solve_note": "The margine of society বলতে এখানে সমাজের সীমারেখা বোঝানো হয়েছে। বাক্যটির অর্থ হল “বুদ্ধিজীবীরা সমাজের উর্ধ্বে বাস করতে পারে না” তাই beyond বসবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The intellectual can no longer be said to live ______ the margine of society."
+  },
+  {
+    "exam_slug": "20th_bcs",
+    "examNum": 20,
+    "qNum": 29,
+    "question": "If a substance is cohesive, it tends to –––",
+    "correct_answer": "C",
+    "options": {
+      "A": "retain heat",
+      "B": "bend without much difficulty",
+      "C": "stick together",
+      "D": "break easily"
+    },
+    "solve_note": "Cohesive - দৃঢ়ভাবে একত্রে লেগে থাকে এমন। এখন, Retain heat - তাপ অব্যাহত রাখা। Bend without too much difficulty - খুব বেশি কাঠিন্য ছাড়াই বাঁকা হয়। Stick together - একত্রে লেগে থাকা। Break easily - সহজেই ভেঙে যায়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "If a substance is cohesive, it tends to ______"
+  },
+  {
+    "exam_slug": "20th_bcs",
+    "examNum": 20,
+    "qNum": 31,
+    "question": "Each sentence contains two blanks, Choose the set of words for each blank that best completes the sentence. The influence of the technological revolution in ––and ––the ––concentration of wealth and power in the hands of the few should worry us all.",
+    "correct_answer": "C",
+    "options": {
+      "A": "Proliferating–diminishing",
+      "B": "Undermining–neutralizing",
+      "C": "Accelerating–intensifying",
+      "D": "Aggravating–demolishing."
+    },
+    "solve_note": "Double blanks যুক্ত বাক্যে and দ্বারা blank দুটি যুক্ত থাকলে blank দুটিতে synonym বা near-synonym ব্যবহার করতে হয়। Proliferating- ক্রমবর্ধমান, দ্রুত বর্ধমান, দ্রুত বাড়ছে এমন। Diminishing– ক্রম হ্রাসমান। এরা পরস্পর Antonymous. Undermining– ক্রমশ দুর্বল হচ্ছে এমন। Neutralizing– ক্রম নিষ্ক্রিয়মান। এদের অর্থ প্রায় কাছাকাছি। Accelerating – বৃদ্ধি পাচ্ছে এমন, দ্রুততর হচ্ছে এমন। Intensifying – বৃদ্ধি পাচ্ছে এমন, তীব্রতর হচ্ছে এমন। এরাও Synonymous. Aggravating – প্রকোপ বৃদ্ধি পাচ্ছে এমন, শোচনীয়তর হচ্ছে এমন। Demolishing – ধ্বংস হয়ে যাচ্ছে এমন। এরা Synonymous নয়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––, ––, ––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Each sentence contains two blanks, Choose the set of words for each blank that best completes the sentence. The influence of the technological revolution in ______and ______the ______concentration of wealth and power in the hands of the few should worry us all."
+  },
+  {
+    "exam_slug": "20th_bcs",
+    "examNum": 20,
+    "qNum": 36,
+    "question": "The passive form of the sentence ‘Some children were helping the wounded man’––",
+    "correct_answer": "C",
+    "options": {
+      "A": "The wounded man was helped by some children",
+      "B": "The wounded man was helping by some children",
+      "C": "The wounded man was being helped by some children",
+      "D": "The wounded man was to be helped by some children"
+    },
+    "solve_note": "একটি 'be + being + V3' স্ট্রাকচারকে passive করলে শূন্য বা 'was being' ধরা হয়: 'Some children were helping the wounded man' → 'The wounded man was being helped by some children'।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The passive form of the sentence ‘Some children were helping the wounded man’______"
+  },
+  {
+    "exam_slug": "22nd_bcs",
+    "examNum": 22,
+    "qNum": 68,
+    "question": "In spite of my requests, he did not ––––.",
+    "correct_answer": "A",
+    "options": {
+      "A": "give in",
+      "B": "fall in",
+      "C": "get off",
+      "D": "give forth"
+    },
+    "solve_note": "প্রদত্ত phrasal verb গুলোর অর্থ হলো- Give in - আত্মসমর্পণ করা; বশ্যতা স্বীকার করা। Fall in –ভেঙে পড়া, সারি বেধে দাঁড়ানো। Get off- যাত্রা করা, রওনা দেয়া। Get forth - উদগীরণ করা, নিঃসৃত করা/হওয়া। Give in দিয়েই বাক্যটি অর্থবোধক হয়- আমার অনুরোধ সত্ত্বেও সে বশ্যতা স্বীকার করেনি।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "In spite of my requests, he did not ______."
+  },
+  {
+    "exam_slug": "22nd_bcs",
+    "examNum": 22,
+    "qNum": 69,
+    "question": "The children studied in a class room ––– windows were never opened.",
+    "correct_answer": "D",
+    "options": {
+      "A": "that",
+      "B": "which",
+      "C": "where",
+      "D": "whose"
+    },
+    "solve_note": "বাক্যের শূন্যস্থানের পূর্বের অংশটির অর্থ হলো শিশুরা একটি কক্ষে অধ্যয়ন করল। আর পরের অংশটির অর্থ করা যায়, জানালাগুলো কখনো খোলা হয়নি। দুটি অংশকে একত্র করতে হলে relative pronoun ব্যবহার করতে হবে। এখন শূন্যস্থানের পূর্বে room এবং পরে window থাকায় এদের মধ্যে সম্পর্ক বোঝাচ্ছে। আর সম্পর্ক বোঝানোর ক্ষেত্রে relative pronoun এর possessive হয় অর্থাৎ whose (যার) হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The children studied in a class room ______ windows were never opened."
+  },
+  {
+    "exam_slug": "22nd_bcs",
+    "examNum": 22,
+    "qNum": 73,
+    "question": "Choose the correct meaning of the following words : (73-75)\nCul-de-sac",
+    "correct_answer": "B",
+    "options": {
+      "A": "Selection",
+      "B": "Dead end",
+      "C": "Error",
+      "D": "Bubble"
+    },
+    "solve_note": "Cul-de-sac একটি ফরাসি শব্দ, যার অর্থ হলো কানাগলি। অন্যদিকে, Selection- নির্বাচন; Dead end- কানাগলি; Error- ভুল ; Bubble- বুদবুদ, অবাস্তব, চিন্তা বা পরিকল্পনা।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: Cul-de",
+    "suggestedFormattedSentence": "Choose the correct meaning of the following words : (73-75)\nCul _____ de-sac"
+  },
+  {
+    "exam_slug": "22nd_bcs",
+    "examNum": 22,
+    "qNum": 80,
+    "question": "Read the following passage and answer question 76−80_ On the face of it, telescopes and data bases sound like very different things. Telescopes sit on the top of mountains, and are pointed at the skies; data bases sit on computer hard disks, humming away and going no where. Yet they have something in common; both allow astronomers to explore the universe. Modern telescopes are highly automated pieces of machinery equipped with digital sensors that produce reams of observational data. Such data can be stored, processed and distributed just like other digital information. This means it is no longer necessary for astronomer actually to visit a telescope to make observation. A good title for the passage will be–––.",
+    "correct_answer": "B",
+    "options": {
+      "A": "Telescope and exploration of the universe.",
+      "B": "Digital telescope and exploration of the universe.",
+      "C": "Astronomers and exploration of the universe.",
+      "D": "Space exploration in the new millennium."
+    },
+    "solve_note": "সাধারণত, একাধিক প্যারা বিশিষ্ট passage এর title নির্ধারণের ক্ষেত্রে লক্ষ রাখতে হয় যে, title এর বিষয়টি যেন প্রতিটি প্যারার প্রথমে ও শেষে কোনো না কোনোভাবে বিদ্যমান থাকে। এখানে প্রথম প্যারায় telescope এবং data base-এর সম্পর্ক এবং exploration এর ক্ষেত্রে তাদের ব্যবহার সম্পর্কে বলা হয়েছে। দ্বিতীয় প্যারার বক্তব্য হলো আধুনিক টেলিস্কোপে Astronomer এর উপস্থিতি ছাড়াই digital sensor যুক্ত করার মাধ্যমে তথ্য সংগ্রহ ও সংরক্ষণ করা যায়। অর্থাৎ আবিষ্কারের ক্ষেত্রে digital telescope এর বিষয়টিকেই জোর দিয়ে তুলে ধরার চেষ্টা করা হয়েছে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Read the following passage and answer question 76−80_ On the face of it, telescopes and data bases sound like very different things. Telescopes sit on the top of mountains, and are pointed at the skies; data bases sit on computer hard disks, humming away and going no where. Yet they have something in common; both allow astronomers to explore the universe. Modern telescopes are highly automated pieces of machinery equipped with digital sensors that produce reams of observational data. Such data can be stored, processed and distributed just like other digital information. This means it is no longer necessary for astronomer actually to visit a telescope to make observation. A good title for the passage will be______."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 71,
+    "question": "Stockings are¬ –––– socks.",
+    "correct_answer": "A",
+    "options": {
+      "A": "long",
+      "B": "small",
+      "C": "big",
+      "D": "short"
+    },
+    "solve_note": "Stockings অর্থ হাঁটু পর্যন্ত বা তার ওপর পর্যন্ত লম্বা মোজা। যেহেতু মোজা হাঁটুর ওপর পর্যন্ত বিস্তৃত বোঝাচ্ছে তাই এটি Short বা small হওয়া বাঞ্ছনীয় নয়। তাই সঠিক উত্তর long অর্থাৎ ‘ক’।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Stockings are¬ ______ socks."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 72,
+    "question": "Many students will now be starting to –––– about their exams result.",
+    "correct_answer": "A",
+    "options": {
+      "A": "worry",
+      "B": "reflect",
+      "C": "inquire",
+      "D": "comment"
+    },
+    "solve_note": "Worry - উদ্বিগ্ন হওয়া। Reflect –প্রতিফলিত। Inquire - খোঁজখবর নেয়া। Comment - মন্তব্য করা। সাধারণত পরীক্ষার পর ফলাফল সম্পর্কে মন্তব্য করা বা খোঁজখবর নেয়ার চেয়ে উদ্বিগ্ন থাকাই স্বাভাবিক।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Many students will now be starting to ______ about their exams result."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 73,
+    "question": "She told me his name after he –––––.",
+    "correct_answer": "B",
+    "options": {
+      "A": "left",
+      "B": "had left",
+      "C": "has left",
+      "D": "has been leaving"
+    },
+    "solve_note": "কোনো sentence-এ After-এর পূর্ববর্তী Clause টি Past Indifinite tense-এর হলে After-এর পরবর্তী Clause টি Past Perfect tense-এ হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "She told me his name after he ______."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 74,
+    "question": "Climate is a¬ –––– of the environment.",
+    "correct_answer": "A",
+    "options": {
+      "A": "state",
+      "B": "situation",
+      "C": "rank",
+      "D": "size"
+    },
+    "solve_note": "Climate অর্থ হলো জলবায়ু, যা একটি নির্দিষ্ট এলাকার কয়েক বছরের আবহাওয়ার গড় অবস্থাকে নির্দেশ করে। এখানে, ক. state - মানে অবস্থা। খ. situation -অবস্থা। তবে এটি গ্রাম, শহরের অবস্থান বুঝাতে ব্যবহৃত হয়। গ. rank- সারি বা ক্রম। ঘ. Size - আকার। এখানে state দিয়ে জলবায়ুর অবস্থা বুঝায়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Climate is a¬ ______ of the environment."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 75,
+    "question": "I finally killed the fly ––––– a rolled up newspaper.",
+    "correct_answer": "B",
+    "options": {
+      "A": "by",
+      "B": "with",
+      "C": "through",
+      "D": "from"
+    },
+    "solve_note": "with এবং by preposition দুটোর ব্যবহার সামান্য পার্থক্য আছে। by বোঝায় সাধারণত কোন ঘটনা বুঝাতে আর with বসে কোন tool বা বস্তু বুঝাতে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "I finally killed the fly ______ a rolled up newspaper."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 76,
+    "question": "We must look pleased or else he’ll be ––––.",
+    "correct_answer": "A",
+    "options": {
+      "A": "dissatisfied",
+      "B": "cross",
+      "C": "happy",
+      "D": "delighted"
+    },
+    "solve_note": "এখানে, dissatisfied -অসন্তুষ্ট। cross – কাটাকাটি। happy – সুখী। Delight - আনন্দ । বাক্যটি বোঝাচ্ছে যে, আমরা অবশ্যই আনন্দিত থাকব নতুবা সে অসন্তুট হবে।। এখানে ‘নতুবা’ শব্দটি ‘আনন্দিত’ এর বিপরীত কিছু বোঝাচ্ছে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "We must look pleased or else he’ll be ______."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 77,
+    "question": "The man died –––– over eating.",
+    "correct_answer": "D",
+    "options": {
+      "A": "by",
+      "B": "of",
+      "C": "for",
+      "D": "from"
+    },
+    "solve_note": "Die by-কোনো আঘাতে বা দুর্ঘটনায় মারা যাওয়া। Die of - রোগে মারা যাওয়া। Die for -আত্মত্যাগ করা। Die from - কোনো কারণে মারা যাওয়া। এখানে অতিভোজনের (Over eating) কারণে মারা যাওয়া বুঝাচ্ছে বলে die from হবে। die in- কাজ করতে করতে মারা যাওয়া।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The man died ______ over eating."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 78,
+    "question": "He advised me –––– smoking.",
+    "correct_answer": "B",
+    "options": {
+      "A": "giving up",
+      "B": "to give up",
+      "C": "in giving up",
+      "D": "from giving up"
+    },
+    "solve_note": "Advise verb-এর পরে object না থাকলে Infinitive না বসে verb-এর সাথে ing যুক্ত হয়। কিন্তু object থাকলে infinitive ব্যবহৃত হয়। এ নিয়মানুযায়ী যেহেতু- advise-এর পর me আছে, তাই সঠিক উত্তর ‘খ’।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He advised me ______ smoking."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 79,
+    "question": "The expression ‘after one’s own heart’ means ––––.",
+    "correct_answer": "C",
+    "options": {
+      "A": "To be in low spirit",
+      "B": "With complete devotion",
+      "C": "To ones’s own liking",
+      "D": "To be in high spirit"
+    },
+    "solve_note": "After one's own heart অর্থাৎ কারো সর্বোত্তম পছন্দের অনুরূপ কিছু (of exactly the type one likes best).",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The expression ‘after one’s own heart’ means ______."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 82,
+    "question": "He intends to –––– in the country for two months.",
+    "correct_answer": "B",
+    "options": {
+      "A": "live",
+      "B": "stay",
+      "C": "stop",
+      "D": "halt"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He intends to ______ in the country for two months."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 83,
+    "question": "What are you so angry––––?",
+    "correct_answer": "A",
+    "options": {
+      "A": "about",
+      "B": "at",
+      "C": "with",
+      "D": "for"
+    },
+    "solve_note": "কোনো ব্যক্তির (somebody) ওপর রাগান্বিত হলে angry-এর সাথে with/at বসে। কিন্তু কোনো কিছু নিয়ে রাগান্বিত হলে angry-এর সাথে about বসে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "What are you so angry______?"
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 84,
+    "question": "The parents became extremely––––when their son had not returned by eleven o’clock.",
+    "correct_answer": "D",
+    "options": {
+      "A": "angry",
+      "B": "annoyed",
+      "C": "disturbed",
+      "D": "anxious"
+    },
+    "solve_note": "এখানে, angry – রাগান্বিত। annoy - বিরক্ত করা। disturb - বিরক্ত করা। anxious- উদ্বিগ্ন।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: extremely––––when",
+    "suggestedFormattedSentence": "The parents became extremely _____ when their son had not returned by eleven o’clock."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 85,
+    "question": "‘I –––– remember the holiday I spent in your home’, she said.",
+    "correct_answer": "D",
+    "options": {
+      "A": "ever",
+      "B": "hardly",
+      "C": "usually",
+      "D": "always"
+    },
+    "solve_note": "এখানে, sentence টি positive অর্থে ব্যবহার করা হয়েছে। যেমন-তোমার বাড়িতে কাটানোর স্মৃতি আমার সবসময় মনে পড়ে। ever এবং hardly সাধারণত negative অর্থে ব্যবহৃত হয়। তাছাড়া usually এখানে অপ্রাসঙ্গিক। সুতরাং সঠিক উত্তর ‘ঘ’।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "‘I ______ remember the holiday I spent in your home’, she said."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 86,
+    "question": "He knew it was a very –––– operation but he was determined to carry it out.",
+    "correct_answer": "C",
+    "options": {
+      "A": "difficult",
+      "B": "dangerous",
+      "C": "risky",
+      "D": "troublesome"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He knew it was a very ______ operation but he was determined to carry it out."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 87,
+    "question": "Misanthropist means ––––.",
+    "correct_answer": "C",
+    "options": {
+      "A": "One who flirts with ladies",
+      "B": "A person of narrow views",
+      "C": "A hater of mankind",
+      "D": "One who believe that God is in everything"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Misanthropist means ______."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 88,
+    "question": "First language means the –––– language.",
+    "correct_answer": "C",
+    "options": {
+      "A": "important",
+      "B": "main",
+      "C": "natural",
+      "D": "official"
+    },
+    "solve_note": "এখানে, First Language বলতে মানব শিশু জন্মের পর যে ভাষা তার পরিবেশ ও পারিপার্শ্বিকতা থেকে শিখে তা-ই বুঝায়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "First language means the ______ language."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 89,
+    "question": "Shaheen would never have taken the job if –––– what great demand it would make on his time.",
+    "correct_answer": "C",
+    "options": {
+      "A": "he knew",
+      "B": "he had been knowing",
+      "C": "he had known",
+      "D": "he was knowing"
+    },
+    "solve_note": "Conditional sentence এ যদি if যুক্ত অংশটি past perfect tense এ হয়, তাহলে অপর অংশটিতে would/could/might have বসে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Shaheen would never have taken the job if ______ what great demand it would make on his time."
+  },
+  {
+    "exam_slug": "25th_bcs",
+    "examNum": 25,
+    "qNum": 90,
+    "question": "She has –––– her hair a beautiful shade of brown.",
+    "correct_answer": "D",
+    "options": {
+      "A": "colored",
+      "B": "given",
+      "C": "dried",
+      "D": "dyed"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "She has ______ her hair a beautiful shade of brown."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 43,
+    "question": "Choose the correct preposition. My brother has no interest ––– music.",
+    "correct_answer": "B",
+    "options": {
+      "A": "for",
+      "B": "in",
+      "C": "with",
+      "D": "at"
+    },
+    "solve_note": "Interest for ¬- কোনো বিষয় সম্পর্কে অধিক জানার আগ্রহ প্রকাশ করতে এটি ব্যবহৃত হয়। Interest in – যেকোনো বিষয়ে আগ্রহ বোঝাতে এটি বসে। Interest with-এরূপ ব্যবহার দেখা যায় না। Interest at-খেলাধুলায় আগ্রহ বুঝাতে এটি বসে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the correct preposition. My brother has no interest ______ music."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 44,
+    "question": "Fill in the blank with right option. I am looking forward ––– you.",
+    "correct_answer": "A",
+    "options": {
+      "A": "to seeing",
+      "B": "seeing",
+      "C": "to see",
+      "D": "to have seen"
+    },
+    "solve_note": "সাধারণত infinitive ‘to’ এর পর verb এর present form ব্যবহৃত হয়। কিন্তু ‘with a view to’, ‘forward to’ প্রভৃতি ক্ষেত্রে ব্যতিক্রম দেখা যায়। এসব ক্ষেত্রে preposition ‘to’ এর পর ‘verb + ing’ form ব্যবহৃত হয়। এ নিয়ম অনুসারে to seeing.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Fill in the blank with right option. I am looking forward ______ you."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 47,
+    "question": "Fill in the blank with correct preposition. He is devoid –––– commonsense.",
+    "correct_answer": "A",
+    "options": {
+      "A": "of",
+      "B": "from",
+      "C": "introduction",
+      "D": "at"
+    },
+    "solve_note": "Devoid এমন একটি verb যার পর সব সময় ‘of’ preposition বসে। Deviod of মানে শূন্য খালি।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Fill in the blank with correct preposition. He is devoid ______ commonsense."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 48,
+    "question": "Select the right word. He ran fast lest he –– miss the train.",
+    "correct_answer": "B",
+    "options": {
+      "A": "can",
+      "B": "should",
+      "C": "could",
+      "D": "has"
+    },
+    "solve_note": "Lest যুক্ত sentence যে tense-এর হোক না কেন lest-এর পর সব সময় auxiliary verb ‘should’ বসে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Select the right word. He ran fast lest he ______ miss the train."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 49,
+    "question": "The Arabian Nights –––– still a great favourite.",
+    "correct_answer": "C",
+    "options": {
+      "A": "has",
+      "B": "are",
+      "C": "is",
+      "D": "were"
+    },
+    "solve_note": "‘The Arabian Nights’ একটি আরব্য উপন্যাসের নাম। এটি মূলত singular number প্রকাশ করে। তাই এর পর singular verb বসবে। কিন্তু has এবং is দুটি verb ই singular। তবে ‘The Arabian Nights’ Subject হিসেবে নিজেই এখনো প্রিয় । আর Subject যখন নিজেই কিছু হয় বা কোথাও থাকে, তখন ‘to be’ verb ব্যবহৃত হয়। এজন্য ‘be’ verb - এর রূপ হিসেবে ‘is’ ই সঠিক।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The Arabian Nights ______ still a great favourite."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 50,
+    "question": "Choose the correct preposition. The police is looking ––– the case.",
+    "correct_answer": "D",
+    "options": {
+      "A": "after",
+      "B": "on",
+      "C": "up",
+      "D": "into"
+    },
+    "solve_note": "Look after- দেখাশুনা করা। Look on- দর্শক হওয়া। Look up - অভিধানে শব্দ খুঁজে বের করা। Look into - তদন্ত করা। সাধারণত পুলিশ কোনো মামলার তদন্ত করে থাকে। তাই এক্ষেত্রে into হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the correct preposition. The police is looking ______ the case."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 53,
+    "question": "Complete the sentence with the correct verb from: ‘Neela ––– her hand when she was cooking dinner.",
+    "correct_answer": "B",
+    "options": {
+      "A": "is burning",
+      "B": "burnt",
+      "C": "will burn",
+      "D": "was burning"
+    },
+    "solve_note": "Sequence of tense (Principal Clause -এর verb -এর tense অনুযায়ী subordinate clause -এর verb -এর নিয়ম নির্ধারিত হওয়ায় নিয়মই হলো sequence of tense)-এর নিয়মানুসারে (কিছু ব্যতিক্রম ছাড়া) principal clause -এর verb যদি past tense হয় তবে subordinate clause-এর verb ও past tense হবে। উল্লিখিত sentence টির subordinate clauses past tense এ রয়েছে। সুতরাং principal clause টিও past tense হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Complete the sentence with the correct verb from: ‘Neela ______ her hand when she was cooking dinner."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 54,
+    "question": "Choose the correct preposition. The tree has been blown –––– by the storm.",
+    "correct_answer": "A",
+    "options": {
+      "A": "away",
+      "B": "up",
+      "C": "off",
+      "D": "out"
+    },
+    "solve_note": "Blow away অর্থ-এক স্থান থেকে অন্য স্থানে সরিয়ে নিয়ে যাওয়া (বাতাসে)। যেমন- We fixed the tent securely so that it wouldn't be blown away in the strong wind. Blow up অর্থ-বিস্ফোরক ব্যবহার করে ধ্বংস করা; Blow off অর্থ-অবস্থান সরানো (বাতাসে), Blow out-অর্থ আগুন নেভানো ।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the correct preposition. The tree has been blown ______ by the storm."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 57,
+    "question": "Fill in the blank with the correct phrase: ––––– your shoes before entering the mosque.",
+    "correct_answer": "B",
+    "options": {
+      "A": "put out",
+      "B": "put off",
+      "C": "put away",
+      "D": "put on"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Fill in the blank with the correct phrase: ______ your shoes before entering the mosque."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 58,
+    "question": "Fill in the blank with the correct phrase: He –––– arrested if he had tried to leave the country.",
+    "correct_answer": "C",
+    "options": {
+      "A": "would",
+      "B": "could be",
+      "C": "would have been",
+      "D": "must be"
+    },
+    "solve_note": "Conditional Sentence এ if যুক্ত অংশ যদি past perfect tense এ হয়, তাহলে অপর অংশটিতে would have/ could have/ might have বসবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Fill in the blank with the correct phrase: He ______ arrested if he had tried to leave the country."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 59,
+    "question": "Choose the right word to fill the blank: Two of the children have to sleep in one bed, but the other three have ––––– ones.",
+    "correct_answer": "B",
+    "options": {
+      "A": "different",
+      "B": "separate",
+      "C": "complete",
+      "D": "lonely"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the right word to fill the blank: Two of the children have to sleep in one bed, but the other three have ______ ones."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 60,
+    "question": "Choose the right word to fill the blank: The Democratic party’s candidate ––– defeat in the small hours of the morning.",
+    "correct_answer": "C",
+    "options": {
+      "A": "consented",
+      "B": "agreed",
+      "C": "accepted",
+      "D": "granted"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the right word to fill the blank: The Democratic party’s candidate ______ defeat in the small hours of the morning."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 61,
+    "question": "The proper function of the press is surely to –––– the man in the street with facts.",
+    "correct_answer": "D",
+    "options": {
+      "A": "equip",
+      "B": "deliver",
+      "C": "proffer",
+      "D": "provide"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The proper function of the press is surely to ______ the man in the street with facts."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 62,
+    "question": "Choose the right word to fill the blank: Since his retirement, Mr. Chowdhury, who was –––– a teacher, has written four novels.",
+    "correct_answer": "D",
+    "options": {
+      "A": "usually",
+      "B": "presently",
+      "C": "already",
+      "D": "formerly"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the right word to fill the blank: Since his retirement, Mr. Chowdhury, who was ______ a teacher, has written four novels."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 63,
+    "question": "Choose the right word to fill the blank: I should appreciate it if you could complete this work ––––Thursday.",
+    "correct_answer": "D",
+    "options": {
+      "A": "till",
+      "B": "untill",
+      "C": "upto",
+      "D": "by"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the right word to fill the blank: I should appreciate it if you could complete this work ______Thursday."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 64,
+    "question": "Choose the right word to fill the blank: It will be your task to make sure the ––– of traffic is maintained without interruption.",
+    "correct_answer": "B",
+    "options": {
+      "A": "circulation",
+      "B": "flow",
+      "C": "current",
+      "D": "procession"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Choose the right word to fill the blank: It will be your task to make sure the ______ of traffic is maintained without interruption."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 66,
+    "question": "The word ‘ecological’ is related to –––:",
+    "correct_answer": "D",
+    "options": {
+      "A": "Demography",
+      "B": "Pollution",
+      "C": "Atmosphere",
+      "D": "Environment"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The word ‘ecological’ is related to ______:"
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 67,
+    "question": "The correct spelling is––:",
+    "correct_answer": "B",
+    "options": {
+      "A": "Humorious",
+      "B": "Humorous",
+      "C": "Humourius",
+      "D": "Humurious"
+    },
+    "solve_note": "Humorous একটি Adjective এবং এটির অর্থ রসাত্মক, সরস কৌতুকপূর্ণ।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The correct spelling is______:"
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 68,
+    "question": "A ‘pilgrim’ is a person who undertakes a journey to a ––––.",
+    "correct_answer": "C",
+    "options": {
+      "A": "Mosque",
+      "B": "A new country",
+      "C": "Holy place",
+      "D": "Bazar"
+    },
+    "solve_note": "Pilgrim-তীর্থযাত্রী (ধর্মীয় স্থানের যাত্রী)। একজন Pilgrim সর্বদাই পবিত্র স্থানে (Holy Place) যাত্রা করে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "A ‘pilgrim’ is a person who undertakes a journey to a ______."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 72,
+    "question": "The lights have been blown-by the strong wind.",
+    "correct_answer": "A",
+    "options": {
+      "A": "Out",
+      "B": "Away",
+      "C": "Up",
+      "D": "Off"
+    },
+    "solve_note": "blow out - বায়ু প্রবাহের ফলে নিভে যাওয়া বুঝায় । blow up - বিস্ফোরক দ্রব্য ব্যবহারের মাধ্যমে কোনো কিছু উড়িয়ে দেওয়া। blow off - কোনো কিছু থেকে কোনো কিছু নির্গত হওয়া।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: blown-by",
+    "suggestedFormattedSentence": "The lights have been blown _____ by the strong wind."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 73,
+    "question": "As the sun––, I decided to go out.",
+    "correct_answer": "D",
+    "options": {
+      "A": "has shone",
+      "B": "shine",
+      "C": "shines",
+      "D": "was shining"
+    },
+    "solve_note": "সাধারণ নিয়মানুযায়ী principal clause যদি past tense -এ থাকে তাহলে subordinate clause অবশ্যই past tense হবে। সে হিসেবে উত্তর ‘ক’, ‘খ’ এবং ‘গ’ ভুল। অতএব, সঠিক উত্তর ‘ঘ’।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "As the sun______, I decided to go out."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 76,
+    "question": "He divided the money –––– the two children.",
+    "correct_answer": "D",
+    "options": {
+      "A": "over",
+      "B": "In between",
+      "C": "Among",
+      "D": "Between"
+    },
+    "solve_note": "সাধারণত দুয়ের মধ্যে ভাগাভাগি বুঝাতে between বসে আর অনেকের মধ্যে ভাগাভাগি বুঝাতে among বসে। তাছাড়া দুয়ের মাঝে অবস্থিত বুঝালে in between বসে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He divided the money ______ the two children."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 77,
+    "question": "No one can ––––– that he is clever.",
+    "correct_answer": "A",
+    "options": {
+      "A": "Deny",
+      "B": "Defy",
+      "C": "Denounce",
+      "D": "Discard"
+    },
+    "solve_note": "",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "No one can ______ that he is clever."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 78,
+    "question": "Do not make a noise while your father ––––?",
+    "correct_answer": "A",
+    "options": {
+      "A": "Is sleeping",
+      "B": "Has slept",
+      "C": "Asleep",
+      "D": "Is being asleep"
+    },
+    "solve_note": "সাধারণত principal clause যদি present tense হয়। তাহলে subordinate clause যে কোনো tense এ হতে পারে। কিন্তু এখানে subordinate clause-এর শুরুতে while থাকায় তা continuous tense হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Do not make a noise while your father ______?"
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 79,
+    "question": "He gave up ––– football when he got married.",
+    "correct_answer": "C",
+    "options": {
+      "A": "Of playing",
+      "B": "To play",
+      "C": "Playing",
+      "D": "Play"
+    },
+    "solve_note": "কোনো বাক্যে পাশাপাশি দুটি verb বসে না। সেক্ষেত্রে দ্বিতীয় verb টির সাথে ing যোগ করে gerund করা হয়। এখানে give up একটি phrasal verb সর্বদাই (give up + verb- ing) হয়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He gave up ______ football when he got married."
+  },
+  {
+    "exam_slug": "26th_bcs",
+    "examNum": 26,
+    "qNum": 80,
+    "question": "He has been ill ––– Friday last.",
+    "correct_answer": "D",
+    "options": {
+      "A": "From",
+      "B": "On",
+      "C": "In",
+      "D": "Since"
+    },
+    "solve_note": "Point of time (কোনো কাজ শুরুর সময়) এর পূর্বে since বসে। যেহেতু সে গত শুক্রবার থেকে অসুস্থ, সেহেতু এটি point of time বুঝাচ্ছে। সুতরাং এর পূর্বে since ব্যবহার করাই শ্রেয়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He has been ill ______ Friday last."
+  },
+  {
+    "exam_slug": "30th_bcs",
+    "examNum": 30,
+    "qNum": 27,
+    "question": "Fill in the blanks in the following sentences by selecting the most appropriate alternative from among the four choices given:– Parliamentary democracy demands discipline and –– to the rules.",
+    "correct_answer": "A",
+    "options": {
+      "A": "adherence",
+      "B": "respectful",
+      "C": "knowledge",
+      "D": "awareness"
+    },
+    "solve_note": "Adherence- আনুগত্য; respectful- শ্রদ্ধাশীল; knowledge- জ্ঞান; awareness- সচেতনতা। knowledge এবং aware-ness এর পর preposition ‘of’ বসে। কিন্তু শূন্যস্থানের পরে আছে to। প্রশ্নে and এর পূর্বে আছে discipline, যা noun। respectful হচ্ছে adjective। তাই এটি উত্তর হবে না। ad-herence সঙ্গতিপূর্ণ বিধায়। তাই adherence সঠিক উত্তর।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Fill in the blanks in the following sentences by selecting the most appropriate alternative from among the four choices given:– Parliamentary democracy demands discipline and ______ to the rules."
+  },
+  {
+    "exam_slug": "33rd_bcs",
+    "examNum": 33,
+    "qNum": 28,
+    "question": "‘Subject-Verb Agreement’ refers to –",
+    "correct_answer": "C",
+    "options": {
+      "A": "person only",
+      "B": "number, person and gender",
+      "C": "number and person",
+      "D": "number only"
+    },
+    "solve_note": "Subject-Verb Agreement হচ্ছে subject এর number ও person অনুযায়ী verb এর পরির্ব্তন। যেমন: Subject 3rd person singular number হলে Present Indefinite Tense এ Verb এর সাথে s/es যুক্ত হয়।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: Subject-Verb",
+    "suggestedFormattedSentence": "‘Subject _____ Verb Agreement’ refers to –"
+  },
+  {
+    "exam_slug": "35th_bcs",
+    "examNum": 35,
+    "qNum": 46,
+    "question": "This could have worked if I ____ been more far-sighted.",
+    "correct_answer": "A",
+    "options": {
+      "A": "had",
+      "B": "have",
+      "C": "might",
+      "D": "would"
+    },
+    "solve_note": "Conditional sentence এর main clause এ could/would/might have + v3 থাকলে if clause এ had + v3 ব্যবহৃত হয়। সে হিসেবে option গুলোর মধ্যে (ক) had সঠিক।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: far-sighted",
+    "suggestedFormattedSentence": "This could have worked if I ____ been more far _____ sighted."
+  },
+  {
+    "exam_slug": "35th_bcs",
+    "examNum": 35,
+    "qNum": 69,
+    "question": "Find the odd-man-out –",
+    "correct_answer": "A",
+    "options": {
+      "A": "George Eliot",
+      "B": "Thomas Hardy",
+      "C": "Joseph Conrad",
+      "D": "James Joyce"
+    },
+    "solve_note": "George Eliot হচ্ছে Victorian যুগের একজন মহিলা ঔপন্যাসিক। তার আসল নাম Mary Ann Evans. অন্যদিকে Joseph Conrad, Thomas Hardy এবং James Joyce সবাই পুরুষ।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: odd-man",
+    "suggestedFormattedSentence": "Find the odd _____ man-out –"
+  },
+  {
+    "exam_slug": "35th_bcs",
+    "examNum": 35,
+    "qNum": 70,
+    "question": "Find the odd-man-out-",
+    "correct_answer": "C",
+    "options": {
+      "A": "The Bluest Eye",
+      "B": "Sula",
+      "C": "As I Lay Dying",
+      "D": "A Mercy"
+    },
+    "solve_note": "‘The Bluest Eye’, ‘Sula’ এবং ‘A Mercy’ হলো Toni Morrison এর তিনটি বিখ্যাত উপন্যাস। ‘As I Lay Dying’ হলো William Faulkner এর বিখ্যাত উপন্যাস।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: odd-man",
+    "suggestedFormattedSentence": "Find the odd _____ man-out-"
+  },
+  {
+    "exam_slug": "37th_bcs",
+    "examNum": 37,
+    "qNum": 47,
+    "question": "Use the appropriate article – I saw __ one-eyed man when I was walking on the road.",
+    "correct_answer": "A",
+    "options": {
+      "A": "a",
+      "B": "an",
+      "C": "the",
+      "D": "no article needed"
+    },
+    "solve_note": "সাধার‌ণত Vowel (a, e, i, o, u)- এর পূর্বে article ‘An’ বসে । কিন্তু Vowel ‘U’-এর উচ্চারণ যদি ‘ইউ’ এবং ‘O’-এর উচ্চারণ যদি ‘ওয়া’ - এর মতো হয় তাহলে ‘An’-এর পরিবর্তে ‘A’ বসে। তাই One (ওয়ান) -এর পূর্বে ‘a’ বসবে।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: one-eyed",
+    "suggestedFormattedSentence": "Use the appropriate article – I saw __ one _____ eyed man when I was walking on the road."
+  },
+  {
+    "exam_slug": "40th_bcs",
+    "examNum": 40,
+    "qNum": 37,
+    "question": "In which sentence is the word ‘past’ used as a preposition?",
+    "correct_answer": "D",
+    "options": {
+      "A": "Writing letters is a thing of the past.",
+      "B": "I look back on the past without regret.",
+      "C": "I called out to him as he ran past.",
+      "D": "Tania was a wonderful singer, but she’s past her prime."
+    },
+    "solve_note": "Tania was a wonderful singer, but she’s past her prime বাক্যে past শব্দটি preposition, কারণ past শব্দটি Pronoun/noun- এর পূর্বে বসে বাক্যে অন্য word- এর সাথে সম্পর্ক নির্দেশ করছে। তাছাড়া প্রথম দুটি বাক্যে past noun আর তৃতীয় বাক্যে past adverb, কারণ past শুধু verb- এর সাথে ব্যবহৃত হয়েছে।",
+    "issueType": "NO_BLANK_MARKER",
+    "detail": "Question explicitly asks for a blank fill-in/preposition, but the sentence has NO blank line, underscore, or gap placeholder at all.",
+    "suggestedFormattedSentence": "Insert \"_____\" at the appropriate position in the sentence."
+  },
+  {
+    "exam_slug": "40th_bcs",
+    "examNum": 40,
+    "qNum": 70,
+    "question": "Who worte the poem ‘The Good-Morrow’?",
+    "correct_answer": "C",
+    "options": {
+      "A": "George Herbert",
+      "B": "Andrew Marvell",
+      "C": "John Donne",
+      "D": "Henry Vaughan"
+    },
+    "solve_note": "‘The Good-Morrow’ কবিতাটির কবি হলেন poet of love নামে প্রসিদ্ধ John Donne. তার আরও কিছু কবিতার নাম হলো The Sunne Rising, The Canonization, The Ecstacy, The Dream ইত্যাদি।",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: Good-Morrow",
+    "suggestedFormattedSentence": "Who worte the poem ‘The Good _____ Morrow’?"
+  },
+  {
+    "exam_slug": "41st_bcs",
+    "examNum": 41,
+    "qNum": 145,
+    "question": "When Ushashi entered ––– the room everybody stopped talking.",
+    "correct_answer": "D",
+    "options": {
+      "A": "into",
+      "B": "in",
+      "C": "to",
+      "D": "no preposition required"
+    },
+    "solve_note": "Enter verb এর পরে into, in, to বা অন্য কোনো preposition বসে না।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "When Ushashi entered ______ the room everybody stopped talking."
+  },
+  {
+    "exam_slug": "41st_bcs",
+    "examNum": 41,
+    "qNum": 162,
+    "question": "Which ‘but’ is a preposition?",
+    "correct_answer": "B",
+    "options": {
+      "A": "It is but right to admit our faults.",
+      "B": "What can we do but sit and wait?",
+      "C": "We tried hard, But did not succeed.",
+      "D": "There is no one but likes him."
+    },
+    "solve_note": "এখানে but শব্দটি ছাড়া বা ব্যতীত অর্থে preposition হিসেবে ব্যবহৃত হয়েছে।",
+    "issueType": "NO_BLANK_MARKER",
+    "detail": "Question explicitly asks for a blank fill-in/preposition, but the sentence has NO blank line, underscore, or gap placeholder at all.",
+    "suggestedFormattedSentence": "Insert \"_____\" at the appropriate position in the sentence."
+  },
+  {
+    "exam_slug": "42nd_bcs",
+    "examNum": 42,
+    "qNum": 73,
+    "question": "Would you please find out Bangladesh ––– the map.",
+    "correct_answer": "B",
+    "options": {
+      "A": "in",
+      "B": "on",
+      "C": "over",
+      "D": "at"
+    },
+    "solve_note": "ম্যাপে অনুসন্ধানের ক্ষেত্রে Preposition ‘on’ বসে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Would you please find out Bangladesh ______ the map."
+  },
+  {
+    "exam_slug": "42nd_bcs",
+    "examNum": 42,
+    "qNum": 76,
+    "question": "Hasan has read most of the –––– of Shakespeare:",
+    "correct_answer": "D",
+    "options": {
+      "A": "poem",
+      "B": "play",
+      "C": "drama",
+      "D": "works"
+    },
+    "solve_note": "এখানে Most of the ব্যবহৃত হওয়ায় plural word (works) হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Hasan has read most of the ______ of Shakespeare:"
+  },
+  {
+    "exam_slug": "42nd_bcs",
+    "examNum": 42,
+    "qNum": 79,
+    "question": "Complete the sentence: If I were you, I –––– take the money:",
+    "correct_answer": "C",
+    "options": {
+      "A": "shall",
+      "B": "will",
+      "C": "would",
+      "D": "may"
+    },
+    "solve_note": "Second Conditional এ ‘if’- clause এরপর past simple tense ব্যবহার করা হলে এবং তারপর main clause -এ ‘would/could/should/might ইত্যাদি ব্যবহৃত হয়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Complete the sentence: If I were you, I ______ take the money:"
+  },
+  {
+    "exam_slug": "43rd_bcs",
+    "examNum": 43,
+    "qNum": 160,
+    "question": "Fill in the blank : ‘She went to New Market ––’",
+    "correct_answer": "A",
+    "options": {
+      "A": "on foot",
+      "B": "on feet",
+      "C": "by foot",
+      "D": "by walking"
+    },
+    "solve_note": "পায়ে হেঁটে কোথাও যাওয়া বুঝাতে on foot ব্যবহৃত হয়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Fill in the blank : ‘She went to New Market ______’"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 1,
+    "question": "She insisted on ––– leaving the house.",
+    "correct_answer": "D",
+    "options": {
+      "A": "he",
+      "B": "him",
+      "C": "himself",
+      "D": "his"
+    },
+    "solve_note": "Insist on এর পর সর্বদা Possessive form ব্যবহৃত হয়। সুতরাং সঠিক উত্তর She insisted on his leaving the house.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "She insisted on ______ leaving the house."
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 2,
+    "question": "The phrase “Achilles’ heel” means––",
+    "correct_answer": "C",
+    "options": {
+      "A": "a strong point",
+      "B": "a strong solution",
+      "C": "a weak point",
+      "D": "a permanent solution"
+    },
+    "solve_note": "Achilles heel একটি idioms and Phrase এর অর্থ -weak point.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The phrase “Achilles’ heel” means______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 3,
+    "question": "He does not adhere ––– any principle.",
+    "correct_answer": "D",
+    "options": {
+      "A": "by",
+      "B": "in",
+      "C": "at",
+      "D": "to"
+    },
+    "solve_note": "Adhere to (sth)- লেগে থাকা, অটল থাকা।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He does not adhere ______ any principle."
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 4,
+    "question": "Millennium is a period of–––",
+    "correct_answer": "B",
+    "options": {
+      "A": "100 year",
+      "B": "1000 year",
+      "C": "1 million year",
+      "D": "1 million year"
+    },
+    "solve_note": "Millennium: a period of 1,000 years.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Millennium is a period of______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 9,
+    "question": "When one makes a promise, one must not go ––– on it.",
+    "correct_answer": "B",
+    "options": {
+      "A": "forward",
+      "B": "back",
+      "C": "by",
+      "D": "around"
+    },
+    "solve_note": "Go back on একটি group verb. এর অর্থ প্রত্যাহার করা।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "When one makes a promise, one must not go ______ on it."
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 12,
+    "question": "The synonyms of ‘altitude’ is–––",
+    "correct_answer": "A",
+    "options": {
+      "A": "height",
+      "B": "width",
+      "C": "length",
+      "D": "depth"
+    },
+    "solve_note": "Altitude- এর অর্থ উচ্চতা. Height এর অর্থও উচ্চতা।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The synonyms of ‘altitude’ is______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 13,
+    "question": "The character, Elizabeth Bennett, appears in the novel––",
+    "correct_answer": "A",
+    "options": {
+      "A": "Pride and Prejudice",
+      "B": "Tess of the D’llrberville",
+      "C": "Wuthering Heights",
+      "D": "Jane Eyre"
+    },
+    "solve_note": "Jane Austen ইংরেজি সাহিত্যের প্রথম নারী নক্ষত্র যিনি পুরুষ প্রধান সাহিত্য সমাজকে স্বীয় ব্যক্তিত্বে নিয়ন্ত্রণ করেছিলেন। তার বিদ্রোহী মন্ত্রে উজ্জীবিত তার উপন্যাসের নারী চরিত্র Elizabeth Bennett. Pride and Prejudice উপন্যাসের কেন্দ্রীয় চরিত্র Elizabeth যার বিয়ে করা অথবা না করার সিদ্ধান্তহীনতা ঘিরে উপন্যাসটি আবর্তিত।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The character, Elizabeth Bennett, appears in the novel______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 15,
+    "question": "What may be considered courteous in one culture may be -arrogant in another. Here the underlined word “arrogant” means–––",
+    "correct_answer": "A",
+    "options": {
+      "A": "rude",
+      "B": "gracious",
+      "C": "coarse",
+      "D": "pretentious"
+    },
+    "solve_note": "arrogant অর্থ অহংকারী- অহংকারী উদ্ধত। এর Synonym হলো rude.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "What may be considered courteous in one culture may be -arrogant in another. Here the underlined word “arrogant” means______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 16,
+    "question": "Don Juan was composed by–––",
+    "correct_answer": "C",
+    "options": {
+      "A": "W B Yeats",
+      "B": "E.B. Browning",
+      "C": "George Gordon Byron",
+      "D": "Alexander Pope"
+    },
+    "solve_note": "Lord Byron এর সবচেয়ে বিখ্যাত কবিতার নাম ‘Don Juan’ এডভেঞ্জার ও ফ্যান্টাসি দিয়ে পরিপূর্ণ এ কবিতার Don Juan এর জীবন ও ভাবনা উঠে এসেছে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Don Juan was composed by______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 18,
+    "question": "“Black Death” is the name of a ––",
+    "correct_answer": "C",
+    "options": {
+      "A": "fever",
+      "B": "black fever",
+      "C": "plague pandemic",
+      "D": "death of black people"
+    },
+    "solve_note": "Black Death [1346-1351] বলতে একটি Bubonic Plague -কে বোঝানো হয়। এই মহামৃত্যুর পর্বে ইউরোপে প্রায় ২০ কোটি মানুষ মারা যায়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "“Black Death” is the name of a ______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 19,
+    "question": "‘Ulysses is a poem written by––",
+    "correct_answer": "D",
+    "options": {
+      "A": "Robert Browning",
+      "B": "Wordsworth",
+      "C": "S.T. Coleridge",
+      "D": "Alfred Tennyson"
+    },
+    "solve_note": "Ulysses কবিতাটি লিখেছেন -Alfred Tennyson Ulysses উপন্যাস লিখেছেন -James Joyce",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "‘Ulysses is a poem written by______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 21,
+    "question": "Clym Yeobringht is the protagonist of the novel––",
+    "correct_answer": "D",
+    "options": {
+      "A": "David Copperfield",
+      "B": "Adam Bede",
+      "C": "A passage of India",
+      "D": "The Return of the Native"
+    },
+    "solve_note": "Clym Yeobright চরিত্রটি Thomas Hardy’ র Return of the Native উপন্যাসে এসেছে। এই উপন্যাসের মূল চরিত্র Egdon Heath- গ্রাম। Yeobright এর হিথে ফিরে আসাই ইঙ্গিত হয়ে এসেছে উপন্যাস জুড়ে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Clym Yeobringht is the protagonist of the novel______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 22,
+    "question": "The train is running ––– forty miles an hour.",
+    "correct_answer": "C",
+    "options": {
+      "A": "on",
+      "B": "to",
+      "C": "at",
+      "D": "for"
+    },
+    "solve_note": "speed (গতি) বুঝাতে run এর পর at হয়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The train is running ______ forty miles an hour."
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 23,
+    "question": "He divided the money ––– the two children.",
+    "correct_answer": "A",
+    "options": {
+      "A": "between",
+      "B": "over",
+      "C": "among",
+      "D": "in between"
+    },
+    "solve_note": "দুই জনের মধ্যে ভাগ করা বুঝাতে Between ব্যবহৃত হয়।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "He divided the money ______ the two children."
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 24,
+    "question": "No one can ––– that he is clever.",
+    "correct_answer": "B",
+    "options": {
+      "A": "defy",
+      "B": "deny",
+      "C": "admire",
+      "D": "denounce"
+    },
+    "solve_note": "deny- অস্বীকার করা। অর্থ অনুসারে এখানে deny হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "No one can ______ that he is clever."
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 26,
+    "question": "She played on the flute. Passive form is –––",
+    "correct_answer": "B",
+    "options": {
+      "A": "The flute was played by ger.",
+      "B": "The flute was played on by her.",
+      "C": "The flute was played to her.",
+      "D": "The flute was being played by her."
+    },
+    "solve_note": "passive voice এর ক্ষেত্রে active voice এর object, subject হবে, active voice এর tense এবং object অনুসারে auxiliary verb বসে। মূল Verb এর past participle হয় এবং তারপর by বসে। সুতরাং সঠিক উত্তর- The Flute was played on by her",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "She played on the flute. Passive form is ______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 27,
+    "question": "Antonym for Adieu–––",
+    "correct_answer": "C",
+    "options": {
+      "A": "Farewell",
+      "B": "Good bye",
+      "C": "Hello",
+      "D": "Valediction"
+    },
+    "solve_note": "Adieu অর্থ বিদায়। Good bye, farewell এবং Valediction এর Synonym. Antonym হবে Hello.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Antonym for Adieu______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 28,
+    "question": "‘Walk fast lest you should miss the train’. This is a––",
+    "correct_answer": "B",
+    "options": {
+      "A": "Simple sentence",
+      "B": "Compound sentence",
+      "C": "Complex sentence",
+      "D": "Interrogative sentence"
+    },
+    "solve_note": "Compound Sentence একের অধিক Principal clause থাকে যাদেরকে co-ordinate clause বলা হয়। অর্থাৎ Compound sentence এ দুই বা ততোধিক Principal clause বা co-ordinate clause থাকে। Compound Sentence এ সাধারণত lest, and, or, but, yet, so, therefore, otherwise, else, both……. And, either……… or, neither……. Nor, not only…… but also ইত্যাদি co-ordinating conjunction দুইটি Principle clause যুক্ত থাকে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "‘Walk fast lest you should miss the train’. This is a______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 29,
+    "question": "A number of singers in a church is called––",
+    "correct_answer": "A",
+    "options": {
+      "A": "Choir",
+      "B": "Cast",
+      "C": "Claque",
+      "D": "Clump"
+    },
+    "solve_note": "A group of singers who perform together is called a choir or chorus.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "A number of singers in a church is called______"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 30,
+    "question": "Put the right word in the blank. “He reached the ––– of his literary carrer.”",
+    "correct_answer": "B",
+    "options": {
+      "A": "abattoir",
+      "B": "acme",
+      "C": "admonish",
+      "D": "abdicate"
+    },
+    "solve_note": "acme অর্থ শীর্ষ, চূড়া, কোনো অবস্থানের শীর্ষ বা সর্বোচ্চ অবস্থা বোঝায়। Abdicated অর্থ পদ বা সিংহাসন ত্যাগ করা।Admonish অর্থ তিরস্কার করা বা বকা দেওয়া এখানে carrer এর শীর্ষে আছে বোঝাতে acme হবে।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Put the right word in the blank. “He reached the ______ of his literary carrer.”"
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 31,
+    "question": "Anger may be compared ––– fire.",
+    "correct_answer": "A",
+    "options": {
+      "A": "to",
+      "B": "within",
+      "C": "against",
+      "D": "into"
+    },
+    "solve_note": "Compare to – অসম বস্তুর মধ্যে তুলনা করা। Anger may be compared to fire. Compare with-একই জাতীয় জিনিসের তুলনা করা Nazrul can be compared with shelley.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (–––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Anger may be compared ______ fire."
+  },
+  {
+    "exam_slug": "45th_bcs",
+    "examNum": 45,
+    "qNum": 35,
+    "question": "Meteorology is related to––",
+    "correct_answer": "C",
+    "options": {
+      "A": "concrete slabs",
+      "B": "motor vehicles",
+      "C": "weather forecasting",
+      "D": "motor neurone disease"
+    },
+    "solve_note": "study of weather forecasting = meteorology.",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Meteorology is related to______"
+  },
+  {
+    "exam_slug": "46th_bcs",
+    "examNum": 46,
+    "qNum": 42,
+    "question": "In which sentence ‘Like’ is used as a preposition?",
+    "correct_answer": "C",
+    "options": {
+      "A": "He likes to eat fish",
+      "B": "he laughs like his father does",
+      "C": "He climed the tree like a cat",
+      "D": "Like minded people are necessary to start a business"
+    },
+    "solve_note": "In this sentence, \"like\" is used as a preposition to compare the manner of climbing (like a cat) with the action performed (climbing the tree).",
+    "issueType": "NO_BLANK_MARKER",
+    "detail": "Question explicitly asks for a blank fill-in/preposition, but the sentence has NO blank line, underscore, or gap placeholder at all.",
+    "suggestedFormattedSentence": "Insert \"_____\" at the appropriate position in the sentence."
+  },
+  {
+    "exam_slug": "46th_bcs",
+    "examNum": 46,
+    "qNum": 44,
+    "question": "Writing a diary_ is a very good practice to develop the writing skill. The underlined word is a/an--",
+    "correct_answer": "A",
+    "options": {
+      "A": "noun phrase",
+      "B": "verbal phrase",
+      "C": "adjective phrase",
+      "D": "adverbial phrase"
+    },
+    "solve_note": "যে phrase বাক্যে ব্যবহৃত হয়ে noun এর মতো কাজ করে তাকে noun phrase বলে। এখানে Writing a diary_ বাক্যটিতে সাবজেক্ট হিসেবে ব্যবহৃত হয়ে noun এর কাজ করছে। সুতরাং এটি noun phrase।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (--) instead of clean underline '______'",
+    "suggestedFormattedSentence": "Writing a diary_ is a very good practice to develop the writing skill. The underlined word is a/an______"
+  },
+  {
+    "exam_slug": "46th_bcs",
+    "examNum": 46,
+    "qNum": 48,
+    "question": "‘Let the cat out of the bag’ means ––",
+    "correct_answer": "C",
+    "options": {
+      "A": "bring out a cat from a bag",
+      "B": "let a cat move at large",
+      "C": "reveal a secret carelessly",
+      "D": "take a pre-caucious steps"
+    },
+    "solve_note": "‘Let the cat out of the bag’ এটি একটি idiom যার অর্থ গোপন কিছু বলে ফেলা বা গুপ্ত বিষয় প্রকাশ করা।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (––) instead of clean underline '______'",
+    "suggestedFormattedSentence": "‘Let the cat out of the bag’ means ______"
+  },
+  {
+    "exam_slug": "46th_bcs",
+    "examNum": 46,
+    "qNum": 50,
+    "question": "His dream that he will be a B.C.S cadre_ finally came true. The underlined part is ---",
+    "correct_answer": "A",
+    "options": {
+      "A": "a noun clause",
+      "B": "an adjective clause",
+      "C": "an independent clause",
+      "D": "a co-ordinate clause"
+    },
+    "solve_note": "Noun এর পরে that+sub+verb বিশিষ্ট clause টি noun clause এবং adjective clause দুটোই হতে পারে। যদি adjective clause হয় সেক্ষেত্রে that কে উঠিয়ে দেয়া যায় কিন্তু noun clause এর ক্ষেত্রে that কে উঠিয়ে দেয়া যায় না। The news that you heard yesterday_ is false. (adjective clause). The news that he had married_ is false. (noun clause).",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (---) instead of clean underline '______'",
+    "suggestedFormattedSentence": "His dream that he will be a B.C.S cadre_ finally came true. The underlined part is ______"
+  },
+  {
+    "exam_slug": "46th_bcs",
+    "examNum": 46,
+    "qNum": 64,
+    "question": "The antonym of ‘boisterous’ is --",
+    "correct_answer": "B",
+    "options": {
+      "A": "noisy",
+      "B": "quit",
+      "C": "unruly",
+      "D": "cheerful"
+    },
+    "solve_note": "boisterous অর্থ কোলাহলপূর্ণ/হৈচৈপূর্ণ; এর বিপরীত quiet (শান্ত)। প্রদত্ত অপশনের 'quit' শব্দটি 'quiet'-এর বানান ত্রুটি; উদ্দেশ্য অর্থ অনুযায়ী সঠিক উত্তর খ (quit = quiet)।",
+    "issueType": "DASH_AS_GAP",
+    "detail": "Uses non-standard dashes/hyphens (--) instead of clean underline '______'",
+    "suggestedFormattedSentence": "The antonym of ‘boisterous’ is ______"
+  },
+  {
+    "exam_slug": "47th_bcs",
+    "examNum": 47,
+    "qNum": 57,
+    "question": "The one-act play ‘Riders to the Sea’ was written by _____.",
+    "correct_answer": "C",
+    "options": {
+      "A": "G. B. Shaw",
+      "B": "Oscar Wilde",
+      "C": "J. M. Synge",
+      "D": "John Galsworthy"
+    },
+    "solve_note": "Riders to the Sea হলো একটি বিখ্যাত one-act play, যা লিখেছেন J. M. Synge. নাটকের গল্পের পটভূমি আয়ারল্যান্ডের আরান দ্বীপ, যেখানে মানুষের জীবন সমুদ্রে অনেকটাই নির্ভরশীল।মূল চরিত্র Maurya, একজন বয়স্ক মহিলা, যিনি তার স্বামী ও অনেক সন্তানকে সমুদ্রের বিপদে হারিয়েছেন। নাটকটি দেখায় কীভাবে মানুষ প্রাকৃতিক শক্তির সঙ্গে লড়াই করে, কিন্তু অনেক সময় ভাগ্য ও পরিস্থিতি আমাদের নিয়ন্ত্রণের বাইরে থাকে। J. M. Synge মূলত নাট্যকার হিসেবে পরিচিত, তবে তিনি কিছু ছোট গল্প ও উপন্যাসাত্মক কাজও করেছেন। এখানে তাঁর কিছু গুরুত্বপূর্ণ নাটক- Riders to the Sea (1904), The Playboy of the Western World (1907), The Well of the Saints (1905), In the Shadow of the Glen (1903), The Aran Islands (1907).",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: one-act",
+    "suggestedFormattedSentence": "The one _____ act play ‘Riders to the Sea’ was written by _____."
+  },
+  {
+    "exam_slug": "47th_bcs",
+    "examNum": 47,
+    "qNum": 61,
+    "question": "‘Our sweetest songs are those that tell of saddest thought.’- This oft-quoted line occurs in Shelley’s notable poem___.",
+    "correct_answer": "A",
+    "options": {
+      "A": "To a Skylark",
+      "B": "Ode to the West Wind",
+      "C": "Adonais",
+      "D": "The Cloud"
+    },
+    "solve_note": "এই লাইনটি P. B. Shelley-এর “To a Skylark” কবিতা থেকে নেওয়া হয়েছে। এই কবিতায় Shelley বোঝাতে চেয়েছেন যে স্কাইলার্ক পাখির গান দুঃখমুক্ত এবং আনন্দময়, কিন্তু মানুষের গান তখনই সবচেয়ে সুন্দর ও মধুর হয় যখন তা দুঃখ, যন্ত্রণা এবং গভীর অনুভূতির ওপর ভিত্তি করে রচিত হয়। মানুষের সবচেয়ে মধুর সৃষ্টিগুলো দুঃখের অভিজ্ঞতা থেকে আসে। ‘To a Skylark’ ছাড়াও Shelley এর আরও কিছু বিখ্যাত ও উল্লেখযোগ্য কাজ হলো: Ozymandias, Ode to the West Wind, Adonais, Prometheus Unbound(play), The Masque of Anarchy etc.",
+    "issueType": "DASH_ATTACHED_TO_WORD",
+    "detail": "Dash placeholder is attached directly to words without spacing: oft-quoted",
+    "suggestedFormattedSentence": "‘Our sweetest songs are those that tell of saddest thought.’- This oft _____ quoted line occurs in Shelley’s notable poem___."
+  }
+]
