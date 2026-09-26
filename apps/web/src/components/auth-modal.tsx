@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
-import { LogOut, X } from 'lucide-react';
+import { LogOut, X } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { useAuthStore } from '../lib/auth';
 import { UserAvatar } from './avatar';

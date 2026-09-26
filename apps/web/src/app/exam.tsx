@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, memo } from 'react';
-import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { AppState, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
-import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { examLabel, fmtTime, optText, shuffle, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions } from '../lib/examAllocation';
@@ -116,18 +116,26 @@ export default function Exam() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st.poolKey, pool.data]);
 
-  /* countdown */
+  /* countdown (deadline-based, so it survives app backgrounding) */
   useEffect(() => {
     if (!st.running || !session.length) return;
-    const id = setInterval(() => {
-      const remain = useExamStore.getState().remain - 1;
-      useExamStore.getState().tick();
-      if (remain <= 0) {
-        clearInterval(id);
+    let finished = false;
+    const sync = () => {
+      if (finished) return;
+      useExamStore.getState().syncClock();
+      if (useExamStore.getState().remain <= 0) {
+        finished = true;
         doSubmit(true);
       }
-    }, 1000);
-    return () => clearInterval(id);
+    };
+    const id = setInterval(sync, 1000);
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') sync();
+    });
+    return () => {
+      clearInterval(id);
+      sub.remove();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st.running, st.poolKey, session.length]);
 

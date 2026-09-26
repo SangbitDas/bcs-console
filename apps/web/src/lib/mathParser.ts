@@ -459,6 +459,179 @@ export function renderKaTeXHtml(latex: string, displayMode = false): string {
   }
 }
 
+/* ---------- Native (no-DOM) math fallback: LaTeX / plain math -> Unicode text ---------- */
+
+const SUP_UNICODE: Record<string, string> = {
+  '0': '\u2070', '1': '\u00b9', '2': '\u00b2', '3': '\u00b3', '4': '\u2074',
+  '5': '\u2075', '6': '\u2076', '7': '\u2077', '8': '\u2078', '9': '\u2079',
+  '+': '\u207a', '-': '\u207b', '=': '\u207c', '(': '\u207d', ')': '\u207e', 'n': '\u207f',
+};
+
+const SUB_UNICODE: Record<string, string> = {
+  '0': '\u2080', '1': '\u2081', '2': '\u2082', '3': '\u2083', '4': '\u2084',
+  '5': '\u2085', '6': '\u2086', '7': '\u2087', '8': '\u2088', '9': '\u2089',
+  '+': '\u208a', '-': '\u208b', '=': '\u208c', '(': '\u208d', ')': '\u208e',
+};
+
+/** Symbol table for the native pass. Order matters (longer commands first). */
+const LATEX_SYMBOLS: [RegExp, string][] = [
+  [/\\longrightarrow\b/g, '\u27f6'],
+  [/\\rightarrow\b/g, '\u2192'],
+  [/\\leftarrow\b/g, '\u2190'],
+  [/\\Rightarrow\b/g, '\u21d2'],
+  [/\\implies\b/g, '\u21d2'],
+  [/\\therefore\b/g, '\u2234'],
+  [/\\because\b/g, '\u2235'],
+  [/\\approx\b/g, '\u2248'],
+  [/\\neq\b/g, '\u2260'],
+  [/\\leq\b/g, '\u2264'],
+  [/\\le\b/g, '\u2264'],
+  [/\\geq\b/g, '\u2265'],
+  [/\\ge\b/g, '\u2265'],
+  [/\\pm\b/g, '\u00b1'],
+  [/\\mp\b/g, '\u2213'],
+  [/\\infty\b/g, '\u221e'],
+  [/\\times\b/g, '\u00d7'],
+  [/\\div\b/g, '\u00f7'],
+  [/\\cdot\b/g, '\u00b7'],
+  [/\\circ\b/g, '\u00b0'],
+  [/\\pi\b/g, '\u03c0'],
+  [/\\theta\b/g, '\u03b8'],
+  [/\\Delta\b/g, '\u0394'],
+  [/\\angle\b/g, '\u2220'],
+  [/\\log\b/g, 'log'],
+  [/\\ln\b/g, 'ln'],
+  [/\\sin\b/g, 'sin'],
+  [/\\cos\b/g, 'cos'],
+  [/\\tan\b/g, 'tan'],
+  [/\\cot\b/g, 'cot'],
+  [/\\sec\b/g, 'sec'],
+  [/\\csc\b/g, 'csc'],
+  [/\\lim\b/g, 'lim'],
+  [/\\dot\{([^{}]*)\}/g, '$1\u0307'],
+  [/\\hat\{([^{}]*)\}/g, '$1\u0302'],
+  [/\\bar\{([^{}]*)\}/g, '$1\u0304'],
+];
+
+/** Reads a balanced `{...}` group starting at `openIdx` (index of the opening brace). */
+function readBraceGroup(s: string, openIdx: number): [string, number] | null {
+  if (s[openIdx] !== '{') return null;
+  const close = findMatchingClose(s, openIdx, '{', '}');
+  if (close === -1) return null;
+  return [s.slice(openIdx + 1, close), close];
+}
+
+/** Maps every char of `inner` through `map`; returns null when any char is unmapped. */
+function toUnicodeScript(inner: string, map: Record<string, string>): string | null {
+  let out = '';
+  for (const ch of inner) {
+    const mapped = map[ch];
+    if (!mapped) return null;
+    out += mapped;
+  }
+  return out;
+}
+
+/** Parenthesises an operand that contains spaces or operators (so a/b stays unambiguous). */
+function wrapOperand(value: string): string {
+  return /[\s+\-\u00d7\u00f7\u00b1\u00b7]/.test(value.trim()) ? `(${value})` : value;
+}
+
+/** \frac{a}{b} -> a/b (nested-aware, recursive). */
+function expandFractions(s: string): string {
+  let i = 0;
+  while (i < s.length) {
+    const pos = s.indexOf('\\frac', i);
+    if (pos === -1) break;
+    const num = readBraceGroup(s, pos + 5);
+    const den = num ? readBraceGroup(s, num[1] + 1) : null;
+    if (!num || !den) {
+      i = pos + 5;
+      continue;
+    }
+    const replacement = `${wrapOperand(latexToReadableText(num[0]))}/${wrapOperand(latexToReadableText(den[0]))}`;
+    s = s.slice(0, pos) + replacement + s.slice(den[1] + 1);
+    i = pos + replacement.length;
+  }
+  return s;
+}
+
+/** \sqrt{x} -> \u221ax, \sqrt[3]{x} -> \u221bx (nested-aware). */
+function expandRadicals(s: string): string {
+  let i = 0;
+  while (i < s.length) {
+    const pos = s.indexOf('\\sqrt', i);
+    if (pos === -1) break;
+    let cursor = pos + 5;
+    let index = '';
+    if (s[cursor] === '[') {
+      const close = s.indexOf(']', cursor);
+      if (close !== -1) {
+        index = s.slice(cursor + 1, close);
+        cursor = close + 1;
+      }
+    }
+    const group = readBraceGroup(s, cursor);
+    if (!group) {
+      i = cursor;
+      continue;
+    }
+    const inner = wrapOperand(latexToReadableText(group[0]));
+    const prefix = index === '3' ? '\u221b' : index ? `\u221a[${index}]` : '\u221a';
+    const replacement = `${prefix}${inner}`;
+    s = s.slice(0, pos) + replacement + s.slice(group[1] + 1);
+    i = pos + replacement.length;
+  }
+  return s;
+}
+
+/**
+ * Converts LaTeX / plain mathematical notation into readable Unicode text.
+ * Used on native, where the DOM-based KaTeX renderer is unavailable.
+ */
+export function latexToReadableText(input: string): string {
+  if (!input) return '';
+  let s = input;
+
+  s = s.replace(/\\displaystyle\b/g, '');
+  s = s.replace(/\\left\b|\\right\b/g, '');
+  s = s.replace(/\\quad\b|\\qquad\b/g, ' ');
+  s = s.replace(/\\[,;:!]/g, ' ');
+  s = s.replace(/\\text\{([^{}]*)\}/g, '$1');
+  s = s.replace(/\\mathrm\{([^{}]*)\}/g, '$1');
+  s = s.replace(/\\\{/g, '{').replace(/\\\}/g, '}');
+  s = s.replace(/\\([%&$#_])/g, '$1');
+
+  s = expandFractions(s);
+  s = expandRadicals(s);
+
+  for (const [pattern, value] of LATEX_SYMBOLS) {
+    s = s.replace(pattern, value);
+  }
+
+  // Degrees: ^{\circ}, ^\circ and ^\u2218 collapse to a single degree sign.
+  s = s.replace(/\^\s*\{?\s*(?:\\circ|\u00b0|\u2218)\s*\}?\s*C\b/g, '\u00b0C');
+  s = s.replace(/\^\s*\{?\s*(?:\\circ|\u00b0|\u2218)\s*\}?/g, '\u00b0');
+
+  s = s.replace(/\^\{([^{}]*)\}/g, (_m, inner: string) => {
+    const uni = toUnicodeScript(inner, SUP_UNICODE);
+    if (uni) return uni;
+    return inner.length === 1 ? `^${inner}` : `^(${inner})`;
+  });
+  s = s.replace(/\^([0-9a-zA-Z])/g, (_m, ch: string) => SUP_UNICODE[ch] ?? `^${ch}`);
+
+  s = s.replace(/_\{([^{}]*)\}/g, (_m, inner: string) => {
+    const uni = toUnicodeScript(inner, SUB_UNICODE);
+    return uni ?? `_${inner}`;
+  });
+  s = s.replace(/_([0-9])/g, (_m, ch: string) => SUB_UNICODE[ch] ?? `_${ch}`);
+
+  // Any remaining \command -> its bare name, never a stray backslash.
+  s = s.replace(/\\([a-zA-Z]+)/g, '$1');
+
+  return s;
+}
+
 export interface TextSegment {
   type: 'text' | 'math';
   content: string;
@@ -505,7 +678,8 @@ export function isPureMathExpr(text: string): boolean {
  * Splits mixed text (Bengali sentences containing mathematical expressions)
  * into a sequence of plain text and math segments for rendering.
  */
-export function splitTextAndMath(raw: string): TextSegment[] {
+export function splitTextAndMath(raw: string, options?: { html?: boolean }): TextSegment[] {
+  const wantHtml = options?.html !== false;
   if (!raw || !raw.trim()) {
     return [{ type: 'text', content: raw || '' }];
   }
@@ -517,7 +691,7 @@ export function splitTextAndMath(raw: string): TextSegment[] {
       latex.includes('\\frac') && !latex.includes('\\displaystyle')
         ? `\\displaystyle ${latex}`
         : latex;
-    const html = renderKaTeXHtml(styledLatex);
+    const html = wantHtml ? renderKaTeXHtml(styledLatex) : undefined;
     return [{ type: 'math', content: raw, html }];
   }
 
@@ -573,11 +747,10 @@ export function splitTextAndMath(raw: string): TextSegment[] {
         latex.includes('\\frac') && !latex.includes('\\displaystyle')
           ? `\\displaystyle ${latex}`
           : latex;
-      const html = renderKaTeXHtml(styledLatex);
       segments.push({
         type: 'math',
         content: matchStr,
-        html,
+        html: wantHtml ? renderKaTeXHtml(styledLatex) : undefined,
       });
       if (trailingPunct) {
         segments.push({

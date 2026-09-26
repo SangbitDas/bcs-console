@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BackHandler } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { FONT, useAppFonts } from '../lib/fonts';
 import { TopBar } from '../components/ui';
 import { ExamQuitModal } from '../components/exam-quit-modal';
@@ -24,6 +25,8 @@ export default function RootLayout() {
   const isMockRunning = useExamStore((s) => s.running);
   const isCustomRunning = usePracticeStore((s) => s.mode === 'custom' && s.started && !s.finished);
   const isExamActive = isMockRunning || isCustomRunning;
+  // Bottom safe-area inset for the tab bar (0 on web).
+  const bottomInset = Platform.OS === 'web' ? 0 : initialWindowMetrics?.insets.bottom ?? 0;
 
   useEffect(() => {
     if (fontsOk) SplashScreen.hideAsync();
@@ -117,77 +120,71 @@ export default function RootLayout() {
   if (!fontsOk) return null;
 
   return (
-    <QueryClientProvider client={qc}>
-      <Tabs
-        screenOptions={{
-          header: () => <TopBar />,
-          tabBarActiveTintColor: '#EA0000',
-          tabBarInactiveTintColor: 'rgba(0,0,0,.5)',
-          tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: 'rgba(0,0,0,.12)', height: 64 },
-          tabBarLabelStyle: { fontFamily: FONT.uiSemi, fontSize: 12 },
-        }}>
-        <Tabs.Screen
-          name="index"
-          listeners={createTabListener('/')}
-          options={{
-            title: 'হোম',
-            tabBarIcon: ({ color }) => <MaterialIcons name="home" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="practice"
-          listeners={createTabListener('/practice')}
-          options={{
-            title: 'অনুশীলন',
-            tabBarIcon: ({ color }) => <MaterialIcons name="menu-book" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="exam"
-          listeners={createTabListener('/exam')}
-          options={{
-            title: 'মক এক্সাম',
-            tabBarIcon: ({ color }) => <MaterialIcons name="timer" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="custom"
-          listeners={createTabListener('/custom')}
-          options={{
-            title: 'কাস্টম',
-            tabBarIcon: ({ color }) => <MaterialIcons name="tune" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="results"
-          listeners={createTabListener('/results')}
-          options={{
-            title: 'ফলাফল',
-            tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="bookmarks"
-          listeners={createTabListener('/bookmarks')}
-          options={{
-            title: 'বুকমার্ক',
-            tabBarBadge: lib.bookmarks.length > 0 ? toBn(lib.bookmarks.length) : undefined,
-            tabBarBadgeStyle: { backgroundColor: '#EA0000', fontSize: 10, fontFamily: FONT.digits },
-            tabBarIcon: ({ color }) => <MaterialIcons name="bookmark-border" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="wrong"
-          listeners={createTabListener('/wrong')}
-          options={{
-            title: 'ভুলসমূহ',
-            tabBarBadge: lib.wrongIds.length > 0 ? toBn(lib.wrongIds.length) : undefined,
-            tabBarBadgeStyle: { backgroundColor: '#EA0000', fontSize: 10, fontFamily: FONT.digits },
-            tabBarIcon: ({ color }) => <MaterialIcons name="error-outline" size={22} color={color} />,
-          }}
-        />
-      </Tabs>
-      <ExamQuitModal />
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={qc}>
+        <Tabs
+          screenOptions={{
+            header: () => <TopBar />,
+            tabBarActiveTintColor: '#EA0000',
+            tabBarInactiveTintColor: 'rgba(0,0,0,.5)',
+            tabBarStyle: {
+              backgroundColor: '#FFFFFF',
+              borderTopColor: 'rgba(0,0,0,.12)',
+              // The navigator stops adding the bottom inset once a custom height is
+              // set, so fold it in here (0 on web / devices with no home indicator).
+              height: 64 + bottomInset,
+            },
+            tabBarLabelStyle: { fontFamily: FONT.uiSemi, fontSize: 12 },
+          }}>
+          <Tabs.Screen
+            name="index"
+            listeners={createTabListener('/')}
+            options={{
+              title: 'হোম',
+              tabBarIcon: ({ color }) => <MaterialIcons name="home" size={22} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="practice"
+            listeners={createTabListener('/practice')}
+            options={{
+              title: 'অনুশীলন',
+              tabBarIcon: ({ color }) => <MaterialIcons name="menu-book" size={22} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="exam"
+            listeners={createTabListener('/exam')}
+            options={{
+              title: 'মক এক্সাম',
+              tabBarIcon: ({ color }) => <MaterialIcons name="timer" size={22} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="results"
+            listeners={createTabListener('/results')}
+            options={{
+              title: 'ফলাফল',
+              tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={22} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="more"
+            listeners={createTabListener('/more')}
+            options={{
+              title: 'আরও',
+              tabBarBadge: lib.wrongIds.length > 0 ? toBn(lib.wrongIds.length) : undefined,
+              tabBarBadgeStyle: { backgroundColor: '#EA0000', fontSize: 10, fontFamily: FONT.digits },
+              tabBarIcon: ({ color }) => <MaterialIcons name="more-horiz" size={22} color={color} />,
+            }}
+          />
+          {/* Still routable, but hidden from the tab bar — opened from the "আরও" tab. */}
+          <Tabs.Screen name="custom" options={{ href: null } as any} />
+          <Tabs.Screen name="bookmarks" options={{ href: null } as any} />
+          <Tabs.Screen name="wrong" options={{ href: null } as any} />
+        </Tabs>
+        <ExamQuitModal />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

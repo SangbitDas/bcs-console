@@ -34,6 +34,8 @@ interface ExamState {
   answers: Record<number, string>;
   marked: Record<number, boolean>;
   remain: number;
+  /** Wall-clock deadline (ms since epoch) the countdown is derived from. */
+  deadline: number | null;
   running: boolean;
   result: ExamResult | null;
   onSubmitExam: (() => void) | null;
@@ -42,7 +44,7 @@ interface ExamState {
   toggleMarked: (i: number) => void;
   begin: (poolKey: string) => void;
   ready: (minutes: number) => void;
-  tick: () => void;
+  syncClock: () => void;
   answer: (i: number, k: string) => void;
   clear: (i: number) => void;
   goto: (i: number) => void;
@@ -64,6 +66,7 @@ export const useExamStore = create<ExamState>()((set) => ({
   answers: {},
   marked: {},
   remain: 0,
+  deadline: null,
   running: false,
   result: null,
   onSubmitExam: null,
@@ -73,10 +76,27 @@ export const useExamStore = create<ExamState>()((set) => ({
   toggleMarked: (i) =>
     set((s) => ({ marked: { ...s.marked, [i]: !s.marked[i] } })),
   begin: (poolKey) =>
-    set({ poolKey, idx: 0, answers: {}, marked: {}, remain: 0, running: false, result: null, onSubmitExam: null }),
+    set({ poolKey, idx: 0, answers: {}, marked: {}, remain: 0, deadline: null, running: false, result: null, onSubmitExam: null }),
   ready: (minutes) =>
-    set({ idx: 0, answers: {}, marked: {}, remain: minutes * 60, running: true, result: null }),
-  tick: () => set((s) => ({ remain: Math.max(0, s.remain - 1) })),
+    set({
+      idx: 0,
+      answers: {},
+      marked: {},
+      remain: minutes * 60,
+      deadline: Date.now() + minutes * 60 * 1000,
+      running: true,
+      result: null,
+    }),
+  /**
+   * Recomputes `remain` from the wall-clock deadline. JS timers stop while the app is
+   * backgrounded, so the countdown must be derived from a timestamp instead of a tick.
+   */
+  syncClock: () =>
+    set((s) => {
+      if (s.deadline == null) return {};
+      const next = Math.max(0, Math.ceil((s.deadline - Date.now()) / 1000));
+      return next === s.remain ? {} : { remain: next };
+    }),
   answer: (i, k) => set((s) => ({ answers: { ...s.answers, [i]: k } })),
   clear: (i) =>
     set((s) => {
@@ -85,9 +105,9 @@ export const useExamStore = create<ExamState>()((set) => ({
       return { answers: next };
     }),
   goto: (idx) => set({ idx }),
-  stop: () => set({ running: false, onSubmitExam: null }),
-  setResult: (result) => set({ result, running: false, onSubmitExam: null }),
+  stop: () => set({ running: false, onSubmitExam: null, deadline: null }),
+  setResult: (result) => set({ result, running: false, onSubmitExam: null, deadline: null }),
   backToPicker: () =>
-    set({ poolKey: '', idx: 0, answers: {}, marked: {}, remain: 0, running: false, result: null, onSubmitExam: null }),
+    set({ poolKey: '', idx: 0, answers: {}, marked: {}, remain: 0, deadline: null, running: false, result: null, onSubmitExam: null }),
   registerSubmitHandler: (fn) => set({ onSubmitExam: fn }),
 }));

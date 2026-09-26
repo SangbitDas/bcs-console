@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Bookmark, Play, Trash2, ArrowRight } from 'lucide-react';
+import { Bookmark, Play, Trash2, ArrowRight } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { examLabel, toBn, type QuestionRow } from '../lib/format';
 import { useLibrary } from '../lib/library';

@@ -3,14 +3,17 @@
     "name": "BCS Console",
     "slug": "bcs-console-web",
     "version": "1.0.0",
-    "orientation": "default",
+    "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bcsconsole",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.bcsconsole.app",
+      "supportsTablet": true
     },
     "android": {
+      "package": "com.bcsconsole.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

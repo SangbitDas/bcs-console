@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Award, Check, ChevronDown, ChevronRight, Clock, LogIn, MinusCircle, Target, X } from 'lucide-react';
+import { Award, Check, ChevronDown, ChevronRight, Clock, LogIn, MinusCircle, Target, X } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { formatDateTimeBn, formatDurationBn, optText, toBn, type QuestionRow } from '../lib/format';
 import { useAuthStore } from '../lib/auth';

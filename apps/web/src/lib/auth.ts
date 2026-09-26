@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import { Platform } from 'react-native';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import type { Session, User } from '@supabase/supabase-js';
 import { db } from './supabase';
 
@@ -63,18 +66,40 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   signInWithGoogle: async () => {
     try {
-      const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
-      const { error } = await db.auth.signInWithOAuth({
+      const queryParams = { access_type: 'offline', prompt: 'select_account' };
+
+      // Web: full-page redirect back to the current origin.
+      if (Platform.OS === 'web') {
+        const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+        const { error } = await db.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo, queryParams },
+        });
+        return { error: error ?? null };
+      }
+
+      // Native: open the provider in a secure browser session, then exchange the
+      // returned authorization code for a session via the app deep link (scheme
+      // `bcsconsole`). Add this redirect URL to Supabase -> Authentication ->
+      // URL Configuration -> Redirect URLs.
+      const redirectTo = Linking.createURL('auth-callback');
+      const { data, error } = await db.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account',
-          },
-        },
+        options: { redirectTo, skipBrowserRedirect: true, queryParams },
       });
-      return { error: error ?? null };
+      if (error) return { error };
+      if (!data?.url) return { error: new Error('Google sign-in URL was not returned') };
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      if (result.type !== 'success') return { error: null };
+
+      const match = /[?&#]code=([^&#]+)/.exec(result.url);
+      if (!match) return { error: new Error('Google sign-in returned no authorization code') };
+
+      const { error: sessionError } = await db.auth.exchangeCodeForSession(
+        decodeURIComponent(match[1]),
+      );
+      return { error: sessionError ?? null };
     } catch (err: any) {
       return { error: err };
     }

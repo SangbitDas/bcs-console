@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Pressable, ScrollView, Text, View, Platform } from 'react-native';
 import { Image } from 'expo-image';
-import { Maximize2, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
+import { Maximize2, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 
 export interface ImageLightboxModalProps {

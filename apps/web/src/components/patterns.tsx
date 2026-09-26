@@ -13,7 +13,7 @@ import {
   Minus,
   Pin,
   type LucideIcon,
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { Children, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { FONT } from '../lib/fonts';

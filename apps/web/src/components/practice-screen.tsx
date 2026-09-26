@@ -1,9 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, AppState, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { Image } from 'expo-image';
-import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, CheckCircle2, ChevronRight, Clock, Eye, EyeOff, FileText, Filter, HelpCircle, Lightbulb, Minus, Plus, RotateCcw, Settings, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, CheckCircle2, ChevronRight, Clock, Eye, EyeOff, FileText, Filter, HelpCircle, Lightbulb, Minus, Plus, RotateCcw, Settings, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { ERAS, SUBJECT_COUNT, calc36sMinutes, examLabel, examNum, fmtTime, formatDateTimeBn, formatDurationBn, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions, type AllocationResult } from '../lib/examAllocation';
@@ -1925,13 +1925,15 @@ function SubjectAllQuestionsView({
 
   const activeTimed = mode === 'custom' && isTimed && (timeMinutes ?? 0) > 0;
   const [remain, setRemain] = useState(() => (activeTimed ? timeMinutes * 60 : 0));
-  const remainRef = useRef(activeTimed ? timeMinutes * 60 : 0);
+  // Wall-clock deadline: JS timers stop while the app is backgrounded, so the
+  // remaining time is always recomputed from a timestamp instead of a tick.
+  const deadlineRef = useRef<number | null>(null);
   const [timeExpired, setTimeExpired] = useState(false);
 
   useEffect(() => {
     if (activeTimed) {
       const initial = timeMinutes * 60;
-      remainRef.current = initial;
+      deadlineRef.current = Date.now() + initial * 1000;
       setRemain(initial);
       useExamGuardStore.getState().setCustomRemain(initial);
       setTimeExpired(false);
@@ -1940,18 +1942,26 @@ function SubjectAllQuestionsView({
 
   useEffect(() => {
     if (!activeTimed || timeExpired) return;
-    const timer = setInterval(() => {
-      const next = Math.max(0, remainRef.current - 1);
-      remainRef.current = next;
+    let finished = false;
+    const sync = () => {
+      if (finished || deadlineRef.current == null) return;
+      const next = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
       setRemain(next);
       useExamGuardStore.getState().setCustomRemain(next);
       if (next <= 0) {
-        clearInterval(timer);
+        finished = true;
         setTimeExpired(true);
         onFinish();
       }
-    }, 1000);
-    return () => clearInterval(timer);
+    };
+    const timer = setInterval(sync, 1000);
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') sync();
+    });
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+    };
   }, [activeTimed, timeExpired, onFinish]);
 
   // Selected exam slugs for filtering (default: empty = all questions appear, but no tickmarks)

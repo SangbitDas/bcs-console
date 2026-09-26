@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { useExamGuardStore } from '../store/examGuard';
 

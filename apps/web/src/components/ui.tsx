@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type TextStyle } from 'react-native';
-import { CheckCircle2, Clock, User as UserIcon } from 'lucide-react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CheckCircle2, Clock, User as UserIcon } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { fmtTime, toBn } from '../lib/format';
 import { useExamStore } from '../store/exam';
@@ -19,6 +20,7 @@ export { MathText, ExplanationImage, Bn };
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // Mock Exam state
   const mockRemain = useExamStore((s) => s.remain);
@@ -54,7 +56,9 @@ export function TopBar() {
   const isMobile = width < 640;
 
   return (
-    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-3 sm:px-6 py-2 sm:py-3">
+    <View
+      className="flex-row items-center justify-between border-b border-black/10 bg-paper px-3 sm:px-6 py-2 sm:py-3"
+      style={{ paddingTop: insets.top + (isMobile ? 8 : 12) }}>
       <Pressable
         onPress={() => {
           if (isAnyExamActive()) {

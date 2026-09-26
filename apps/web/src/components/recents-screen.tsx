@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { formatDateTimeBn, toBn } from '../lib/format';
 import { useLibrary, sortRecents } from '../lib/library';

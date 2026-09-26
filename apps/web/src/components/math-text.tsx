@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Platform, Text, type StyleProp, type TextStyle } from 'react-native';
 import { Bn } from './bn';
-import { hasMathTokens, splitTextAndMath, type TextSegment } from '../lib/mathParser';
+import { hasMathTokens, latexToReadableText, splitTextAndMath, type TextSegment } from '../lib/mathParser';
 
 export interface MathTextProps {
   text?: string | null;
@@ -102,6 +102,20 @@ export const MathText = React.memo(function MathText({
   // Parse rich segments (handling <u>, <b>, etc.)
   const richSegments = useMemo(() => parseRichSegments(text), [text]);
 
+  // Native math fallback: KaTeX needs the DOM, so convert math tokens to readable
+  // Unicode text instead (web keeps rendering real KaTeX HTML).
+  const nativeMath = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? null
+        : richSegments.map((seg) =>
+            seg.content && hasMathTokens(seg.content)
+              ? splitTextAndMath(seg.content, { html: false })
+              : null,
+          ),
+    [richSegments],
+  );
+
   // If running on Web, render inline HTML for KaTeX & rich tags
   if (Platform.OS === 'web') {
     return (
@@ -177,7 +191,7 @@ export const MathText = React.memo(function MathText({
     );
   }
 
-  // Mobile / Native fallback
+  // Mobile / Native fallback (no DOM/KaTeX available)
   return (
     <Bn style={style} className={className} numberOfLines={numberOfLines}>
       {richSegments.map((rSeg, rIdx) => {
@@ -193,9 +207,16 @@ export const MathText = React.memo(function MathText({
           textStyle.fontStyle = 'italic';
         }
 
+        const mathSegs = nativeMath?.[rIdx];
+        const content = mathSegs
+          ? mathSegs.map((mSeg) =>
+              mSeg.type === 'math' ? latexToReadableText(mSeg.content) : mSeg.content,
+            )
+          : rSeg.content;
+
         return (
           <Text key={rIdx} style={textStyle}>
-            {rSeg.content}
+            {content}
           </Text>
         );
       })}
