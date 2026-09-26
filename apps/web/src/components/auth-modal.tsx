@@ -1,32 +1,12 @@
 // BCS Console — Auth Modal (Google OAuth & User Profile)
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
-import { Image } from 'expo-image';
 import { Svg, Path } from 'react-native-svg';
-import { Bookmark, CheckCircle2, LogOut, X, Zap } from 'lucide-react';
+import { LogOut, X } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { useAuthStore } from '../lib/auth';
 import { UserAvatar } from './avatar';
-
-function Bn({
-  children,
-  className = '',
-  bold,
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  bold?: boolean;
-  style?: any;
-}) {
-  return (
-    <Text
-      className={className}
-      style={[{ fontFamily: bold ? FONT.uiBold : FONT.ui }, style]}>
-      {children}
-    </Text>
-  );
-}
+import { Bn } from './bn';
 
 export function AuthModal({
   visible,
@@ -71,7 +51,7 @@ export function AuthModal({
 
         {/* Modal Container */}
         <View
-          className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-black/15 bg-surface p-6 shadow-2xl"
+          className="relative w-full max-w-[420px] overflow-hidden rounded-2xl border border-black/15 bg-surface p-6 shadow-2xl"
           style={{ zIndex: 10 }}>
           {/* Close / Abort button */}
           <Pressable
@@ -87,41 +67,14 @@ export function AuthModal({
           </Pressable>
 
           {!user ? (
-            /* --- Signed Out State: Login Prompt --- */
+            /* --- Signed Out State: Clean Login Prompt --- */
             <View>
               {/* Header */}
-              <View className="mb-4 pr-10">
+              <View className="mb-6 pr-8">
                 <View className="mb-2 h-1 w-8 rounded-full bg-[#EA0000]" />
-                <Text style={{ fontFamily: FONT.displayBlack, fontSize: 22, lineHeight: 30 }}>
-                  বিসিএস ক্লাউড অ্যাকাউন্ট
-                </Text>
-                <Text
-                  className="mt-1 text-black/60"
-                  style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 20 }}>
-                  আপনার প্রস্তুতি ক্লাউডে সুরক্ষিত রাখুন। পিসি ও ফোন যেকোনো ডিভাইস থেকে একই সাথে চর্চা করুন।
-                </Text>
-              </View>
-
-              {/* Feature Points */}
-              <View className="mb-6 gap-2.5 rounded-xl border border-black/10 bg-black/[0.02] p-4">
-                <View className="flex-row items-center gap-2.5">
-                  <Bookmark size={16} color="#EA0000" />
-                  <Bn className="text-black/80 flex-1" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-                    ক্লাউড বুকমার্ক: সব ডিভাইসে এক ক্লিকে সিঙ্ক
-                  </Bn>
-                </View>
-                <View className="flex-row items-center gap-2.5">
-                  <Zap size={16} color="#EA0000" />
-                  <Bn className="text-black/80 flex-1" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-                    ভুল প্রশ্ন ব্যাংক: দুর্বল বিষয়গুলো স্পেসড রিপিটিশনে রিভিশন
-                  </Bn>
-                </View>
-                <View className="flex-row items-center gap-2.5">
-                  <CheckCircle2 size={16} color="#0A7A3D" />
-                  <Bn className="text-black/80 flex-1" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-                    পরীক্ষার পূর্ণাঙ্গ হিস্ট্রি, মার্কশিট ও বিষয়ভিত্তিক দক্ষতা
-                  </Bn>
-                </View>
+                <Bn style={{ fontFamily: FONT.displayBlack, fontSize: 20, lineHeight: 28 }}>
+                  আপনার প্রোগ্রেস সেভ রাখার জন্য লগইন করুন
+                </Bn>
               </View>
 
               {errorMsg ? (
@@ -164,18 +117,12 @@ export function AuthModal({
                         />
                       </Svg>
                     </View>
-                    <Text className="text-black font-semibold" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
-                      Google দিয়ে চালিয়ে যান
-                    </Text>
+                    <Bn className="text-black font-semibold" style={{ fontFamily: FONT.uiBold, fontSize: 15.5 }}>
+                      গুগল দিয়ে লগইন করুন
+                    </Bn>
                   </>
                 )}
               </Pressable>
-
-              <Text
-                className="mt-4 text-center text-black/40 text-[11px]"
-                style={{ fontFamily: FONT.ui }}>
-                লগইন করার মাধ্যমে আপনি BCS Console-এর শর্তাবলি মেনে নিচ্ছেন।
-              </Text>
             </View>
           ) : (
             /* --- Signed In State: Profile Overview --- */
