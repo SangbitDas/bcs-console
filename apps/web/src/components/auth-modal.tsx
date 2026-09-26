@@ -118,7 +118,7 @@ export function AuthModal({
                       </Svg>
                     </View>
                     <Bn className="text-black font-semibold" style={{ fontFamily: FONT.uiBold, fontSize: 15.5 }}>
-                      গুগল দিয়ে লগইন করুন
+                      লগইন করুন
                     </Bn>
                   </>
                 )}
