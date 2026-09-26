@@ -1,5 +1,4 @@
 import '../global.css';
-import 'katex/dist/katex.min.css';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs, router } from 'expo-router';
