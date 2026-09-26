@@ -1,0 +1,957 @@
+[
+  {
+    "exam": "10th_bcs",
+    "examNum": 10,
+    "qNum": 23,
+    "question": "Choose the correct sentence.",
+    "correct_answer": "B",
+    "options": {
+      "A": "The man that said that was a fool",
+      "B": "The man who said that was a fool",
+      "C": "The man that said that was a fool",
+      "D": "The man which said that was a fool"
+    },
+    "solve_note": "The man এর Relative pronoun হিসেবে who বসে।",
+    "issues": [
+      {
+        "type": "DUPLICATE_OPTIONS",
+        "severity": "MODERATE",
+        "detail": "Two or more options have identical text."
+      }
+    ]
+  },
+  {
+    "exam": "13rd_bcs",
+    "examNum": 13,
+    "qNum": 83,
+    "question": "Do not worry, English grammar is not- to understand. Which of the following best fits in the blank space?",
+    "correct_answer": "C",
+    "options": {
+      "A": "so difficult",
+      "B": "very difficult",
+      "C": "too difficult",
+      "D": "difficult enough"
+    },
+    "solve_note": "",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "14th_bcs",
+    "examNum": 14,
+    "qNum": 6,
+    "question": "You should show good manners. in the company of young Iadies. –Which is the appropriate phrase for the underline expression above?",
+    "correct_answer": "A",
+    "options": {
+      "A": "behave gently",
+      "B": "practise manners",
+      "C": "behave yourself",
+      "D": "do not talk rudely"
+    },
+    "solve_note": "Show good manners – ভালো আচরণ বা ব্যবহার প্রদর্শন করা। অর্থাৎ বিনম্র ব্যবহার করা। behave gently- নম্রভাবে ব্যবহার করা; practice manners – প্রথা বা পদ্ধতি চর্চা করা; behave yourself- নিজে ব্যবহার করা (নিজের মত); do not talk rudely- কথা বলো না (অভদ্রভাবে)।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "14th_bcs",
+    "examNum": 14,
+    "qNum": 7,
+    "question": "The invention of computer has turned over a new leaf in the history of modern technology. –––– Which of the following is nearest in meaning to the italicized idiom above?",
+    "correct_answer": "C",
+    "options": {
+      "A": "created a new history",
+      "B": "began a new civiliztion",
+      "C": "opened a new chapter",
+      "D": "created a sensation"
+    },
+    "solve_note": "Turn over a new leaf- নতুন পাতা উল্টানো। অর্থাৎ নতুন অধ্যায়ের সূচনা করা। Created a new history- নতুন ইতিহাস সৃষ্টি করেছে। Began a new civilization- নতুন সভ্যতার সূচনা করেছে। Opened a new chapter- নতুন অধ্যায়ের সূচনা করেছে। Created a sensation – নতুন উত্তেজনাকর ঘটনার সৃষ্টি করেছে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "14th_bcs",
+    "examNum": 14,
+    "qNum": 9,
+    "question": "Not many people can commit such a heinous crime in cold blood. -What does the italicized idiom above mean?",
+    "correct_answer": "A",
+    "options": {
+      "A": "in cool brain and calculated thought",
+      "B": "so patiently and thoughtfully",
+      "C": "so impatintly and thoughtlessly",
+      "D": "stirred by sudden emotion"
+    },
+    "solve_note": "In cold blood – ঠাণ্ডা মাথায় চিন্তাভাবনা করে, বিনা উত্তেজনায়। in cool brain and calculated thought- ঠাণ্ডা মাথায় এবং পরিকল্পিত চিন্তায় হিসাব- নিকাশ। so patiently and thoughtfully- খুবই ধৈর্যসহ এবং বিবেচনা সহকারে। so impatiently and thoughtlessly- খুবই অধৈর্যভাবে এবং অবিবেচনা প্রসূতভাবে। stirred by sudden emotion – হঠাৎ আবেগে জেগে উঠে বা উত্তেজিত হয়ে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "14th_bcs",
+    "examNum": 14,
+    "qNum": 10,
+    "question": "The condition of most slum dwellers is so miserable that it cannot be described in words. -Which is the best phrase for the underlined expression above?",
+    "correct_answer": "A",
+    "options": {
+      "A": "beggars description",
+      "B": "cuts to the quick",
+      "C": "boils down to this",
+      "D": "keeps open house"
+    },
+    "solve_note": "So miserable that it can not be described in words- এত দুর্দশাপূর্ণ যে ভাষায় প্রকাশ করা অসম্ভব। beggar (s) description- বর্ণনাতীত অর্থাৎ বর্ণনা সম্ভব নয়। cut (s) of the quick- মনে কষ্ট দেয়া। boil (s) down (to this) – আয়তনে কমানো, সার-সংক্ষেপ করা। keep (s) open house- গৃহস্থালির দায়িত্ব পালন করা।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "25th_bcs",
+    "examNum": 25,
+    "qNum": 80,
+    "question": "The day of my sister’s marriage is drawing near’ The underlined word is a/an",
+    "correct_answer": "D",
+    "options": {
+      "A": "adjective",
+      "B": "verb",
+      "C": "preposition",
+      "D": "adverb"
+    },
+    "solve_note": "Near এখানে adverb। কারণ এটি drawing verb কে modify করেছে। সাধারণত Noun, Pronoun বা Interjection ছাড়া অন্য যে কোনো word কে modify করলেই তা adverb।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "26th_bcs",
+    "examNum": 26,
+    "qNum": 44,
+    "question": "Fill in the blank with right option. I am looking forward ––– you.",
+    "correct_answer": "A",
+    "options": {
+      "A": "to seeing",
+      "B": "seeing",
+      "C": "to see",
+      "D": "to have seen"
+    },
+    "solve_note": "সাধারণত infinitive ‘to’ এর পর verb এর present form ব্যবহৃত হয়। কিন্তু ‘with a view to’, ‘forward to’ প্রভৃতি ক্ষেত্রে ব্যতিক্রম দেখা যায়। এসব ক্ষেত্রে preposition ‘to’ এর পর ‘verb + ing’ form ব্যবহৃত হয়। এ নিয়ম অনুসারে to seeing.",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "26th_bcs",
+    "examNum": 26,
+    "qNum": 47,
+    "question": "Fill in the blank with correct preposition. He is devoid –––– commonsense.",
+    "correct_answer": "A",
+    "options": {
+      "A": "of",
+      "B": "from",
+      "C": "introduction",
+      "D": "at"
+    },
+    "solve_note": "Devoid এমন একটি verb যার পর সব সময় ‘of’ preposition বসে। Deviod of মানে শূন্য খালি।",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "26th_bcs",
+    "examNum": 26,
+    "qNum": 57,
+    "question": "Fill in the blank with the correct phrase: ––––– your shoes before entering the mosque.",
+    "correct_answer": "B",
+    "options": {
+      "A": "put out",
+      "B": "put off",
+      "C": "put away",
+      "D": "put on"
+    },
+    "solve_note": "",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "26th_bcs",
+    "examNum": 26,
+    "qNum": 58,
+    "question": "Fill in the blank with the correct phrase: He –––– arrested if he had tried to leave the country.",
+    "correct_answer": "C",
+    "options": {
+      "A": "would",
+      "B": "could be",
+      "C": "would have been",
+      "D": "must be"
+    },
+    "solve_note": "Conditional Sentence এ if যুক্ত অংশ যদি past perfect tense এ হয়, তাহলে অপর অংশটিতে would have/ could have/ might have বসবে।",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "28th_bcs",
+    "examNum": 28,
+    "qNum": 32,
+    "question": "We were waiting for the bus. The underlined part is-",
+    "correct_answer": "A",
+    "options": {
+      "A": "a noun phrase",
+      "B": "an infinitive phrase",
+      "C": "a prepositional phrase",
+      "D": "a verb phrase"
+    },
+    "solve_note": "Noun phrase এমন একটি group of words, যা বাক্যে ব্যবহৃত হয়ে noun-এর কাজ করে। যেমনWe enjoy playing cricket. Infinitive phrase-এ head word হিসেবে থাকে একটি infinitive অর্থাৎ to + verb. যেমন To read newspaper is good habit. এরূপ phrase noun, modifier বা verb-এর complement হিসেবে ব্যবহৃত হয়। Preposition + noun phrase মিলে prepositional phrase গঠিত হয়। যেসব Prepositional phrase-এর প্রথমে এবং শেষে Preposition থাকে সেগুলো sentence-এ Preposition-এর কাজ করে। যেমন in case of. Prepositional phrase কেবল গঠনের দিক থেকে prepositional কিন্তু এরা sentence-এ adjective বা adverb-এর কাজ করে। verb phrase হলো lexical বা মূল verb এবং auxiliary verb-এর সমন্বয়ে গঠিত phrase, যার head word হলো মূল verb. যেমন I shall go there. প্রশ্নে উল্লিখিত বাক্যে 'wait' verb-এর modifier হিসেবে for the bus বসেছে। অর্থাৎ verb-এর পরে noun বসেছে। সুতরাং for the bus অংশটি noun phrase.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"wait\""
+      }
+    ]
+  },
+  {
+    "exam": "30th_bcs",
+    "examNum": 30,
+    "qNum": 39,
+    "question": "Of the four alternatives given under each sentence, find the one that best fits into the blank space:-\nThe horror movie scared them out of their—",
+    "correct_answer": "A",
+    "options": {
+      "A": "wits",
+      "B": "seats",
+      "C": "lives",
+      "D": "funds"
+    },
+    "solve_note": "Out of one's wits একটি idiom, যার অর্থ অত্যন্ত বিচলিত।",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "32nd_bcs",
+    "examNum": 32,
+    "qNum": 29,
+    "question": "Choose the word/phrase that best retains the meaning of the underlined word/phrase in the given sentences :\nDespite being a brilliant scientist, he does not seem to get his ideas across.",
+    "correct_answer": "A",
+    "options": {
+      "A": "make his ideas understood",
+      "B": "get his ideas down pat",
+      "C": "summarise his ideas",
+      "D": "put together his ideas"
+    },
+    "solve_note": "Get something across to somebody অর্থ- কাউকে কিছু বোঝাতে পারা অর্থাৎ make something understood.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "34th_bcs",
+    "examNum": 34,
+    "qNum": 35,
+    "question": "Fill in the blank of the following sentence with the right form of verb. If I - a king!",
+    "correct_answer": "C",
+    "options": {
+      "A": "am",
+      "B": "was",
+      "C": "were",
+      "D": "shall be"
+    },
+    "solve_note": "If যুক্ত Conditional sentence এ Subject এর পর be(am, is, are) Verb আসলে সেক্ষেত্রে were ব্যবহৃত হয়।",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "35th_bcs",
+    "examNum": 35,
+    "qNum": 45,
+    "question": "‘He was a rather disagreeable_ man.’ Here the underlined word is a/an-",
+    "correct_answer": "B",
+    "options": {
+      "A": "Noun",
+      "B": "Adjective",
+      "C": "Adverb",
+      "D": "Preposition"
+    },
+    "solve_note": "প্রশ্নোক্ত বাক্যে ‘Disagreeable’ শব্দটি man কে qualify করছে বলে গঠনগত দিক থেকে তা adjective। আবার, অর্থগত দিক থেকেও এটি adjective, যার অর্থ- বিবদমান, বিরোধী।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"Disagreeable\""
+      }
+    ]
+  },
+  {
+    "exam": "35th_bcs",
+    "examNum": 35,
+    "qNum": 54,
+    "question": "“It is time to review the protocol_ on testing nuclear weapons”. Here the underlined word means-",
+    "correct_answer": "A",
+    "options": {
+      "A": "Record of rules",
+      "B": "Summary of rules",
+      "C": "Procedures",
+      "D": "Problems"
+    },
+    "solve_note": "Protocol শব্দের একটি অর্থ হচ্ছে- a set of rules/plans for performing a scientific experiment। আবার, protocol এর পূর্বে ‘review’ word টি থাকায় তা কোনো recorded/written rules-কেই বোঝাচ্ছে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"review\""
+      }
+    ]
+  },
+  {
+    "exam": "35th_bcs",
+    "examNum": 35,
+    "qNum": 56,
+    "question": "Let us beging by looking at the minutes_ of the meeting. Here the underlined word means−",
+    "correct_answer": "C",
+    "options": {
+      "A": "time record",
+      "B": "time frame",
+      "C": "written record",
+      "D": "written analysis"
+    },
+    "solve_note": "কোনো Meeting এ যা আলোচনা করা হয় এবং যে সিদ্ধান্ত গৃহীত হয় তা লিখিত আকারে সংরক্ষণ করাকে ইংরেজিতে minutes বলে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "35th_bcs",
+    "examNum": 35,
+    "qNum": 57,
+    "question": "The noise level in Dhaka city has increased exponentially_. Here the underlined word means−",
+    "correct_answer": "D",
+    "options": {
+      "A": "amazingly",
+      "B": "shockingly",
+      "C": "steadily",
+      "D": "rapidly"
+    },
+    "solve_note": "Exponentially অর্থ (গতি বা বৃদ্ধির ক্ষেত্রে)- দ্রুত। Option গুলোর মধ্যে amazingly অর্থ- বিস্ময়করভাবে; steadily- স্থিরভাবে; shockingly- জঘন্যভাবে, ভীতিজনকভাবে এবং rapidly- দ্রুতভাবে। সুতরাং exponentially শব্দের অর্থ rapidly.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "35th_bcs",
+    "examNum": 35,
+    "qNum": 62,
+    "question": "Societies living in the periphery_ are always ignored. Here the underlined word means−",
+    "correct_answer": "B",
+    "options": {
+      "A": "offshore areas",
+      "B": "marginal areas",
+      "C": "remote places",
+      "D": "backward regions"
+    },
+    "solve_note": "Periphery অর্থ- চৌহদ্দি বা শেষ সীমানা। Option গুলোর মধ্যে offshore areas- সমুদ্রতীর হতে দূরবর্তী এলাকা; marginal areas- প্রান্তিক/শেষ সীমা; regions- অনুন্নত এলাকা। সুতরাং অর্থগত দিক থেকে periphery শব্দের অর্থ হচ্ছে marginal areas.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "35th_bcs",
+    "examNum": 35,
+    "qNum": 67,
+    "question": "I am in the process of collecting material_ for my story. The underlined word is a/an−",
+    "correct_answer": "D",
+    "options": {
+      "A": "Verb",
+      "B": "Adjective",
+      "C": "Adverb",
+      "D": "Noun"
+    },
+    "solve_note": "‘Material’ শব্দটি noun এবং adjective দুটিই হয়। তবে, বাক্যটিতে এটি Noun এর অর্থ (উপাদান) প্রকাশ করছে। আবার ‘material’ শব্দটি collecting verb (participle) এর object হিসাবে ব্যবহৃত হওয়ায় এটি নিয়মগত দিক থেকেও noun.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"Material, material\""
+      }
+    ]
+  },
+  {
+    "exam": "35th_bcs",
+    "examNum": 35,
+    "qNum": 68,
+    "question": "Depression is often hereditary._ The underlined word is a/an−",
+    "correct_answer": "B",
+    "options": {
+      "A": "Adverb",
+      "B": "Adjective",
+      "C": "Noun",
+      "D": "Verb"
+    },
+    "solve_note": "‘Be’ verb এর পর সাধারণত সরাসরি adjective word আসে বলে এখানে ‘hereditary’ শব্দটি adjective. তাছাড়া অর্থগত দিক থেকেও এটি adjective অর্থাৎ ‘বংশগত’ বা বংশানুক্রমিক’।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"hereditary\""
+      }
+    ]
+  },
+  {
+    "exam": "37th_bcs",
+    "examNum": 37,
+    "qNum": 51,
+    "question": "He worked with all sincerity. The underlined phrase is–",
+    "correct_answer": "D",
+    "options": {
+      "A": "A noun phrase",
+      "B": "An adjective phrase",
+      "C": "An infinitive phrase",
+      "D": "An adverbial phrase"
+    },
+    "solve_note": "Adverbial phrase-ও adverb-এর মতো verb-কে modify করে। প্রদত্ত বাক্যে underlined phrase টি verb কে modify করেছে অর্থাৎ verb -এর manner প্রকাশ করায় এটি Adverbial phrase of manner.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "38th_bcs",
+    "examNum": 38,
+    "qNum": 43,
+    "question": "A retired_ officer lives nest door.Here,The underlined word is used as a/an:",
+    "correct_answer": "D",
+    "options": {
+      "A": "Gerund",
+      "B": "adverb",
+      "C": "Preposition",
+      "D": "participle"
+    },
+    "solve_note": "Verb-এর Past participle form (retire + d) যদি বাক্যে adjective –এর কাজ সম্পন্ন করে তাকে Past participle বলে। বাক্যে retired (অবসরপ্রাপ্ত) শব্দটি adjective হিসেবে কাজ করছে। সুতরাং সঠিক উত্তর participle।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "38th_bcs",
+    "examNum": 38,
+    "qNum": 59,
+    "question": "Reading_ is an excellent habit.Here,The underlined word is a−",
+    "correct_answer": "D",
+    "options": {
+      "A": "Verbal noun",
+      "B": "Participle",
+      "C": "Verb",
+      "D": "Gerund"
+    },
+    "solve_note": "Verb –এর সাথে ing যুক্ত হয়ে যদি তা বাক্যে noun হিসেবে কাজ করে তখন তাকে Gerund বলে। Underlined word reading শব্দটি বাক্যে subject তথা noun হিসেবে কাজ করছে, সুতরাং শব্দটি Gerund।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "40th_bcs",
+    "examNum": 40,
+    "qNum": 52,
+    "question": "‘He ran with great speed_.’ The underlined part of the sentence is a–",
+    "correct_answer": "B",
+    "options": {
+      "A": "noun phrase",
+      "B": "adverb phrase",
+      "C": "adjective phrase",
+      "D": "participle phrase"
+    },
+    "solve_note": "With great speed (দ্রুতগতিতে) phrase টি বাক্যের verb কে modify করায় phrase টি adverb phrase. Verb কে how, where, when, why দ্বারা প্রশ্ন করলে adverb phrase পাওয়া যায়।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "41st_bcs",
+    "examNum": 41,
+    "qNum": 153,
+    "question": "To win a prize is my ambition.’ The underlined part of the sentence is a/an-",
+    "correct_answer": "B",
+    "options": {
+      "A": "adjective phrase",
+      "B": "noun phrase",
+      "C": "adverb phrase",
+      "D": "conjunctional phrase"
+    },
+    "solve_note": "When a group of words put together and works as noun is called noun phrase. ‘To win a prize’ এটি বাক্যে noun এর কাজ করছে তাই এটি noun phrase.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"To win a prize\""
+      }
+    ]
+  },
+  {
+    "exam": "41st_bcs",
+    "examNum": 41,
+    "qNum": 160,
+    "question": "‘I shall help you provided you obey me.’ Here the underlined word is a/an-",
+    "correct_answer": "C",
+    "options": {
+      "A": "adverb",
+      "B": "adjective",
+      "C": "conjunction",
+      "D": "verb"
+    },
+    "solve_note": "Provided শব্দটি দ্বারা দুটি sentence যুক্ত থাকায় এখানে provided শব্দটি conjunction এর কাজ করেছে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "42nd_bcs",
+    "examNum": 42,
+    "qNum": 63,
+    "question": "Identify the correctly spelled one:",
+    "correct_answer": "A",
+    "options": {
+      "A": "Caesarean",
+      "B": "caesarean",
+      "C": "ciserian",
+      "D": "scissorian"
+    },
+    "solve_note": "'Caesarean' (সিজারিয়ান) সঠিক বানান — Caesarean section (অস্ত্রোপচার পদ্ধতি) শব্দটি রোমান শাসক জুলিয়াস সিজারের নাম থেকে এসেছে, তাই 'ae' এবং বড় হাতের 'C' ব্যবহৃত হয়। 'ciserian' ও 'scissorian' অশুদ্ধ বানান।",
+    "issues": [
+      {
+        "type": "DUPLICATE_OPTIONS",
+        "severity": "MODERATE",
+        "detail": "Two or more options have identical text."
+      }
+    ]
+  },
+  {
+    "exam": "43rd_bcs",
+    "examNum": 43,
+    "qNum": 146,
+    "question": "‘A herd of cattle is passing’ The underlined word is a/an-",
+    "correct_answer": "C",
+    "options": {
+      "A": "adverb",
+      "B": "adjective",
+      "C": "collective noun",
+      "D": "abstract noun"
+    },
+    "solve_note": "প্রদত্ত বাক্যে সমজাতীয় প্রাণীর সমষ্টি (herd of cattle) বুঝানোর জন্য herd শব্দটি collective Noun হবে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "43rd_bcs",
+    "examNum": 43,
+    "qNum": 160,
+    "question": "Fill in the blank : ‘She went to New Market ––’",
+    "correct_answer": "A",
+    "options": {
+      "A": "on foot",
+      "B": "on feet",
+      "C": "by foot",
+      "D": "by walking"
+    },
+    "solve_note": "পায়ে হেঁটে কোথাও যাওয়া বুঝাতে on foot ব্যবহৃত হয়।",
+    "issues": [
+      {
+        "type": "MISSING_BLANK_INDICATOR",
+        "severity": "MODERATE",
+        "detail": "Question instructions say \"fill in the blank\" or \"in the blank\", but the sentence does not contain any blank indicator (e.g. \"______\")."
+      }
+    ]
+  },
+  {
+    "exam": "44th_bcs",
+    "examNum": 44,
+    "qNum": 69,
+    "question": "Which of the following words is spelt correctly?",
+    "correct_answer": "C",
+    "options": {
+      "A": "authoratative",
+      "B": "autheritative",
+      "C": "authoritative",
+      "D": "authoratative"
+    },
+    "solve_note": "সঠিক বানান Authoritative যার অর্থ প্রামাণিক; পাণ্ডিত্যপূর্ণ; কর্তৃত্বপূর্ণ।",
+    "issues": [
+      {
+        "type": "DUPLICATE_OPTIONS",
+        "severity": "MODERATE",
+        "detail": "Two or more options have identical text."
+      }
+    ]
+  },
+  {
+    "exam": "44th_bcs",
+    "examNum": 44,
+    "qNum": 72,
+    "question": "Identify the correct passive form: ‘Do not close the door.’",
+    "correct_answer": "B",
+    "options": {
+      "A": "Let not the door close.",
+      "B": "Let not the door be closed.",
+      "C": "Let not the door close.",
+      "D": "Let not door closed."
+    },
+    "solve_note": "Imperative sentence এ passive করতে Do not এর পরিবর্তে Let not + sub + be + v3. সুতরাং সঠিক উত্তর হবে Let not the door be closed.",
+    "issues": [
+      {
+        "type": "DUPLICATE_OPTIONS",
+        "severity": "MODERATE",
+        "detail": "Two or more options have identical text."
+      }
+    ]
+  },
+  {
+    "exam": "44th_bcs",
+    "examNum": 44,
+    "qNum": 75,
+    "question": "Sitting happily, the chicken laid eggs. The underlined part is a/an-",
+    "correct_answer": "B",
+    "options": {
+      "A": "noun clause",
+      "B": "subordinate clause",
+      "C": "independent clause",
+      "D": "coordinate clause"
+    },
+    "solve_note": "‘Sitting happily, the chicken laid eggs’ sentence টির Sitting happily অংশটুকু subordinate clause. কারণ এটি Principal clause ‘the chicken laid eggs’ ছাড়া পরিপূর্ণ অর্থ প্রকাশ করতে অসমর্থ।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"the chicken laid eggs\""
+      }
+    ]
+  },
+  {
+    "exam": "45th_bcs",
+    "examNum": 45,
+    "qNum": 4,
+    "question": "Millennium is a period of–––",
+    "correct_answer": "B",
+    "options": {
+      "A": "100 year",
+      "B": "1000 year",
+      "C": "1 million year",
+      "D": "1 million year"
+    },
+    "solve_note": "Millennium: a period of 1,000 years.",
+    "issues": [
+      {
+        "type": "DUPLICATE_OPTIONS",
+        "severity": "MODERATE",
+        "detail": "Two or more options have identical text."
+      }
+    ]
+  },
+  {
+    "exam": "45th_bcs",
+    "examNum": 45,
+    "qNum": 15,
+    "question": "What may be considered courteous in one culture may be -arrogant in another. Here the underlined word “arrogant” means–––",
+    "correct_answer": "A",
+    "options": {
+      "A": "rude",
+      "B": "gracious",
+      "C": "coarse",
+      "D": "pretentious"
+    },
+    "solve_note": "arrogant অর্থ অহংকারী- অহংকারী উদ্ধত। এর Synonym হলো rude.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "46th_bcs",
+    "examNum": 46,
+    "qNum": 43,
+    "question": "He died following_ the incident The underlined word is a/an–",
+    "correct_answer": "D",
+    "options": {
+      "A": "adjective",
+      "B": "adverb",
+      "C": "noun",
+      "D": "preposition"
+    },
+    "solve_note": "এই বাক্যে \"following\" শব্দটি preposition হিসেবে ব্যবহৃত হয়েছে। এটি noun “incident” কে verb \"died\" এর সাথে সংযুক্ত করে সময় পরম্পরা নির্দেশ করছে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"following, incident, died\""
+      }
+    ]
+  },
+  {
+    "exam": "46th_bcs",
+    "examNum": 46,
+    "qNum": 44,
+    "question": "Writing a diary_ is a very good practice to develop the writing skill. The underlined word is a/an--",
+    "correct_answer": "A",
+    "options": {
+      "A": "noun phrase",
+      "B": "verbal phrase",
+      "C": "adjective phrase",
+      "D": "adverbial phrase"
+    },
+    "solve_note": "যে phrase বাক্যে ব্যবহৃত হয়ে noun এর মতো কাজ করে তাকে noun phrase বলে। এখানে Writing a diary_ বাক্যটিতে সাবজেক্ট হিসেবে ব্যবহৃত হয়ে noun এর কাজ করছে। সুতরাং এটি noun phrase।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "46th_bcs",
+    "examNum": 46,
+    "qNum": 47,
+    "question": "Choose the best alternative for the underlined. He went back_ on his promise of voting for me",
+    "correct_answer": "A",
+    "options": {
+      "A": "withdrew",
+      "B": "forgot",
+      "C": "reinforced",
+      "D": "support"
+    },
+    "solve_note": "বাক্যটিতে went back অঙ্গীকার ভঙ্গ করা/ অঙ্গীকার থেকে সরে আসা (withdraw) অর্থে ব্যবহৃত হয়েছে।",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "46th_bcs",
+    "examNum": 46,
+    "qNum": 50,
+    "question": "His dream that he will be a B.C.S cadre_ finally came true. The underlined part is ---",
+    "correct_answer": "A",
+    "options": {
+      "A": "a noun clause",
+      "B": "an adjective clause",
+      "C": "an independent clause",
+      "D": "a co-ordinate clause"
+    },
+    "solve_note": "Noun এর পরে that+sub+verb বিশিষ্ট clause টি noun clause এবং adjective clause দুটোই হতে পারে। যদি adjective clause হয় সেক্ষেত্রে that কে উঠিয়ে দেয়া যায় কিন্তু noun clause এর ক্ষেত্রে that কে উঠিয়ে দেয়া যায় না। The news that you heard yesterday_ is false. (adjective clause). The news that he had married_ is false. (noun clause).",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Could not automatically deduce target word (check solve note / options)"
+      }
+    ]
+  },
+  {
+    "exam": "47th_bcs",
+    "examNum": 47,
+    "qNum": 48,
+    "question": "Tell me frankly why you did this. The underlined part is a/an-",
+    "correct_answer": "B",
+    "options": {
+      "A": "adjective clause",
+      "B": "noun clause",
+      "C": "adverbial clause",
+      "D": "adverbial phrase"
+    },
+    "solve_note": "যে Sub-ordinate clause কোনো noun এর কাজ করে তাকে noun clause বলে। Tell me frankly why you did this বাক্যে ‘Why you did this’ Clause টি ক্রিয়া ‘Tell’ এর direct object হিসেবে কাজ করে, তাই এটি একটি noun Clause.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"Why you did this, Tell\""
+      }
+    ]
+  },
+  {
+    "exam": "48th_bcs",
+    "examNum": 48,
+    "qNum": 34,
+    "question": "She works hard. What part of speech is the underlined word?",
+    "correct_answer": "B",
+    "options": {
+      "A": "Adjective",
+      "B": "Adverb",
+      "C": "Verb",
+      "D": "Noun"
+    },
+    "solve_note": "In the sentence 'She works hard', the word 'hard' modifies the verb 'works' and therefore acts as an adverb. Hence the correct answer is Adverb.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"She works hard, hard, works\""
+      }
+    ]
+  },
+  {
+    "exam": "49th_bcs",
+    "examNum": 49,
+    "qNum": 60,
+    "question": "‘We know that the earth is a planet’ The underlined part is a/an-",
+    "correct_answer": "A",
+    "options": {
+      "A": "noun clause",
+      "B": "adverbial clause",
+      "C": "adjective clause",
+      "D": "principal clause"
+    },
+    "solve_note": "এখানে “that the earth is a planet” অংশটি know ক্রিয়াটির object হিসেবে কাজ করছে। যে clause বাক্যে কোনো noun-এর মতো কাজ করে (subject, object, complement ইত্যাদি), সেটিই noun clause.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"that the earth is a planet\""
+      }
+    ]
+  },
+  {
+    "exam": "50th_bcs",
+    "examNum": 50,
+    "qNum": 132,
+    "question": "The book that she recommended turned out to be very helpful. Here the underlined clause is a -",
+    "correct_answer": "A",
+    "options": {
+      "A": "relative clause",
+      "B": "noun clause",
+      "C": "adverbial clause",
+      "D": "independent clause"
+    },
+    "solve_note": "Option (ক): “that she recommended”- clause টি the book কে qualify করছে; এটি relative pronoun “that” দিয়ে শুরু, তাই relative clause। অন্য option-গুলো: (খ) কোনো noun-এর কাজ (subject/object) করছে না; book-কে modify করছে। (গ) সময়/কারণ/শর্ত বোঝাচ্ছে না। (ঘ) নিজে একা পূর্ণ বাক্য হিসেবে মূল বক্তব্য প্রকাশ করছে না তাই dependent বা embedded Clause.",
+    "issues": [
+      {
+        "type": "MISSING_UNDERLINE_FORMATTING",
+        "severity": "CRITICAL",
+        "detail": "Question asks to identify or analyze the \"underlined word / phrase\", but NO word in the question is underlined or highlighted.",
+        "intendedTarget": "Deduction from solve note: \"that she recommended, that\""
+      }
+    ]
+  }
+]

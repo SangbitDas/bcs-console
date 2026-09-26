@@ -5,10 +5,11 @@ import { Bookmark, Play, Trash2, ArrowRight } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { examLabel, toBn, type QuestionRow } from '../lib/format';
 import { useLibrary } from '../lib/library';
+import { usePracticeStore } from '../store/practice';
 import { useQuestionPool, useSubjects } from '../hooks/queries';
 import { Bn, Btn, Tag } from '../components/ui';
 import { Breadcrumb } from '../components/patterns';
-import { QuestionCard, type DisplayItem } from './practice';
+import { QuestionCard, type DisplayItem } from '../components/practice-screen';
 
 export default function BookmarksScreen() {
   const lib = useLibrary();
@@ -60,7 +61,8 @@ export default function BookmarksScreen() {
   }, []);
 
   const startInteractivePractice = () => {
-    router.push({ pathname: '/practice', params: { mode: 'bookmarks' } });
+    usePracticeStore.getState().backToHub();
+    router.push('/practice' as any);
   };
 
   return (
@@ -113,10 +115,10 @@ export default function BookmarksScreen() {
               এখনো কোনো প্রশ্ন বুকমার্ক করেননি
             </Text>
             <Text className="max-w-md text-center text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 20 }}>
-              অনুশীলন বা মক পরীক্ষা চলাকালে যেকোনো প্রশ্নের বুকমার্ক আইকনে চাপ দিয়ে গুরুত্বপূর্ণ প্রশ্ন এখানে সংরক্ষণ করে রাখতে পারবেন।
+              অনুশীলন বা মক এক্সাম চলাকালে যেকোনো প্রশ্নের বুকমার্ক আইকনে চাপ দিয়ে গুরুত্বপূর্ণ প্রশ্ন এখানে সংরক্ষণ করে রাখতে পারবেন।
             </Text>
             <Pressable
-              onPress={() => router.push('/practice')}
+              onPress={() => router.push('/practice' as any)}
               className="flex-row items-center gap-2 rounded-xl bg-ink px-5 py-2.5">
               <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
                 অনুশীলনে যান

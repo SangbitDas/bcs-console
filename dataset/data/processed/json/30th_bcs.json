@@ -786,7 +786,7 @@
     {
       "question_number": 39,
       "subject_id": 2,
-      "question": "Of the four alternatives given under each sentence, find the one that best fits into the blank space:-\nThe horror movie scared them out of their—",
+      "question": "Of the four alternatives given under each sentence, find the one that best fits into the blank space:-\nThe horror movie scared them out of their _____",
       "option_a": "wits",
       "option_b": "seats",
       "option_c": "lives",
@@ -1777,14 +1777,12 @@
       "option_c": "27",
       "option_d": "36",
       "correct_answer": "B",
-      "solve_note": "(a+1/a)³ = a³+1/a³+3(a+1/a) ⇒ 27 = a³+1/a³+9 ⇒ a³+1/a³ = 18। [LLM] উৎস HTML-এ মিশ্র চিহ্ন (a−1/a=3, a³+1/a³) ছিল—প্রশ্নটি ছাপায়ই ত্রুটিপূর্ণ ছিল (biddabari নোট: ‘a+(1/a)=3 হলে অপশন খ সঠিক হতো’)। kgc #২৫ সংস্করণে প্রশ্ন a+1/a=3 রূপে থাকে এবং উত্তর ১৮ (খ) দেওয়া হয়েছে। আগের math-audit-এ সব-বিয়োগ ধরে D=36 বসানো হয়েছিল; উভয় বাহ্যিক সূত্র ১৮-র দিকে ইঙ্গিত করায় তা বাতিল করে প্রশ্ন সংশোধন করে B বসানো হয়েছে।",
+      "solve_note": "(a+1/a)³ = a³+1/a³+3(a+1/a) ⇒ 27 = a³+1/a³+9 ⇒ a³+1/a³ = 18।",
       "question_image_paths": [],
-      "solve_note_image_paths": [
-        "images/30th_bcs/q90_img1.jpg"
-      ],
+      "solve_note_image_paths": [],
       "has_question_image": 0,
-      "has_solve_note_image": 1,
-      "has_image": 1,
+      "has_solve_note_image": 0,
+      "has_image": 0,
       "subject_en": "Mathematical Reasoning",
       "subject_bn": "গাণিতিক যুক্তি",
       "exam_slug": "30th_bcs"

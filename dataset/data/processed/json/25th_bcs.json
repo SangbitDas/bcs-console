@@ -868,7 +868,7 @@
       "option_c": "0",
       "option_d": "6",
       "correct_answer": "C",
-      "solve_note": "x³+3/x³=(x+/x)³−3x./x(x+/x) (√3)³−3√3=3√3−3√3=0",
+      "solve_note": "x³+1/x³ = (x+1/x)³ − 3x·1/x(x+1/x) = (√3)³ − 3√3 = 3√3 − 3√3 = 0",
       "question_image_paths": [],
       "solve_note_image_paths": [],
       "has_question_image": 0,
@@ -1577,7 +1577,7 @@
     {
       "question_number": 80,
       "subject_id": 2,
-      "question": "The day of my sister’s marriage is drawing near’ The underlined word is a/an",
+      "question": "The day of my sister’s marriage is drawing <u>near</u>’ The underlined word is a/an",
       "option_a": "adjective",
       "option_b": "verb",
       "option_c": "preposition",
@@ -1655,7 +1655,7 @@
     {
       "question_number": 84,
       "subject_id": 2,
-      "question": "The parents became extremely––––when their son had not returned by eleven o’clock.",
+      "question": "The parents became extremely _____ when their son had not returned by eleven o’clock.",
       "option_a": "angry",
       "option_b": "annoyed",
       "option_c": "disturbed",

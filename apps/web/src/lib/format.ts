@@ -15,6 +15,22 @@ export const examLabel = (slug: string): string => {
 export const examMinutes = (totalMarks: number | null, qLen: number): number =>
   Math.max(10, Math.round((totalMarks || qLen || 100) * 0.6));
 
+/** 36 seconds per question in whole minutes: Math.round((count * 36) / 60) */
+export const calc36sMinutes = (count: number): number =>
+  Math.max(1, Math.round((count * 36) / 60));
+
+/** Format minutes into clean Bengali duration: e.g. "১২০ মিনিট (২ ঘণ্টা)", "৭২ মিনিট (১ ঘণ্টা ১২ মি.)", "৩৬ মিনিট" */
+export const formatDurationBn = (mins: number): string => {
+  if (mins >= 60) {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const hourPart = `${toBn(h)} ঘণ্টা`;
+    const minPart = m > 0 ? ` ${toBn(m)} মি.` : '';
+    return `${toBn(mins)} মিনিট (${hourPart}${minPart})`;
+  }
+  return `${toBn(mins)} মিনিট`;
+};
+
 export const optText = (q: QuestionRow, k: string): string =>
   (q as unknown as Record<string, string>)['option_' + k.toLowerCase()] ?? '';
 
@@ -24,6 +40,51 @@ export const fmtTime = (s: number): string => {
   const m = String(Math.floor((t % 3600) / 60)).padStart(2, '0');
   const ss = String(t % 60).padStart(2, '0');
   return `${h}:${m}:${ss}`;
+};
+
+const BN_MONTHS = [
+  'জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+  'জুলাই', 'আগস্ট', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'
+];
+
+/** Format timestamp into human-readable Bengali date & time (e.g. "আজ, ৬:৪৮ AM", "২৩ সেপ্টে, ৬:৪৮ AM", "১০ মিনিট আগে") */
+export const formatDateTimeBn = (timestamp?: number): string => {
+  if (!timestamp) return '';
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return '';
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+
+  if (diffMin < 1) return 'এইমাত্র';
+  if (diffMin < 60) return `${toBn(diffMin)} মিনিট আগে`;
+
+  let hours = d.getHours();
+  const mins = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  const timeStr = `${toBn(hours)}:${toBn(mins)} ${ampm}`;
+
+  const isToday =
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear();
+
+  if (isToday) return `আজ, ${timeStr}`;
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday =
+    d.getDate() === yesterday.getDate() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getFullYear() === yesterday.getFullYear();
+
+  if (isYesterday) return `গতকাল, ${timeStr}`;
+
+  const day = toBn(d.getDate());
+  const month = BN_MONTHS[d.getMonth()];
+  return `${day} ${month}, ${timeStr}`;
 };
 
 /* Ground truth from dataset_manifest.json (static) */

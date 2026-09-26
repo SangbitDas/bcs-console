@@ -1551,7 +1551,7 @@
       "option_c": "225",
       "option_d": "1/225",
       "correct_answer": "C",
-      "solve_note": "(15 ÷ 15 × 15)/(15 ÷ 15 এর 15 = (1×15)/(15÷225)=15×=225)",
+      "solve_note": "\\frac{15 \\div 15 \\times 15}{15 \\div 15\\text{এর }15} \\\\[8pt] = \\frac{1 \\times 15}{15 \\div 225} = 15 \\times \\frac{225}{15} = 225",
       "question_image_paths": [
         "images/11st_bcs/q78_img1.jpg"
       ],
@@ -1613,8 +1613,8 @@
       "option_b": "১২ ফুট",
       "option_c": "২০ ফুট",
       "option_d": "১৮ ফুট",
-      "correct_answer": "D",
-      "solve_note": "দুটি 20ft বর্গ পাশাপাশি; BC=6, CF=5; ত্রিভুজ EFC ~ D 18 ft (পরীক্ষার কী D)।",
+      "correct_answer": "",
+      "solve_note": "সঠিক উত্তর নেই। চিত্র না থাকায় প্রশ্নটি বাতিল করা হয়েছে।",
       "question_image_paths": [],
       "solve_note_image_paths": [],
       "has_question_image": 0,

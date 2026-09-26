@@ -2877,7 +2877,7 @@
     {
       "question_number": 146,
       "subject_id": 2,
-      "question": "‘A herd of cattle is passing’ The underlined word is a/an-",
+      "question": "‘A <u>herd</u> of cattle is passing’ The underlined word is a/an-",
       "option_a": "adverb",
       "option_b": "adjective",
       "option_c": "collective noun",
@@ -3143,7 +3143,7 @@
     {
       "question_number": 160,
       "subject_id": 2,
-      "question": "Fill in the blank : ‘She went to New Market ––’",
+      "question": "Fill in the blank : ‘She went to New Market _____’",
       "option_a": "on foot",
       "option_b": "on feet",
       "option_c": "by foot",

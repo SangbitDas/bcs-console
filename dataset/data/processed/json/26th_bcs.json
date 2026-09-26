@@ -881,7 +881,7 @@
     {
       "question_number": 44,
       "subject_id": 2,
-      "question": "Fill in the blank with right option. I am looking forward ––– you.",
+      "question": "Fill in the blank with right option. I am looking forward _____ you.",
       "option_a": "to seeing",
       "option_b": "seeing",
       "option_c": "to see",
@@ -938,7 +938,7 @@
     {
       "question_number": 47,
       "subject_id": 2,
-      "question": "Fill in the blank with correct preposition. He is devoid –––– commonsense.",
+      "question": "Fill in the blank with correct preposition. He is devoid _____ commonsense.",
       "option_a": "of",
       "option_b": "from",
       "option_c": "introduction",
@@ -1130,7 +1130,7 @@
     {
       "question_number": 57,
       "subject_id": 2,
-      "question": "Fill in the blank with the correct phrase: ––––– your shoes before entering the mosque.",
+      "question": "Fill in the blank with the correct phrase: _____ your shoes before entering the mosque.",
       "option_a": "put out",
       "option_b": "put off",
       "option_c": "put away",
@@ -1151,7 +1151,7 @@
     {
       "question_number": 58,
       "subject_id": 2,
-      "question": "Fill in the blank with the correct phrase: He –––– arrested if he had tried to leave the country.",
+      "question": "Fill in the blank with the correct phrase: He _____ arrested if he had tried to leave the country.",
       "option_a": "would",
       "option_b": "could be",
       "option_c": "would have been",
@@ -1433,7 +1433,7 @@
     {
       "question_number": 72,
       "subject_id": 2,
-      "question": "The lights have been blown-by the strong wind.",
+      "question": "The lights have been blown _____ by the strong wind.",
       "option_a": "Out",
       "option_b": "Away",
       "option_c": "Up",
@@ -3812,7 +3812,7 @@
       "option_c": "2",
       "option_d": "1",
       "correct_answer": "D",
-      "solve_note": "a²+2/a²=(a+2/a²)−2a./a=(√3)²−2 =3−2=1",
+      "solve_note": "a²+1/a² = (a+1/a)² − 2a·1/a = (√3)² − 2 = 3 − 2 = 1",
       "question_image_paths": [],
       "solve_note_image_paths": [],
       "has_question_image": 0,
@@ -3850,7 +3850,7 @@
       "option_c": "√3−√2",
       "option_d": "√3+2",
       "correct_answer": "C",
-      "solve_note": "/(√6+2)=/(((√6+2)(√6−2)) =/((6−4))=/2 =√3−√2",
+      "solve_note": "√2/(√6+2) = (√2(√6−2))/(((√6+2)(√6−2))) = ((√2.√2(√3−√2)))/((6−4)) = (2(√3−√2))/2 = √3−√2",
       "question_image_paths": [],
       "solve_note_image_paths": [],
       "has_question_image": 0,

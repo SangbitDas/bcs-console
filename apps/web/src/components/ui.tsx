@@ -1,67 +1,170 @@
-import { Link, usePathname } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { Link, router } from 'expo-router';
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type TextStyle } from 'react-native';
+import { CheckCircle2, Clock, User as UserIcon } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { fmtTime, toBn } from '../lib/format';
 import { useExamStore } from '../store/exam';
+import { usePracticeStore } from '../store/practice';
+import { useAuthStore } from '../lib/auth';
+import { isAnyExamActive, useExamGuardStore } from '../store/examGuard';
+import { AuthModal } from './auth-modal';
+import { UserAvatar } from './avatar';
+import { MathText } from './math-text';
+import { ExplanationImage } from './image-lightbox';
+import { Bn } from './bn';
+export { MathText, ExplanationImage, Bn };
 
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
-  const pathname = usePathname();
-  const remain = useExamStore((s) => s.remain);
-  const running = useExamStore((s) => s.running);
+  const { width } = useWindowDimensions();
 
-  const navs = [
-    { label: 'হোম', href: '/' },
-    { label: 'অনুশীলন', href: '/practice' },
-    { label: 'মক পরীক্ষা', href: '/exam' },
-    { label: 'বুকমার্ক', href: '/bookmarks' },
-    { label: 'ভুল প্রশ্ন', href: '/wrong' },
-  ];
+  // Mock Exam state
+  const mockRemain = useExamStore((s) => s.remain);
+  const isMockRunning = useExamStore((s) => s.running);
+  const mockAnswers = useExamStore((s) => s.answers);
+  const mockTotal = useExamStore((s) => s.config.count);
+  const mockSubmit = useExamStore((s) => s.onSubmitExam);
+
+  // Custom Exam state
+  const isCustomRunning = usePracticeStore((s) => s.mode === 'custom' && s.started && !s.finished);
+  const customTimed = usePracticeStore((s) => s.isTimed);
+  const customDone = usePracticeStore((s) => s.done);
+  const customRemain = useExamGuardStore((s) => s.customRemain);
+  const customTotal = useExamGuardStore((s) => s.customTotal);
+  const customSubmit = useExamGuardStore((s) => s.customSubmit);
+
+  const user = useAuthStore((s) => s.user);
+  const profile = useAuthStore((s) => s.profile);
+  const init = useAuthStore((s) => s.init);
+  const [authOpen, setAuthOpen] = useState(false);
+
+  useEffect(() => {
+    init();
+  }, [init]);
+
+  const isExamActive = isMockRunning || isCustomRunning;
+  const currentRemain = isMockRunning ? mockRemain : (customTimed ? customRemain : null);
+  const currentAnswered = isMockRunning ? Object.keys(mockAnswers).length : Object.keys(customDone).length;
+  const currentTotal = isMockRunning ? mockTotal : (customTotal || 0);
+  const currentSubmit = isMockRunning ? mockSubmit : customSubmit;
+
+  const isNarrow = width < 480;
+  const isMobile = width < 640;
 
   return (
-    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-6 py-2.5">
-      <Link href="/" asChild>
-        <Pressable className="flex-row items-center gap-2">
-          <Text style={{ fontFamily: FONT.displayBlack, fontSize: 18 }}>
-            বিসিএস<Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
-          </Text>
-          <Text className="text-black/35" style={{ fontFamily: FONT.ui, fontSize: 11 }}>
-            | 10TH-50TH BANK
-          </Text>
-        </Pressable>
-      </Link>
-      <View className="flex-row items-center gap-6">
-        {running ? (
-          <View className="border border-black/20 bg-surface px-3 py-1.5">
-            <Text style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#EA0000' }}>
-              {fmtTime(remain)}
-            </Text>
+    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-3 sm:px-6 py-2 sm:py-3">
+      <Pressable
+        onPress={() => {
+          if (isAnyExamActive()) {
+            useExamGuardStore.getState().openQuitModal(() => router.push('/'));
+          } else {
+            router.push('/');
+          }
+        }}
+        style={{ cursor: 'pointer' } as any}
+        className="flex-row items-center flex-shrink-0">
+        <Text style={{ fontFamily: FONT.displayBlack, fontSize: isNarrow ? 16 : 18 }}>
+          বিসিএস
+          {isNarrow && isExamActive ? null : (
+            <>
+              <Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
+            </>
+          )}
+        </Text>
+      </Pressable>
+
+      <View className="flex-row items-center gap-1.5 sm:gap-3">
+        {isExamActive ? (
+          <View className="flex-row items-center gap-1 sm:gap-2">
+            {/* Timer badge */}
+            {currentRemain !== null ? (
+              <View className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg border border-black/15 bg-surface px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-2xs">
+                <Clock size={12} color="#EA0000" />
+                <Text style={{ fontFamily: FONT.digitsBold, fontSize: isNarrow ? 12 : 13, color: '#EA0000' }}>
+                  {fmtTime(currentRemain)}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Answered / উত্তর সম্পন্ন badge */}
+            <View
+              accessibilityLabel={`উত্তর সম্পন্ন ${toBn(currentAnswered)} / ${toBn(currentTotal)}`}
+              className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg border border-black/15 bg-surface px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-2xs">
+              <CheckCircle2 size={12} color="#059669" />
+              {width >= 640 ? (
+                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
+                  উত্তর সম্পন্ন:
+                </Text>
+              ) : width >= 480 ? (
+                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11.5, color: 'rgba(0,0,0,0.65)' }}>
+                  উত্তর:
+                </Text>
+              ) : null}
+              <Text style={{ fontFamily: FONT.digitsBold, fontSize: isNarrow ? 12 : 13, color: '#0A0A0A' }}>
+                {`${toBn(currentAnswered)}/${toBn(currentTotal)}`}
+              </Text>
+            </View>
+
+            {/* Submit button */}
+            <Pressable
+              onPress={() => {
+                if (currentSubmit) {
+                  currentSubmit();
+                }
+              }}
+              style={{ cursor: 'pointer' } as any}
+              className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg bg-[#EA0000] px-2.5 sm:px-3 py-1 sm:py-1.5 shadow-2xs transition-all hover:bg-red-700 active:scale-95">
+              <CheckCircle2 size={12} color="#FFFFFF" strokeWidth={2.2} />
+              <Text className="text-white text-xs font-bold" style={{ fontFamily: FONT.uiBold }}>
+                জমা দিন
+              </Text>
+            </Pressable>
           </View>
         ) : null}
-        <View className="flex-row items-center gap-5">
-          {navs.map((n) => {
-            const active = pathname === n.href || (n.href !== '/' && pathname.startsWith(n.href));
-            return (
-              <Link key={n.href} href={n.href as never} asChild>
-                <Pressable className="relative py-2 px-1 items-center">
-                  <Text
-                    style={{
-                      fontFamily: active ? FONT.uiBold : FONT.uiSemi,
-                      fontSize: 14,
-                      color: active ? '#0A0A0A' : 'rgba(0,0,0,0.65)',
-                    }}>
-                    {n.label}
-                  </Text>
-                  {active ? (
-                    <View className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#EA0000] rounded-full" />
-                  ) : null}
-                </Pressable>
-              </Link>
-            );
-          })}
-        </View>
+
+        {user ? (
+          <Pressable
+            onPress={() => setAuthOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="প্রোফাইল মেনু"
+            className={`flex-row items-center gap-1.5 sm:gap-2 rounded-full border border-black/15 bg-surface transition-all hover:border-black/35 hover:shadow-xs active:scale-95 ${
+              isExamActive && isMobile ? 'p-1' : 'py-1 px-2.5'
+            }`}>
+            <UserAvatar
+              url={profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture}
+              name={profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name}
+              size={isExamActive && isMobile ? 22 : 24}
+            />
+            {!(isExamActive && isMobile) ? (
+              <Bn
+                className="text-black/80 font-medium"
+                style={{ fontFamily: FONT.uiSemi, fontSize: 13, maxWidth: 120 }}
+                numberOfLines={1}>
+                {profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'প্রোফাইল'}
+              </Bn>
+            ) : null}
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => setAuthOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="লগইন করুন"
+            className={`flex-row items-center gap-1.5 rounded-full border border-black/20 bg-surface shadow-2xs transition-all hover:border-black/50 hover:shadow-xs active:scale-95 ${
+              isExamActive && isMobile ? 'p-1.5' : 'py-1.5 px-3.5'
+            }`}>
+            <UserIcon size={14} color="#0A0A0A" />
+            {!(isExamActive && isMobile) ? (
+              <Bn className="text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                লগইন
+              </Bn>
+            ) : null}
+          </Pressable>
+        )}
       </View>
+
+      <AuthModal visible={authOpen} onClose={() => setAuthOpen(false)} />
     </View>
   );
 }
@@ -117,7 +220,7 @@ export function Chip({
   return (
     <Pressable
       onPress={onPress}
-      className={`min-h-[42px] flex-row items-center rounded-full border px-4 py-2 ${
+      className={`min-h-[42px] flex-row items-center rounded-full border px-4 py-2 transition-all hover:border-black/35 hover:shadow-xs active:scale-[0.98] ${
         active ? 'border-black bg-ink' : 'border-black/10 bg-surface'
       } ${dashed ? 'border-dashed' : ''}`}>
       <Bn
@@ -138,82 +241,6 @@ export function Chip({
   );
 }
 
-/* ---------- Bangla text: rendered in Noto Sans Bengali ---------- */
-export function Bn({
-  children,
-  style,
-  className,
-  bold,
-  numberOfLines,
-}: {
-  children?: React.ReactNode;
-  style?: StyleProp<TextStyle>;
-  className?: string;
-  bold?: boolean;
-  numberOfLines?: number;
-}) {
-  if (children === undefined || children === null) return null;
-
-  const flatStyle = (StyleSheet.flatten(style) || {}) as TextStyle;
-  const baseFont = flatStyle.fontFamily || (bold ? FONT.uiBold : FONT.ui);
-  /* Bengali digit runs must always render in Noto Sans Bengali, even if a caller
-     passes a non-Bengali font for surrounding Latin text. */
-  const baseFam = flatStyle.fontFamily ? String(flatStyle.fontFamily) : '';
-  const digitFont = bold
-    ? FONT.digitsBold
-    : baseFam.startsWith('NotoSansBengali')
-      ? baseFam
-      : FONT.digitsReg;
-
-  if (typeof children === 'string' || typeof children === 'number') {
-    const parts = String(children).split(/([০-৯]+)/g);
-    if (parts.length === 1 && !/^[০-৯]+$/.test(parts[0])) {
-      return (
-        <Text
-          numberOfLines={numberOfLines}
-          style={[{ fontFamily: baseFont }, style]}
-          className={className}>
-          {children}
-        </Text>
-      );
-    }
-    return (
-      <Text
-        numberOfLines={numberOfLines}
-        style={[{ fontFamily: baseFont }, style]}
-        className={className}>
-        {parts.map((p, i) =>
-          /^[০-৯]+$/.test(p) ? (
-            <Text
-              key={i}
-              style={{
-                fontFamily: digitFont,
-              }}>
-              {p}
-            </Text>
-          ) : (
-            <Text
-              key={i}
-              style={{
-                fontFamily: baseFont,
-              }}>
-              {p}
-            </Text>
-          ),
-        )}
-      </Text>
-    );
-  }
-
-  return (
-    <Text
-      numberOfLines={numberOfLines}
-      style={[{ fontFamily: baseFont }, style]}
-      className={className}>
-      {children}
-    </Text>
-  );
-}
 /* ---------- Small tag ---------- */
 export function Tag({ children, warn }: { children: string; warn?: boolean }) {
   return (
@@ -268,9 +295,11 @@ export function OptBtn({
           {k}
         </Text>
       </View>
-      <Bn className={`flex-1 ${txt}`} style={{ fontFamily: FONT.ui, fontSize: 16, lineHeight: 26 }}>
-        {text || '—'}
-      </Bn>
+      <MathText
+        className={`flex-1 ${txt}`}
+        style={{ fontFamily: FONT.ui, fontSize: 16, lineHeight: 26 }}
+        text={text || '—'}
+      />
     </Pressable>
   );
 }
@@ -296,14 +325,14 @@ export function Feedback({
         {title}
       </Bn>
       {!!note ? (
-        <Bn className="text-black/70" style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 26 }}>
-          {note}
-        </Bn>
+        <MathText
+          className="text-black/70"
+          style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 26 }}
+          text={note}
+        />
       ) : null}
       {(images ?? []).map((u) => (
-        <View key={u} className="mt-3 border border-black/10 bg-white p-3">
-          <Image source={{ uri: u }} style={{ width: '100%', height: 220 }} contentFit="contain" />
-        </View>
+        <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
       ))}
     </View>
   );
@@ -315,9 +344,7 @@ export function QImages({ urls }: { urls?: string[] }) {
   return (
     <View className="mb-4 gap-4">
       {urls.map((u) => (
-        <View key={u} className="items-center border border-black/10 bg-white p-3">
-          <Image source={{ uri: u }} style={{ width: '100%', height: 240 }} contentFit="contain" />
-        </View>
+        <ExplanationImage key={u} uri={u} title="প্রশ্নের চিত্র" height={240} className="mb-0 mt-0" />
       ))}
     </View>
   );

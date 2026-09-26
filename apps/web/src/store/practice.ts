@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { calc36sMinutes } from '../lib/format';
 
 export type PracticeMode = 'exam' | 'subject' | 'custom' | 'bookmarks' | 'wrong';
 export type OrderKind = 'seq' | 'random';
@@ -18,6 +19,8 @@ interface PracticeState {
   toN: number;
   count: number | null;
   order: OrderKind;
+  isTimed: boolean;
+  timeMinutes: number;
   started: boolean;
   finished: boolean;
   runId: number;
@@ -32,10 +35,27 @@ interface PracticeState {
   selectAllExams: (slugs: string[]) => void;
   clearExams: () => void;
   toggleSubject: (id: number) => void;
+  setSubjects: (ids: number[]) => void;
   setRange: (from: number, to: number) => void;
   setCount: (c: number | null) => void;
   setOrder: (o: OrderKind) => void;
+  setIsTimed: (timed: boolean) => void;
+  setTimeMinutes: (mins: number) => void;
   start: () => void;
+  restoreSession: (params: {
+    mode: PracticeMode;
+    exam?: string;
+    exams?: string[];
+    subjects?: number[];
+    fromN?: number;
+    toN?: number;
+    count?: number | null;
+    order?: OrderKind;
+    done?: Record<number, PracticeDone>;
+    right?: number;
+    wrong?: number;
+    idx?: number;
+  }) => void;
   answer: (qid: number, pick: string, ok: boolean) => void;
   reveal: (qid: number) => void;
   next: (len: number) => void;
@@ -54,6 +74,8 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   toN: 50,
   count: null,
   order: 'seq',
+  isTimed: true,
+  timeMinutes: 120,
   started: false,
   finished: false,
   runId: 0,
@@ -76,11 +98,32 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
     set((s) => ({
       subjects: s.subjects.includes(id) ? s.subjects.filter((x) => x !== id) : [...s.subjects, id],
     })),
+  setSubjects: (subjects) => set({ subjects }),
   setRange: (fromN, toN) => set({ fromN, toN }),
-  setCount: (count) => set({ count }),
+  setCount: (count) => set({ count, timeMinutes: calc36sMinutes(count ?? 200) }),
   setOrder: (order) => set({ order }),
+  setIsTimed: (isTimed) => set({ isTimed }),
+  setTimeMinutes: (timeMinutes) => set({ timeMinutes: Math.max(1, timeMinutes) }),
   start: () =>
     set((s) => ({ started: true, finished: false, idx: 0, right: 0, wrong: 0, done: {}, runId: s.runId + 1 })),
+  restoreSession: (p) =>
+    set((s) => ({
+      mode: p.mode,
+      exam: p.exam ?? s.exam,
+      exams: p.exams ?? s.exams,
+      subjects: p.subjects ?? s.subjects,
+      fromN: p.fromN ?? s.fromN,
+      toN: p.toN ?? s.toN,
+      count: p.count ?? s.count,
+      order: p.order ?? s.order,
+      done: p.done ?? {},
+      right: p.right ?? 0,
+      wrong: p.wrong ?? 0,
+      idx: p.idx ?? 0,
+      started: true,
+      finished: false,
+      runId: s.runId + 1,
+    })),
   answer: (qid, pick, ok) =>
     set((s) => ({
       done: { ...s.done, [qid]: { pick, ok } },

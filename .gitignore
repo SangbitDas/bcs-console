@@ -31,9 +31,16 @@ supabase/.temp/
 # Internal docs & memory
 PRD.md
 prd.md
+*prd*.md
+*PRD*.md
 SUPABASE_AGENT_BRIEF.md
 memory.md
+memory*.md
 upcoming.md
+*analysis*.md
+*analysis report*.md
+english_analysis.md
+math analysis report.md
 
 # Temporary root screenshots / mock images
 /mock.png
@@ -45,3 +52,7 @@ upcoming.md
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+
+# Scratch directory
+scratch/
+

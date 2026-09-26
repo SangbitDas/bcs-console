@@ -1016,7 +1016,7 @@
     {
       "question_number": 51,
       "subject_id": 2,
-      "question": "He worked with all sincerity. The underlined phrase is–",
+      "question": "He worked <u>with all sincerity</u>. The underlined phrase is–",
       "option_a": "A noun phrase",
       "option_b": "An adjective phrase",
       "option_c": "An infinitive phrase",

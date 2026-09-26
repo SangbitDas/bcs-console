@@ -5,10 +5,11 @@ import { AlertTriangle, CheckCircle2, Play, Trash2, ArrowRight } from 'lucide-re
 import { FONT } from '../lib/fonts';
 import { examLabel, toBn, type QuestionRow } from '../lib/format';
 import { useLibrary } from '../lib/library';
+import { usePracticeStore } from '../store/practice';
 import { useQuestionPool, useSubjects } from '../hooks/queries';
 import { Bn, Btn, Tag } from '../components/ui';
 import { Breadcrumb } from '../components/patterns';
-import { QuestionCard, type DisplayItem } from './practice';
+import { QuestionCard, type DisplayItem } from '../components/practice-screen';
 
 export default function WrongQuestionsScreen() {
   const lib = useLibrary();
@@ -51,7 +52,9 @@ export default function WrongQuestionsScreen() {
       q,
       indexLabel: toBn(idx + 1),
       subjectLabel: subjectMap.get(q.subject_id) ?? `বিষয় ${q.subject_id}`,
-      examBadge: `${examLabel(q.exam_slug)} বিসিএস`,
+      examBadge: q.question_number
+        ? `${examLabel(q.exam_slug)} · প্রশ্ন ${toBn(q.question_number)}`
+        : `${examLabel(q.exam_slug)}`,
     }));
   }, [filteredQuestions, subjectMap]);
 
@@ -60,13 +63,14 @@ export default function WrongQuestionsScreen() {
   }, []);
 
   const startInteractivePractice = () => {
-    router.push({ pathname: '/practice', params: { mode: 'wrong' } });
+    usePracticeStore.getState().backToHub();
+    router.push('/practice' as any);
   };
 
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={true}>
       <View className="mx-auto w-full max-w-[1000px] px-5 py-8">
-        <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'ভুল প্রশ্ন' }]} />
+        <Breadcrumb trail={[{ label: 'হোম', href: '/' }, { label: 'ভুলসমূহ' }]} />
 
         {/* Header section */}
         <View className="mb-6 border-b border-black/10 pb-6">
@@ -74,7 +78,7 @@ export default function WrongQuestionsScreen() {
           <View className="flex-row flex-wrap items-center justify-between gap-4">
             <View>
               <Text style={{ fontFamily: FONT.displayBlack, fontSize: 26, lineHeight: 34 }}>
-                ভুল হওয়া প্রশ্ন
+                ভুলসমূহ
               </Text>
               <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, marginTop: 4 }}>
                 অনুশীলন ও পরীক্ষায় ভুল উত্তর দেওয়া প্রশ্নগুলো পুনরায় সমাধান করে দুর্বলতা কাটিয়ে উঠুন।
@@ -118,13 +122,13 @@ export default function WrongQuestionsScreen() {
               <CheckCircle2 size={32} color="#059669" />
             </View>
             <Text style={{ fontFamily: FONT.uiBold, fontSize: 18, marginBottom: 6 }}>
-              কোনো ভুল প্রশ্ন সংরক্ষিত নেই
+              কোনো ভুল সংরক্ষিত নেই
             </Text>
             <Text className="max-w-md text-center text-black/60" style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, marginBottom: 20 }}>
-              অনুশীলন বা মক পরীক্ষা সম্পন্ন করার সময় যে প্রশ্নগুলোর উত্তর ভুল হবে, তা স্বয়ংক্রিয়ভাবে এখানে জমা থাকবে যাতে পরে চর্চা করতে পারেন।
+              অনুশীলন বা মক এক্সাম সম্পন্ন করার সময় যে প্রশ্নগুলোর উত্তর ভুল হবে, তা স্বয়ংক্রিয়ভাবে এখানে জমা থাকবে যাতে পরে চর্চা করতে পারেন।
             </Text>
             <Pressable
-              onPress={() => router.push('/practice')}
+              onPress={() => router.push('/practice' as any)}
               className="flex-row items-center gap-2 rounded-xl bg-ink px-5 py-2.5">
               <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
                 অনুশীলনে যান
@@ -137,7 +141,7 @@ export default function WrongQuestionsScreen() {
           <View className="py-20 items-center justify-center gap-3">
             <ActivityIndicator size="small" color="#0A0A0A" />
             <Text className="text-black/60" style={{ fontFamily: FONT.uiMed, fontSize: 14 }}>
-              ভুল প্রশ্নসমূহ আনা হচ্ছে…
+              ভুলসমূহ আনা হচ্ছে…
             </Text>
           </View>
         ) : (
@@ -199,6 +203,7 @@ export default function WrongQuestionsScreen() {
                   revealAll={revealAll}
                   expanded={!!expandedNotes[item.q.id]}
                   onToggleNote={toggleNote}
+                  wrongCount={lib.wrongCounts[item.q.id] ?? 1}
                 />
               ))}
             </View>

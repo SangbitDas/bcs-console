@@ -665,7 +665,7 @@
     {
       "question_number": 32,
       "subject_id": 2,
-      "question": "We were waiting for the bus. The underlined part is-",
+      "question": "We were waiting <u>for the bus</u>. The underlined part is-",
       "option_a": "a noun phrase",
       "option_b": "an infinitive phrase",
       "option_c": "a prepositional phrase",

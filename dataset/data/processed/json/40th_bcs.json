@@ -1041,7 +1041,7 @@
     {
       "question_number": 52,
       "subject_id": 2,
-      "question": "‘He ran with great speed_.’ The underlined part of the sentence is a–",
+      "question": "‘He ran <u>with great speed</u>.’ The underlined part of the sentence is a–",
       "option_a": "noun phrase",
       "option_b": "adverb phrase",
       "option_c": "adjective phrase",

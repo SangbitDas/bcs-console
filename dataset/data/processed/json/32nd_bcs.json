@@ -594,7 +594,7 @@
     {
       "question_number": 29,
       "subject_id": 2,
-      "question": "Choose the word/phrase that best retains the meaning of the underlined word/phrase in the given sentences :\nDespite being a brilliant scientist, he does not seem to get his ideas across.",
+      "question": "Choose the word/phrase that best retains the meaning of the underlined word/phrase in the given sentences :\nDespite being a brilliant scientist, he does not seem to <u>get his ideas across</u>.",
       "option_a": "make his ideas understood",
       "option_b": "get his ideas down pat",
       "option_c": "summarise his ideas",

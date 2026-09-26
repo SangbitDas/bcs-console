@@ -73,6 +73,14 @@
   ],
   "blank_correct_answers": [
     {
+      "exam_slug": "11st_bcs",
+      "question_number": 81
+    },
+    {
+      "exam_slug": "24th_bcs",
+      "question_number": 91
+    },
+    {
       "exam_slug": "25th_bcs",
       "question_number": 65
     },
@@ -85,6 +93,10 @@
       "question_number": 100
     },
     {
+      "exam_slug": "35th_bcs",
+      "question_number": 161
+    },
+    {
       "exam_slug": "36th_bcs",
       "question_number": 113
     },
@@ -95,6 +107,10 @@
     {
       "exam_slug": "38th_bcs",
       "question_number": 83
+    },
+    {
+      "exam_slug": "39th_bcs",
+      "question_number": 58
     },
     {
       "exam_slug": "39th_bcs",
