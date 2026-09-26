@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Platform, Text, type StyleProp, type TextStyle } from 'react-native';
-import { Bn } from './ui';
+import { Bn } from './bn';
 import { hasMathTokens, splitTextAndMath, type TextSegment } from '../lib/mathParser';
 
 export interface MathTextProps {

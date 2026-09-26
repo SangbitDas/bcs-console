@@ -6,12 +6,12 @@ import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, Che
 import { FONT } from '../lib/fonts';
 import { examLabel, fmtTime, optText, shuffle, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions } from '../lib/examAllocation';
-import { useLibrary, type MockRerunConfig, type AttemptAnswerInput } from '../lib/library';
+import { useLibrary, type AttemptAnswerInput } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { useExamStore, type MockPresetCount } from '../store/exam';
 import { useExamGuardStore } from '../store/examGuard';
 import { Btn, Bn, MathText, OptBtn, Tag, type OptState } from '../components/ui';
-import { Breadcrumb, Cols, RecentPracticeRow, SidebarLayout } from '../components/patterns';
+import { Breadcrumb, Cols, SidebarLayout } from '../components/patterns';
 import { ExplanationImage } from '../components/image-lightbox';
 
 const OPT_KEYS = ['A', 'B', 'C', 'D'];
@@ -182,14 +182,6 @@ export default function Exam() {
     });
     const wrongIds = review.filter((r) => r.st === 'wrong').map((r) => r.qid);
     if (wrongIds.length) lib.addWrong(wrongIds);
-    lib.pushRecent({
-      kind: 'mock',
-      label,
-      total: session.length - excluded,
-      right,
-      mockRerun: { count: c.count, minutes: c.minutes },
-    });
-
     // Save full mock attempt to database
     const answers: AttemptAnswerInput[] = session
       .filter((q) => !!q.correct_answer)
@@ -240,12 +232,6 @@ export default function Exam() {
     st.begin(key);
   };
 
-  const applyMockRerun = (r: MockRerunConfig) => {
-    const validCount: MockPresetCount =
-      r.count === 120 || r.count === 100 || r.count === 60 ? r.count : 200;
-    startTier(validCount);
-  };
-
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
       <View
@@ -255,7 +241,6 @@ export default function Exam() {
         {!st.poolKey ? (
           <ConfigView
             subjects={subjects ?? []}
-            onRerun={applyMockRerun}
             onStartTier={startTier}
           />
         ) : st.result ? (
@@ -428,46 +413,20 @@ function DesktopSummaryCard({ subjectNames }: { subjectNames: string[] }) {
 /* ================= Config View ================= */
 function ConfigView({
   subjects,
-  onRerun,
   onStartTier,
 }: {
   subjects: { id: number; subject_bn: string }[];
-  onRerun: (r: MockRerunConfig) => void;
   onStartTier: (count: MockPresetCount) => void;
 }) {
   const { width } = useWindowDimensions();
   const isWide = width >= 860;
-  const lib = useLibrary();
-  const recents = lib.recents.filter((r) => r.kind === 'mock').slice(0, 3);
   const subjectNames = subjects.length ? subjects.map((s) => s.subject_bn) : DEFAULT_SUBJECTS;
 
-  /* Sidebar: format info (desktop only) + recent mocks */
+  /* Sidebar: format info (desktop only) */
   const sidebar = (
     <View className="gap-4">
       {/* Standard Info card on desktop */}
       {isWide && <DesktopSummaryCard subjectNames={subjectNames} />}
-
-      {/* Recent Mocks */}
-      {recents.length > 0 ? (
-        <View>
-          <Text style={{ fontFamily: FONT.uiBold, fontSize: 15, marginBottom: 8 }}>
-            সাম্প্রতিক মক এক্সাম
-          </Text>
-          <View className="overflow-hidden rounded-xl border border-black/10 bg-surface shadow-xs">
-            {recents.map((r) => (
-              <RecentPracticeRow
-                key={r.id}
-                title={r.label}
-                sub="মক এক্সাম"
-                scoreText={`${toBn(r.right)}/${toBn(r.total)}`}
-                pctText={`${toBn(Math.round((r.right / Math.max(1, r.total)) * 100))}% সম্পন্ন`}
-                pct={(r.right / Math.max(1, r.total)) * 100}
-                onPress={() => r.mockRerun && onRerun(r.mockRerun)}
-              />
-            ))}
-          </View>
-        </View>
-      ) : null}
     </View>
   );
 

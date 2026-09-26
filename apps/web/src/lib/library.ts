@@ -28,6 +28,7 @@ export interface MockRerunConfig {
 
 export interface RecentSession {
   id: string;
+  key: string;
   kind: 'practice' | 'mock' | 'custom';
   label: string;
   total: number;
@@ -40,6 +41,8 @@ export interface RecentSession {
   done?: Record<number, { pick: string | null; ok: boolean; reveal?: boolean }>;
   idx?: number;
   completed?: boolean;
+  pinned?: boolean;
+  pinnedAt?: number;
 }
 
 export interface AttemptAnswerInput {
@@ -66,11 +69,138 @@ export interface ExamAttemptInput {
   answers?: AttemptAnswerInput[];
 }
 
+const RECENT_KEEP = 30;
+
+/* Stable identity for a recent session. Recents are deduped (and cloud-merged)
+   by this key, so the same practice config never produces duplicates even
+   across devices. */
+export function recentKey(r: {
+  kind: RecentSession['kind'];
+  label?: string;
+  rerun?: RerunConfig;
+  mockRerun?: MockRerunConfig;
+}): string {
+  const subs = (r.rerun?.subjects ?? []).slice().map(Number).sort((a, b) => a - b).join(',');
+  return [
+    r.kind,
+    r.rerun?.mode ?? '',
+    r.rerun?.exam ?? '',
+    subs,
+    r.rerun?.fromN ?? '',
+    r.rerun?.toN ?? '',
+    r.rerun?.count ?? '',
+    r.rerun?.order ?? '',
+    r.mockRerun ? JSON.stringify(r.mockRerun) : '',
+    r.label ?? '',
+  ].join('|');
+}
+
+/* Pinned first (newest pin wins), then most recent activity. */
+export function sortRecents(list: RecentSession[]): RecentSession[] {
+  return [...list].sort((a, b) => {
+    const ap = a.pinned ? 1 : 0;
+    const bp = b.pinned ? 1 : 0;
+    if (ap !== bp) return bp - ap;
+    if (ap === 1 && bp === 1 && (a.pinnedAt ?? 0) !== (b.pinnedAt ?? 0)) {
+      return (b.pinnedAt ?? 0) - (a.pinnedAt ?? 0);
+    }
+    return (b.at ?? 0) - (a.at ?? 0);
+  });
+}
+
+/* Never evict pinned sessions; keep the newest RECENT_KEEP unpinned ones. */
+export function pruneRecents(list: RecentSession[]): RecentSession[] {
+  const sorted = sortRecents(list);
+  const pinned = sorted.filter((r) => r.pinned);
+  const rest = sorted.filter((r) => !r.pinned).slice(0, RECENT_KEEP);
+  return [...pinned, ...rest];
+}
+
+function mergeDone(
+  a?: RecentSession['done'],
+  b?: RecentSession['done'],
+): RecentSession['done'] {
+  if (!a && !b) return undefined;
+  return { ...(a ?? {}), ...(b ?? {}) };
+}
+
+/* Merge local (on-device) and cloud recents by session key.
+   Newest activity wins for counts; pins are a union; done maps are combined. */
+export function mergeRecents(local: RecentSession[], cloud: RecentSession[]): RecentSession[] {
+  const byKey = new Map<string, RecentSession>();
+  const upsert = (r: RecentSession) => {
+    const existing = byKey.get(r.key);
+    if (!existing) {
+      byKey.set(r.key, r);
+      return;
+    }
+    const newer = (r.at ?? 0) >= (existing.at ?? 0) ? r : existing;
+    const older = newer === r ? existing : r;
+    const pinned = !!existing.pinned || !!r.pinned;
+    byKey.set(r.key, {
+      ...newer,
+      id: existing.id || newer.id,
+      pinned,
+      pinnedAt: pinned ? Math.max(existing.pinnedAt ?? 0, r.pinnedAt ?? 0) || undefined : undefined,
+      completed: !!existing.completed || !!r.completed,
+      wrong: newer.wrong ?? older.wrong,
+      done: mergeDone(older.done, newer.done),
+    });
+  };
+  local.forEach(upsert);
+  cloud.forEach(upsert);
+  return pruneRecents(Array.from(byKey.values()));
+}
+
+function toCloudRow(s: RecentSession, userId: string) {
+  return {
+    user_id: userId,
+    session_key: s.key,
+    kind: s.kind,
+    label: s.label ?? '',
+    total: s.total ?? 0,
+    right_count: s.right ?? 0,
+    wrong_count: s.wrong ?? 0,
+    score: s.score ?? null,
+    rerun: s.rerun ?? null,
+    mock_rerun: s.mockRerun ?? null,
+    done: s.done ?? null,
+    idx: s.idx ?? null,
+    completed: !!s.completed,
+    is_pinned: !!s.pinned,
+    pinned_at: s.pinned ? new Date(s.pinnedAt ?? Date.now()).toISOString() : null,
+    last_active_at: new Date(s.at ?? Date.now()).toISOString(),
+  };
+}
+
+function fromCloudRow(row: any): RecentSession {
+  return {
+    id: String(row.id ?? `${row.session_key}-cloud`),
+    key: String(row.session_key),
+    kind: row.kind,
+    label: row.label ?? '',
+    total: Number(row.total ?? 0),
+    right: Number(row.right_count ?? 0),
+    wrong: row.wrong_count == null ? undefined : Number(row.wrong_count),
+    score: row.score == null ? undefined : Number(row.score),
+    at: row.last_active_at ? Date.parse(row.last_active_at) : Date.now(),
+    rerun: row.rerun ?? undefined,
+    mockRerun: row.mock_rerun ?? undefined,
+    done: row.done ?? undefined,
+    idx: row.idx == null ? undefined : Number(row.idx),
+    completed: !!row.completed,
+    pinned: !!row.is_pinned,
+    pinnedAt: row.pinned_at ? Date.parse(row.pinned_at) : undefined,
+  };
+}
+
 interface LibraryState {
   recents: RecentSession[];
   bookmarks: number[];
   wrongIds: number[];
-  pushRecent: (r: Omit<RecentSession, 'id' | 'at'>) => void;
+  wrongCounts: Record<number, number>;
+  pushRecent: (r: Omit<RecentSession, 'id' | 'at' | 'key'>) => void;
+  togglePinRecent: (key: string) => Promise<void>;
   toggleBookmark: (qid: number) => Promise<void>;
   addWrong: (qids: number[]) => Promise<void>;
   clearWrong: () => Promise<void>;
@@ -84,22 +214,15 @@ export const useLibrary = create<LibraryState>()(
       recents: [],
       bookmarks: [],
       wrongIds: [],
+      wrongCounts: {},
 
-      pushRecent: (r) =>
+      pushRecent: (r) => {
+        const key = recentKey(r);
+        const now = Date.now();
+
         set((s) => {
-          // Find matching recent session by kind, label, exam, and subjects
-          const matchIdx = s.recents.findIndex((item) => {
-            if (item.kind !== r.kind) return false;
-            if (item.label !== r.label) return false;
-            if (item.rerun?.mode !== r.rerun?.mode) return false;
-            if (item.rerun?.exam !== r.rerun?.exam) return false;
-            const itemSubs = (item.rerun?.subjects || []).slice().sort().join(',');
-            const rSubs = (r.rerun?.subjects || []).slice().sort().join(',');
-            return itemSubs === rSubs;
-          });
-
-          const now = Date.now();
-          let nextRecents = [...s.recents];
+          const matchIdx = s.recents.findIndex((item) => item.key === key);
+          const nextRecents = [...s.recents];
 
           if (matchIdx >= 0) {
             const existing = nextRecents[matchIdx];
@@ -107,7 +230,11 @@ export const useLibrary = create<LibraryState>()(
               ...existing,
               ...r,
               id: existing.id,
+              key,
               at: now,
+              // A pin is a user preference - never lose it when the session updates.
+              pinned: existing.pinned,
+              pinnedAt: existing.pinnedAt,
               done: { ...(existing.done || {}), ...(r.done || {}) },
             };
             nextRecents.splice(matchIdx, 1);
@@ -116,12 +243,55 @@ export const useLibrary = create<LibraryState>()(
             nextRecents.unshift({
               ...r,
               id: `${now}-${Math.floor(Math.random() * 1e6)}`,
+              key,
               at: now,
             });
           }
 
-          return { recents: nextRecents.slice(0, 10) };
-        }),
+          return { recents: pruneRecents(nextRecents) };
+        });
+
+        // Fire-and-forget cloud write-through for signed-in users.
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        const session = get().recents.find((x) => x.key === key);
+        if (!session) return;
+        void (async () => {
+          try {
+            await db
+              .from('user_recent_sessions')
+              .upsert(toCloudRow(session, user.id), { onConflict: 'user_id,session_key' });
+          } catch (err) {
+            console.warn('Error syncing recent to cloud:', err);
+          }
+        })();
+      },
+
+      togglePinRecent: async (key) => {
+        // 1. Optimistic local update (pin floats to the top of the list).
+        set((s) => ({
+          recents: pruneRecents(
+            s.recents.map((r) =>
+              r.key === key
+                ? { ...r, pinned: !r.pinned, pinnedAt: !r.pinned ? Date.now() : undefined }
+                : r,
+            ),
+          ),
+        }));
+
+        // 2. Cloud sync if authenticated.
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        const session = get().recents.find((x) => x.key === key);
+        if (!session) return;
+        try {
+          await db
+            .from('user_recent_sessions')
+            .upsert(toCloudRow(session, user.id), { onConflict: 'user_id,session_key' });
+        } catch (err) {
+          console.warn('Error syncing pin to cloud:', err);
+        }
+      },
 
       toggleBookmark: async (qid) => {
         const isBookmarked = get().bookmarks.includes(qid);
@@ -155,23 +325,23 @@ export const useLibrary = create<LibraryState>()(
 
       addWrong: async (qids) => {
         if (!qids.length) return;
-        // 1. Optimistic local update
-        set((s) => ({
-          wrongIds: [...qids, ...s.wrongIds.filter((x) => !qids.includes(x))].slice(0, 300),
-        }));
+        // 1. Optimistic local update: keep the unresolved set + bump lifetime counts.
+        set((s) => {
+          const wrongIds = [...qids, ...s.wrongIds.filter((x) => !qids.includes(x))].slice(0, 300);
+          const wrongCounts = { ...s.wrongCounts };
+          qids.forEach((qid) => {
+            wrongCounts[qid] = (wrongCounts[qid] ?? 0) + 1;
+          });
+          return { wrongIds, wrongCounts };
+        });
 
-        // 2. Cloud sync if authenticated
+        // 2. Cloud sync if authenticated: atomic increment via RPC (see migration
+        //    20260926000100_record_mistakes.sql).
         const user = useAuthStore.getState().user;
         if (!user) return;
 
         try {
-          const rows = qids.map((qid) => ({
-            user_id: user.id,
-            question_id: qid,
-            last_wrong_at: new Date().toISOString(),
-            is_resolved: false,
-          }));
-          await db.from('user_mistakes').upsert(rows, { onConflict: 'user_id,question_id' });
+          await db.rpc('record_mistakes', { p_question_ids: qids });
         } catch (err) {
           console.warn('Error syncing wrong questions to cloud:', err);
         }
@@ -240,6 +410,59 @@ export const useLibrary = create<LibraryState>()(
               })),
               { onConflict: 'user_id,question_id' },
             );
+          }
+
+          // 2b. Merge lifetime wrong counts (mistake bank). Counts are merged with
+          //     max() so repeated syncs never double-count.
+          const { data: cloudCountRows } = await db
+            .from('user_mistakes')
+            .select('question_id,wrong_count')
+            .eq('user_id', user.id);
+
+          const cloudCounts: Record<number, number> = {};
+          ((cloudCountRows ?? []) as any[]).forEach((m) => {
+            cloudCounts[Number(m.question_id)] = Number(m.wrong_count ?? 0);
+          });
+
+          const localCounts = get().wrongCounts;
+          const mergedCounts: Record<number, number> = { ...localCounts };
+          Object.keys(cloudCounts).forEach((k) => {
+            const qid = Number(k);
+            mergedCounts[qid] = Math.max(mergedCounts[qid] ?? 0, cloudCounts[qid]);
+          });
+          set({ wrongCounts: mergedCounts });
+
+          const countsToPush = Object.entries(mergedCounts)
+            .map(([k, v]) => ({ question_id: Number(k), wrong_count: v }))
+            .filter((row) => row.wrong_count > (cloudCounts[row.question_id] ?? 0));
+          if (countsToPush.length > 0) {
+            await db.from('user_mistakes').upsert(
+              countsToPush.map((row) => ({
+                user_id: user.id,
+                question_id: row.question_id,
+                wrong_count: row.wrong_count,
+              })),
+              { onConflict: 'user_id,question_id' },
+            );
+          }
+
+          // 3. Sync recent sessions (pinned + history) both ways.
+          const { data: cloudRecents } = await db
+            .from('user_recent_sessions')
+            .select('*')
+            .eq('user_id', user.id);
+
+          const cloudSessions = ((cloudRecents ?? []) as any[]).map(fromCloudRow);
+          const merged = mergeRecents(get().recents, cloudSessions);
+          set({ recents: merged });
+
+          // Upload the merged set so both sides converge (idempotent upsert).
+          if (merged.length > 0) {
+            await db
+              .from('user_recent_sessions')
+              .upsert(merged.map((r) => toCloudRow(r, user.id)), {
+                onConflict: 'user_id,session_key',
+              });
           }
         } catch (err) {
           console.warn('Error during cloud sync:', err);
@@ -340,7 +563,26 @@ export const useLibrary = create<LibraryState>()(
     {
       name: 'bcs-library',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ recents: s.recents, bookmarks: s.bookmarks, wrongIds: s.wrongIds }),
+      version: 3,
+      // v1 recents had no stable `key`; v3 adds lifetime wrong counts.
+      migrate: (persisted: any) => {
+        const state = persisted ?? {};
+        const recents: RecentSession[] = ((state.recents ?? []) as any[]).map((r) => ({
+          ...r,
+          key: r.key ?? recentKey(r),
+          pinned: !!r.pinned,
+        }));
+        const wrongIds: number[] = state.wrongIds ?? [];
+        const wrongCounts: Record<number, number> =
+          state.wrongCounts ?? Object.fromEntries(wrongIds.map((id) => [id, 1] as const));
+        return { ...state, recents: pruneRecents(recents), wrongCounts };
+      },
+      partialize: (s) => ({
+        recents: s.recents,
+        bookmarks: s.bookmarks,
+        wrongIds: s.wrongIds,
+        wrongCounts: s.wrongCounts,
+      }),
     },
   ),
 );

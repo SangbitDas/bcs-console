@@ -155,8 +155,16 @@ export default function RootLayout() {
           name="custom"
           listeners={createTabListener('/custom')}
           options={{
-            title: 'কাস্টম এক্সাম',
+            title: 'কাস্টম',
             tabBarIcon: ({ color }) => <MaterialIcons name="tune" size={22} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="results"
+          listeners={createTabListener('/results')}
+          options={{
+            title: 'ফলাফল',
+            tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={22} color={color} />,
           }}
         />
         <Tabs.Screen

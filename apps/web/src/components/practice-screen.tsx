@@ -7,7 +7,8 @@ import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Bookmark, BookOpen, 
 import { FONT } from '../lib/fonts';
 import { ERAS, SUBJECT_COUNT, calc36sMinutes, examLabel, examNum, fmtTime, formatDateTimeBn, formatDurationBn, optText, shuffle, slugsInRange, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions, type AllocationResult } from '../lib/examAllocation';
-import { useLibrary, type RerunConfig, type RecentSession, type AttemptAnswerInput } from '../lib/library';
+import { useLibrary, sortRecents, type RerunConfig, type RecentSession, type AttemptAnswerInput } from '../lib/library';
+import { applyRerunConfig } from '../lib/rerun';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
 import { useExamGuardStore } from '../store/examGuard';
@@ -39,6 +40,7 @@ export const QuestionCard = memo(function QuestionCard({
   revealAll,
   expanded,
   onToggleNote,
+  wrongCount,
 }: {
   q: QuestionRow;
   indexLabel: string;
@@ -47,6 +49,7 @@ export const QuestionCard = memo(function QuestionCard({
   revealAll: boolean;
   expanded: boolean;
   onToggleNote: (qid: number) => void;
+  wrongCount?: number;
 }) {
   // Subscribe ONLY to this card's answer + bookmark -> other cards don't re-render.
   const done = usePracticeStore((st) => st.done[q.id]);
@@ -72,6 +75,13 @@ export const QuestionCard = memo(function QuestionCard({
           {!q.correct_answer ? <Tag warn>উৎসে উত্তর নেই</Tag> : null}
         </View>
         <View className="flex-row items-center gap-2">
+          {wrongCount && wrongCount > 0 ? (
+            <View className="rounded-full bg-[#EA0000]/10 px-2.5 py-1">
+              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 12, color: '#EA0000' }}>
+                {`${toBn(wrongCount)} বার ভুল`}
+              </Bn>
+            </View>
+          ) : null}
           <BookmarkBtn active={bookmarked} onPress={() => toggleBookmark(q.id)} />
         </View>
       </View>
@@ -423,97 +433,7 @@ export function PracticeScreen({
   }, [pool.data, s.count, s.order, s.mode, s.runId, s.subjects]);
 
   const applyRerun = (r: RerunConfig, savedSession?: RecentSession) => {
-    const hasProgress = savedSession?.done && Object.keys(savedSession.done).length > 0;
-
-    if (r.mode === 'bookmarks' || r.mode === 'wrong') {
-      if (hasProgress) {
-        s.restoreSession({
-          mode: r.mode,
-          done: savedSession.done,
-          right: savedSession.right,
-          wrong: savedSession.wrong,
-          idx: savedSession.idx ?? 0,
-        });
-      } else {
-        s.setMode(r.mode);
-        s.start();
-      }
-      return;
-    }
-
-    if (r.mode === 'exam' && r.exam) {
-      if (hasProgress) {
-        s.restoreSession({
-          mode: 'exam',
-          exam: r.exam,
-          done: savedSession.done,
-          right: savedSession.right,
-          wrong: savedSession.wrong,
-          idx: savedSession.idx ?? 0,
-        });
-      } else {
-        s.setMode('exam');
-        s.setExam(r.exam);
-        s.start();
-      }
-      router.push(`/practice/exam/${r.exam}` as any);
-      return;
-    }
-
-    if (r.mode === 'subject') {
-      const subId = r.subjects?.[0];
-      if (hasProgress) {
-        s.restoreSession({
-          mode: 'subject',
-          subjects: r.subjects,
-          done: savedSession.done,
-          right: savedSession.right,
-          wrong: savedSession.wrong,
-          idx: savedSession.idx ?? 0,
-        });
-      } else {
-        s.setMode('subject');
-        s.setSubjects(r.subjects);
-        s.start();
-      }
-      if (subId) {
-        router.push(`/practice/subject/${subId}` as any);
-      } else {
-        router.push('/practice/subject' as any);
-      }
-      return;
-    }
-
-    const selectedExams = exams ? slugsInRange(r.fromN, r.toN, exams) : [];
-    if (hasProgress) {
-      s.restoreSession({
-        mode: r.mode,
-        exam: r.exam,
-        exams: selectedExams,
-        subjects: r.subjects,
-        fromN: r.fromN,
-        toN: r.toN,
-        count: r.count,
-        order: r.order,
-        done: savedSession.done,
-        right: savedSession.right,
-        wrong: savedSession.wrong,
-        idx: savedSession.idx ?? 0,
-      });
-    } else {
-      s.setMode(r.mode);
-      s.setExam(r.exam);
-      r.subjects.forEach((id) => {
-        if (!usePracticeStore.getState().subjects.includes(id)) s.toggleSubject(id);
-      });
-      s.setRange(r.fromN, r.toN);
-      if (exams) {
-        s.selectAllExams(selectedExams);
-      }
-      s.setCount(r.count);
-      s.setOrder(r.order);
-      s.start();
-    }
+    applyRerunConfig(r, savedSession, exams);
   };
 
   const scopeLabel = () => {
@@ -566,8 +486,9 @@ export function PracticeScreen({
   }, [answeredCount, s.started, s.finished, s.mode]);
 
   const finishSession = () => {
+    const scorableIds = new Set(session.filter((q) => !!q.correct_answer).map((q) => q.id));
     const wrongIds = Object.entries(s.done)
-      .filter(([, d]) => !d.ok && !d.reveal && d.pick)
+      .filter(([qid, d]) => !d.ok && !!d.pick && scorableIds.has(Number(qid)))
       .map(([qid]) => parseInt(qid, 10));
     if (wrongIds.length) lib.addWrong(wrongIds);
     const customScore = s.mode === 'custom' ? s.right - s.wrong * 0.5 : undefined;
@@ -797,9 +718,13 @@ function HubView({
   onRerun: (r: RerunConfig, savedSession?: RecentSession) => void;
 }) {
   const lib = useLibrary();
-  const recents = lib.recents
-    .filter((r) => r.kind === 'practice' && r.rerun?.mode !== 'custom' && r.score === undefined)
-    .slice(0, 6);
+  // Pinned first, then newest. Hub shows the latest 6; the rest live on /practice/recents.
+  const practiceRecents = sortRecents(
+    lib.recents.filter(
+      (r) => r.kind === 'practice' && r.rerun?.mode !== 'custom' && r.score === undefined,
+    ),
+  );
+  const recents = practiceRecents.slice(0, 6);
 
   const sidebar = (
     <View>
@@ -891,6 +816,8 @@ function HubView({
                       dateText={formatDateTimeBn(r.at)}
                       actionText={isDone ? 'সম্পন্ন • আবার চর্চা' : 'চালিয়ে যান →'}
                       onPress={() => r.rerun && onRerun(r.rerun, r)}
+                      pinned={r.pinned}
+                      onTogglePin={() => lib.togglePinRecent(r.key)}
                     />
                   );
                 })
@@ -930,6 +857,17 @@ function HubView({
               )}
             </View>
           </View>
+
+          {practiceRecents.length > 6 ? (
+            <View className="mb-6 items-center">
+              <Pressable
+                onPress={() => router.push('/practice/recents' as any)}
+                className="flex-row items-center gap-2 rounded-lg border border-black/15 bg-surface px-5 py-2.5 transition-colors hover:border-black/30 active:bg-black/[0.03]">
+                <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13.5 }}>আরও দেখুন</Bn>
+                <ChevronRight size={16} color="#0A0A0A" />
+              </Pressable>
+            </View>
+          ) : null}
 
           {/* Quote card */}
           <QuoteCard />
@@ -1987,11 +1925,13 @@ function SubjectAllQuestionsView({
 
   const activeTimed = mode === 'custom' && isTimed && (timeMinutes ?? 0) > 0;
   const [remain, setRemain] = useState(() => (activeTimed ? timeMinutes * 60 : 0));
+  const remainRef = useRef(activeTimed ? timeMinutes * 60 : 0);
   const [timeExpired, setTimeExpired] = useState(false);
 
   useEffect(() => {
     if (activeTimed) {
       const initial = timeMinutes * 60;
+      remainRef.current = initial;
       setRemain(initial);
       useExamGuardStore.getState().setCustomRemain(initial);
       setTimeExpired(false);
@@ -2001,17 +1941,15 @@ function SubjectAllQuestionsView({
   useEffect(() => {
     if (!activeTimed || timeExpired) return;
     const timer = setInterval(() => {
-      setRemain((prev) => {
-        const next = Math.max(0, prev - 1);
-        useExamGuardStore.getState().setCustomRemain(next);
-        if (next <= 0) {
-          clearInterval(timer);
-          setTimeExpired(true);
-          onFinish();
-          return 0;
-        }
-        return next;
-      });
+      const next = Math.max(0, remainRef.current - 1);
+      remainRef.current = next;
+      setRemain(next);
+      useExamGuardStore.getState().setCustomRemain(next);
+      if (next <= 0) {
+        clearInterval(timer);
+        setTimeExpired(true);
+        onFinish();
+      }
     }, 1000);
     return () => clearInterval(timer);
   }, [activeTimed, timeExpired, onFinish]);

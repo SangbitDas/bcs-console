@@ -52,7 +52,9 @@ export default function WrongQuestionsScreen() {
       q,
       indexLabel: toBn(idx + 1),
       subjectLabel: subjectMap.get(q.subject_id) ?? `বিষয় ${q.subject_id}`,
-      examBadge: `${examLabel(q.exam_slug)} বিসিএস`,
+      examBadge: q.question_number
+        ? `${examLabel(q.exam_slug)} · প্রশ্ন ${toBn(q.question_number)}`
+        : `${examLabel(q.exam_slug)}`,
     }));
   }, [filteredQuestions, subjectMap]);
 
@@ -201,6 +203,7 @@ export default function WrongQuestionsScreen() {
                   revealAll={revealAll}
                   expanded={!!expandedNotes[item.q.id]}
                   onToggleNote={toggleNote}
+                  wrongCount={lib.wrongCounts[item.q.id] ?? 1}
                 />
               ))}
             </View>

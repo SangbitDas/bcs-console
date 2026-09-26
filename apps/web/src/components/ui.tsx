@@ -13,7 +13,8 @@ import { AuthModal } from './auth-modal';
 import { UserAvatar } from './avatar';
 import { MathText } from './math-text';
 import { ExplanationImage } from './image-lightbox';
-export { MathText, ExplanationImage };
+import { Bn } from './bn';
+export { MathText, ExplanationImage, Bn };
 
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
@@ -49,8 +50,11 @@ export function TopBar() {
   const currentTotal = isMockRunning ? mockTotal : (customTotal || 0);
   const currentSubmit = isMockRunning ? mockSubmit : customSubmit;
 
+  const isNarrow = width < 480;
+  const isMobile = width < 640;
+
   return (
-    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-4 sm:px-6 py-2.5 sm:py-3">
+    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-3 sm:px-6 py-2 sm:py-3">
       <Pressable
         onPress={() => {
           if (isAnyExamActive()) {
@@ -60,20 +64,25 @@ export function TopBar() {
           }
         }}
         style={{ cursor: 'pointer' } as any}
-        className="flex-row items-center">
-        <Text style={{ fontFamily: FONT.displayBlack, fontSize: 18 }}>
-          বিসিএস<Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
+        className="flex-row items-center flex-shrink-0">
+        <Text style={{ fontFamily: FONT.displayBlack, fontSize: isNarrow ? 16 : 18 }}>
+          বিসিএস
+          {isNarrow && isExamActive ? null : (
+            <>
+              <Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
+            </>
+          )}
         </Text>
       </Pressable>
 
-      <View className="flex-row items-center gap-2.5 sm:gap-3">
+      <View className="flex-row items-center gap-1.5 sm:gap-3">
         {isExamActive ? (
-          <View className="flex-row items-center gap-1.5 sm:gap-2">
+          <View className="flex-row items-center gap-1 sm:gap-2">
             {/* Timer badge */}
             {currentRemain !== null ? (
-              <View className="flex-row items-center gap-1.5 rounded-lg border border-black/15 bg-surface px-2.5 py-1.5 shadow-2xs">
-                <Clock size={13} color="#EA0000" />
-                <Text style={{ fontFamily: FONT.digitsBold, fontSize: 13, color: '#EA0000' }}>
+              <View className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg border border-black/15 bg-surface px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-2xs">
+                <Clock size={12} color="#EA0000" />
+                <Text style={{ fontFamily: FONT.digitsBold, fontSize: isNarrow ? 12 : 13, color: '#EA0000' }}>
                   {fmtTime(currentRemain)}
                 </Text>
               </View>
@@ -82,12 +91,18 @@ export function TopBar() {
             {/* Answered / উত্তর সম্পন্ন badge */}
             <View
               accessibilityLabel={`উত্তর সম্পন্ন ${toBn(currentAnswered)} / ${toBn(currentTotal)}`}
-              className="flex-row items-center gap-1.5 rounded-lg border border-black/15 bg-surface px-2.5 py-1.5 shadow-2xs">
-              <CheckCircle2 size={13} color="#059669" />
-              <Text style={{ fontFamily: FONT.uiSemi, fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
-                {width >= 640 ? 'উত্তর সম্পন্ন:' : 'উত্তর:'}
-              </Text>
-              <Text style={{ fontFamily: FONT.digitsBold, fontSize: 13, color: '#0A0A0A' }}>
+              className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg border border-black/15 bg-surface px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-2xs">
+              <CheckCircle2 size={12} color="#059669" />
+              {width >= 640 ? (
+                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
+                  উত্তর সম্পন্ন:
+                </Text>
+              ) : width >= 480 ? (
+                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 11.5, color: 'rgba(0,0,0,0.65)' }}>
+                  উত্তর:
+                </Text>
+              ) : null}
+              <Text style={{ fontFamily: FONT.digitsBold, fontSize: isNarrow ? 12 : 13, color: '#0A0A0A' }}>
                 {`${toBn(currentAnswered)}/${toBn(currentTotal)}`}
               </Text>
             </View>
@@ -100,8 +115,8 @@ export function TopBar() {
                 }
               }}
               style={{ cursor: 'pointer' } as any}
-              className="flex-row items-center gap-1.5 rounded-lg bg-[#EA0000] px-3 py-1.5 shadow-2xs transition-all hover:bg-red-700 active:scale-95">
-              <CheckCircle2 size={13} color="#FFFFFF" strokeWidth={2.2} />
+              className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg bg-[#EA0000] px-2.5 sm:px-3 py-1 sm:py-1.5 shadow-2xs transition-all hover:bg-red-700 active:scale-95">
+              <CheckCircle2 size={12} color="#FFFFFF" strokeWidth={2.2} />
               <Text className="text-white text-xs font-bold" style={{ fontFamily: FONT.uiBold }}>
                 জমা দিন
               </Text>
@@ -114,29 +129,37 @@ export function TopBar() {
             onPress={() => setAuthOpen(true)}
             accessibilityRole="button"
             accessibilityLabel="প্রোফাইল মেনু"
-            className="flex-row items-center gap-2 rounded-full border border-black/15 bg-surface py-1 px-2.5 transition-all hover:border-black/35 hover:shadow-xs active:scale-95">
+            className={`flex-row items-center gap-1.5 sm:gap-2 rounded-full border border-black/15 bg-surface transition-all hover:border-black/35 hover:shadow-xs active:scale-95 ${
+              isExamActive && isMobile ? 'p-1' : 'py-1 px-2.5'
+            }`}>
             <UserAvatar
               url={profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture}
               name={profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name}
-              size={24}
+              size={isExamActive && isMobile ? 22 : 24}
             />
-            <Bn
-              className="text-black/80 font-medium"
-              style={{ fontFamily: FONT.uiSemi, fontSize: 13, maxWidth: 120 }}
-              numberOfLines={1}>
-              {profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'প্রোফাইল'}
-            </Bn>
+            {!(isExamActive && isMobile) ? (
+              <Bn
+                className="text-black/80 font-medium"
+                style={{ fontFamily: FONT.uiSemi, fontSize: 13, maxWidth: 120 }}
+                numberOfLines={1}>
+                {profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || 'প্রোফাইল'}
+              </Bn>
+            ) : null}
           </Pressable>
         ) : (
           <Pressable
             onPress={() => setAuthOpen(true)}
             accessibilityRole="button"
             accessibilityLabel="লগইন করুন"
-            className="flex-row items-center gap-1.5 rounded-full border border-black/20 bg-surface py-1.5 px-3.5 shadow-2xs transition-all hover:border-black/50 hover:shadow-xs active:scale-95">
+            className={`flex-row items-center gap-1.5 rounded-full border border-black/20 bg-surface shadow-2xs transition-all hover:border-black/50 hover:shadow-xs active:scale-95 ${
+              isExamActive && isMobile ? 'p-1.5' : 'py-1.5 px-3.5'
+            }`}>
             <UserIcon size={14} color="#0A0A0A" />
-            <Bn className="text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-              লগইন
-            </Bn>
+            {!(isExamActive && isMobile) ? (
+              <Bn className="text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                লগইন
+              </Bn>
+            ) : null}
           </Pressable>
         )}
       </View>
@@ -218,82 +241,6 @@ export function Chip({
   );
 }
 
-/* ---------- Bangla text: rendered in Noto Sans Bengali ---------- */
-export function Bn({
-  children,
-  style,
-  className,
-  bold,
-  numberOfLines,
-}: {
-  children?: React.ReactNode;
-  style?: StyleProp<TextStyle>;
-  className?: string;
-  bold?: boolean;
-  numberOfLines?: number;
-}) {
-  if (children === undefined || children === null) return null;
-
-  const flatStyle = (StyleSheet.flatten(style) || {}) as TextStyle;
-  const baseFont = flatStyle.fontFamily || (bold ? FONT.uiBold : FONT.ui);
-  /* Bengali digit runs must always render in Noto Sans Bengali, even if a caller
-     passes a non-Bengali font for surrounding Latin text. */
-  const baseFam = flatStyle.fontFamily ? String(flatStyle.fontFamily) : '';
-  const digitFont = bold
-    ? FONT.digitsBold
-    : baseFam.startsWith('NotoSansBengali')
-      ? baseFam
-      : FONT.digitsReg;
-
-  if (typeof children === 'string' || typeof children === 'number') {
-    const parts = String(children).split(/([০-৯]+)/g);
-    if (parts.length === 1 && !/^[০-৯]+$/.test(parts[0])) {
-      return (
-        <Text
-          numberOfLines={numberOfLines}
-          style={[{ fontFamily: baseFont }, style]}
-          className={className}>
-          {children}
-        </Text>
-      );
-    }
-    return (
-      <Text
-        numberOfLines={numberOfLines}
-        style={[{ fontFamily: baseFont }, style]}
-        className={className}>
-        {parts.map((p, i) =>
-          /^[০-৯]+$/.test(p) ? (
-            <Text
-              key={i}
-              style={{
-                fontFamily: digitFont,
-              }}>
-              {p}
-            </Text>
-          ) : (
-            <Text
-              key={i}
-              style={{
-                fontFamily: baseFont,
-              }}>
-              {p}
-            </Text>
-          ),
-        )}
-      </Text>
-    );
-  }
-
-  return (
-    <Text
-      numberOfLines={numberOfLines}
-      style={[{ fontFamily: baseFont }, style]}
-      className={className}>
-      {children}
-    </Text>
-  );
-}
 /* ---------- Small tag ---------- */
 export function Tag({ children, warn }: { children: string; warn?: boolean }) {
   return (

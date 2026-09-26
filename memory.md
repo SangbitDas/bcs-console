@@ -1,5 +1,137 @@
 # BCS Console — migration memory (maintained, newest first)
 
+## 2026-09-26 — Results History Retention (50/type) + "আরও দেখুন" Paging
+
+- **DB:** new migration `supabase/migrations/20260926000200_prune_exam_attempts.sql` (applied live)
+  - `public.prune_exam_attempts()` — `AFTER INSERT` trigger on `exam_attempts`,
+    `security definer` + `search_path = public`; retains the newest **50** rows per
+    `(user_id, exam_type)`. Older rows are deleted and their `attempt_answers` go away
+    via `ON DELETE CASCADE`.
+  - `EXECUTE` revoked from `public, anon, authenticated` (trigger functions need no grant).
+  - One-time cleanup CTE enforces the cap for rows inserted before the trigger existed.
+  - Verified inside a rolled-back transaction: +55 `mock` inserts → exactly 50 kept,
+    0 orphan `attempt_answers`, rollback restored the original 4.
+- **Query (`apps/web/src/hooks/queries.ts`):** `useExamResults` limit 200 → 100
+  (50 custom + 50 mock is now the maximum).
+- **UI (`apps/web/src/components/results-screen.tsx`):** each section (কাস্টম / মক)
+  shows the first **10** rows; a new `ShowMoreRow` footer ("আরও দেখুন (Nটি বাকি)")
+  reveals +`SECTION_PAGE` (10) per tap until everything is shown. Summary card still
+  uses the latest 10 combined (`SUMMARY_LIMIT`).
+- **Note:** practice also writes `exam_type` = `exam` / `subject`; those are capped at 50
+  each too, but are not listed in the ফলাফল tab (it filters custom + mock).
+- **Verification:** `tsc --noEmit` 0 errors; `expo export --platform web` bundled OK.
+
+## 2026-09-26 — Wrong-List: Show Source Question Number
+
+- **Feature:** every card in ভুলসমূহ now shows the source question number
+  of that BCS exam in its exam badge, e.g. `১০তম বিসিএস · প্রশ্ন ৫`.
+- **Change (`apps/web/src/app/wrong.tsx`):** `examBadge` is now
+  `${examLabel(q.exam_slug)} · প্রশ্ন ${toBn(q.question_number)}` (falls back to just
+  `examLabel(...)` when `question_number` is falsy). Also dropped the stray
+  duplicate ` বিসিএস` suffix — `examLabel()` already ends with `বিসিএস`.
+- **Data:** no DB change; `question_number` was already selected via
+  `useQuestionPool` (`select('*')` on `v_questions_with_images`).
+- **Verification:** `tsc --noEmit` 0 errors; `expo export --platform web` bundled OK.
+
+## 2026-09-26 — Wrong-List Per-Question Counts (কতবার ভুল করেছি)
+
+- **DB:** `user_mistakes.wrong_count` already existed but was never incremented — the
+  old `addWrong` used a plain upsert that left it at the default 1. Added migration
+  `supabase/migrations/20260926000100_record_mistakes.sql` with an atomic RPC:
+  `public.record_mistakes(bigint[])` → `INSERT ... ON CONFLICT DO UPDATE SET
+  wrong_count = wrong_count + 1, last_wrong_at = now(), is_resolved = false`
+  (`security invoker`, RLS-scoped to `auth.uid()`; EXECUTE revoked from `anon`).
+  Applied + verified live (1 -> 2 in a rolled-back transaction).
+- **Store (`apps/web/src/lib/library.ts`):**
+  - New persisted `wrongCounts: Record<number, number>` (lifetime wrong count per question).
+  - `addWrong` bumps local counts and calls `db.rpc('record_mistakes', { p_question_ids })`.
+  - `syncCloud` merges counts with **max()** (never double-counts) and pushes local
+    counts greater than cloud.
+  - persist `version: 3` + migrate seeds `wrongCounts` from existing `wrongIds` (value 1).
+- **UI:** `QuestionCard` (`apps/web/src/components/practice-screen.tsx`) gains an optional
+  `wrongCount` prop rendering a red pill (`{toBn(n)} বার ভুল`) beside the bookmark button;
+  `apps/web/src/app/wrong.tsx` passes `lib.wrongCounts[item.q.id] ?? 1`.
+- **Note:** historical `user_mistakes` rows keep `wrong_count = 1` (not reconstructable);
+  counts increment from now on.
+- **Verification:** `tsc --noEmit` 0 errors; `expo export --platform web` bundled OK.
+
+## 2026-09-26 — Result Insight Review Lists, Wrong-List Fixes, Mock Recents Removed
+
+- **Result insight (`/results/[id]`) review lists:** after the subject breakdown, the
+  screen now renders two sections — **ভুল উত্তর** first, then **উত্তর দেওয়া হয়নি** —
+  each question with options, the correct answer highlighted, the user's wrong pick
+  marked, and the explanation (`solve_note` + solve-note images) expanded by default.
+  New `ReviewQuestionCard` in `apps/web/src/components/results-screen.tsx`.
+  - Data: new hook `useAttemptAnswers(attemptId, userId)` (raw per-question rows,
+    ordered by id) in `apps/web/src/hooks/queries.ts`; question content fetched by ids
+    via the existing `useQuestionPool` (normalized, paginated).
+- **ভুলসমূহ fixes (`apps/web/src/components/practice-screen.tsx`, `finishSession`):**
+  - Removed the `!d.reveal` condition — a wrong answer that the user later revealed is
+    now added to the wrong list.
+  - Added a `scorableIds` filter — defective (blank `correct_answer`) questions are never
+    added to the wrong list. (Mock already excluded them; custom excludes them at allocation.)
+- **Mock recents removed (`apps/web/src/app/exam.tsx`):**
+  - Deleted the "সাম্প্রতিক মক এক্সাম" sidebar card and the `lib.pushRecent({ kind:'mock' })`
+    call, plus the now-dead `onRerun`/`applyMockRerun` chain and unused imports.
+  - Mock results still save to `exam_attempts`/`attempt_answers` (ফলাফল tab unaffected).
+- **Verification:** `tsc --noEmit` 0 errors; `expo export --platform web` bundled OK.
+
+## 2026-09-26 — ফলাফল (Results) Tab: Custom & Mock Exam Results + Subject Analytics
+
+- **Feature:** new bottom-bar tab "ফলাফল" (`/results`) showing completed custom and
+  mock exam results with date/time, split into two sections (কাস্টম এক্সাম / মক এক্সাম).
+  Tapping a result opens `/results/[id]` — an insight screen with per-subject
+  attempted / right / wrong (no per-question wrong/unattempted answers).
+- **Summary card:** top of the results list aggregates the **latest 10 exams**
+  (custom + mock combined) across all 10 subjects → attempted / right / wrong /
+  accuracy, plus overall totals.
+- **Storage:** reuses existing `exam_attempts` + `attempt_answers`
+  (phase-2 migration). **No new migration needed.** Only completed exams are stored
+  (insert happens in `saveExamAttempt` on finish/submit); `exam_type` filtered to
+  `custom` + `mock`. Results are DB-backed, so they require login — guests see a
+  login prompt (`AuthModal`) in the tab.
+- **Queries (`apps/web/src/hooks/queries.ts`):** `useExamResults` (newest-first list,
+  limit 200), `useExamResultDetail` (single attempt), `useAttemptSubjectStats`
+  (per-subject attempted/right/wrong, paginated in 1000-row chunks to bypass the
+  PostgREST max-rows cap).
+- **UI:** `apps/web/src/components/results-screen.tsx` (`ResultsScreen`,
+  `ResultInsightScreen`); routes `apps/web/src/app/results/{_layout,index,[id]}.tsx`;
+  tab wired in `apps/web/src/app/_layout.tsx` (bar-chart icon) + exam-guard listener.
+- **Note:** `time_spent_seconds` is meaningful for mock exams; custom practice currently
+  saves 0, so duration is hidden when 0. Follow-up: track elapsed time for custom.
+- **Verification:** `tsc --noEmit` 0 errors; `expo export --platform web` bundled OK
+  with `/results` and `/results/[id]` routes present.
+
+## 2026-09-26 — Recent Practice Pinning + Cloud Sync (Option C: recents in DB)
+
+- **Feature:** "সাম্প্রতিক অনুশীলন" now supports pinning. Hub shows the latest 6
+  (pinned first); a "আরও দেখুন" button opens `/practice/recents` showing the last 30
+  with pinned floated to the top.
+- **DB:** new `public.user_recent_sessions` table
+  (`supabase/migrations/20260926000000_user_recent_sessions.sql`), RLS owner-only
+  (select/insert/update/delete), unique `(user_id, session_key)`, indexes
+  `(user_id, is_pinned desc, last_active_at desc)` and `(user_id, last_active_at desc)`.
+  Applied via new `scripts/apply_migration.py <file.sql>` (psycopg pooler from `.env`).
+- **Store (`apps/web/src/lib/library.ts`):**
+  - `RecentSession` gains `key` (stable identity via `recentKey()`), `pinned`, `pinnedAt`.
+  - `pushRecent` dedupes by `key`, preserves the pin on update, retains all pinned +
+    newest 30 unpinned (`pruneRecents`), and write-through upserts to cloud when signed in.
+  - `togglePinRecent(key)` = optimistic local pin toggle + cloud upsert.
+  - `syncCloud()` now merges recents both ways (`mergeRecents`: newest activity wins,
+    pins union, `done` maps merged) and upserts the merged set. Triggered automatically
+    on login via `fetchOrCreateProfile` + auth state change.
+  - persist `version: 2` + `migrate` backfills `key` for pre-existing on-device recents.
+- **UI:**
+  - `RecentPracticeCard` gains `pinned` / `onTogglePin` (pin button, brand red when
+    pinned) and `fullWidth`.
+  - New `apps/web/src/components/recents-screen.tsx` + route
+    `apps/web/src/app/practice/recents.tsx`.
+  - `applyRerunConfig` extracted to `apps/web/src/lib/rerun.ts` (shared by hub + list).
+- **Anonymous users:** everything stays local; on login the local set merges into the
+  cloud and converges (guest -> account migration is automatic).
+- **Verification:** `tsc --noEmit` 0 errors; `expo export --platform web` bundled OK with
+  `/practice/recents` route present.
+
 ## 2026-09-25 — Fixed False "All Correct" Praise When Zero Questions Attempted
 - **Issue Reported**:
   - In Custom Exam / Practice result screen, when a user submitted without answering any questions (`attempted === 0`, `score = 0/51`), the review card falsely displayed:

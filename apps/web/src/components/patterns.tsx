@@ -11,6 +11,7 @@ import {
   Home,
   Info,
   Minus,
+  Pin,
   type LucideIcon,
 } from 'lucide-react';
 import { Children, useMemo, useState, type ReactNode } from 'react';
@@ -646,6 +647,9 @@ export function RecentPracticeCard({
   dateText,
   actionText,
   onPress,
+  pinned,
+  onTogglePin,
+  fullWidth,
 }: {
   title: string;
   sub: string;
@@ -655,11 +659,14 @@ export function RecentPracticeCard({
   dateText?: string;
   actionText?: string;
   onPress: () => void;
+  pinned?: boolean;
+  onTogglePin?: () => void;
+  fullWidth?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      className="group min-h-[148px] flex-1 basis-[280px] justify-between rounded-xl border border-black/10 bg-surface p-4 shadow-xs transition-all hover:border-black/30 hover:shadow-sm active:scale-[0.99] active:bg-black/[0.02]">
+      className={`group min-h-[148px] ${fullWidth ? 'w-full' : 'flex-1 basis-[280px]'} justify-between rounded-xl border border-black/10 bg-surface p-4 shadow-xs transition-all hover:border-black/30 hover:shadow-sm active:scale-[0.99] active:bg-black/[0.02]`}>
       {/* Top: Title & Date Badge in visible bold black font */}
       <View>
         <View className="flex-row items-start justify-between gap-2">
@@ -676,18 +683,38 @@ export function RecentPracticeCard({
             </Bn>
           </View>
 
-          {dateText ? (
-            <View className="rounded-md border border-black/15 bg-black/[0.05] px-2.5 py-1">
-              <Bn
-                style={{
-                  fontFamily: FONT.uiBold,
-                  fontSize: 12,
-                  color: '#0A0A0A',
-                }}>
-                {dateText}
-              </Bn>
-            </View>
-          ) : null}
+          <View className="flex-row items-center gap-1.5">
+            {dateText ? (
+              <View className="rounded-md border border-black/15 bg-black/[0.05] px-2.5 py-1">
+                <Bn
+                  style={{
+                    fontFamily: FONT.uiBold,
+                    fontSize: 12,
+                    color: '#0A0A0A',
+                  }}>
+                  {dateText}
+                </Bn>
+              </View>
+            ) : null}
+
+            {onTogglePin ? (
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onTogglePin();
+                }}
+                accessibilityLabel={pinned ? 'আনপিন করুন' : 'পিন করুন'}
+                className={`h-7 w-7 items-center justify-center rounded-md border transition-colors active:bg-black/[0.08] ${
+                  pinned ? 'border-[#EA0000] bg-[#EA0000]/10' : 'border-black/15 bg-black/[0.04]'
+                }`}>
+                <Pin
+                  size={14}
+                  color={pinned ? '#EA0000' : 'rgba(0,0,0,0.45)'}
+                  fill={pinned ? '#EA0000' : 'none'}
+                />
+              </Pressable>
+            ) : null}
+          </View>
         </View>
       </View>
 
