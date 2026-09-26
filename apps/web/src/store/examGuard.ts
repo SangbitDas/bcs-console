@@ -5,16 +5,30 @@ import { usePracticeStore } from './practice';
 interface ExamGuardState {
   showQuitModal: boolean;
   pendingNavigation: (() => void) | null;
+  customRemain: number;
+  customTotal: number;
+  customSubmit: (() => void) | null;
   openQuitModal: (onConfirm?: () => void) => void;
   closeQuitModal: () => void;
   confirmQuit: () => void;
+  setCustomRemain: (remain: number) => void;
+  setCustomLive: (params: { total?: number; onSubmit?: (() => void) | null }) => void;
 }
 
 export const useExamGuardStore = create<ExamGuardState>((set, get) => ({
   showQuitModal: false,
   pendingNavigation: null,
+  customRemain: 0,
+  customTotal: 0,
+  customSubmit: null,
   openQuitModal: (onConfirm) => set({ showQuitModal: true, pendingNavigation: onConfirm ?? null }),
   closeQuitModal: () => set({ showQuitModal: false, pendingNavigation: null }),
+  setCustomRemain: (customRemain) => set({ customRemain }),
+  setCustomLive: ({ total, onSubmit }) =>
+    set((s) => ({
+      customTotal: total !== undefined ? total : s.customTotal,
+      customSubmit: onSubmit !== undefined ? onSubmit : s.customSubmit,
+    })),
   confirmQuit: () => {
     const nav = get().pendingNavigation;
 
@@ -29,7 +43,13 @@ export const useExamGuardStore = create<ExamGuardState>((set, get) => ({
       pState.backToPicker();
     }
 
-    set({ showQuitModal: false, pendingNavigation: null });
+    set({
+      showQuitModal: false,
+      pendingNavigation: null,
+      customRemain: 0,
+      customTotal: 0,
+      customSubmit: null,
+    });
 
     if (nav) {
       nav();

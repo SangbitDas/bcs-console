@@ -616,6 +616,30 @@ export function PracticeScreen({
     s.finish();
   };
 
+  const finishSessionRef = useRef(finishSession);
+  finishSessionRef.current = finishSession;
+
+  // Register Custom Exam live stats (total questions and submit handler) in useExamGuardStore
+  useEffect(() => {
+    if (s.mode === 'custom' && s.started && !s.finished) {
+      useExamGuardStore.getState().setCustomLive({
+        total: session.length,
+        onSubmit: () => finishSessionRef.current(),
+      });
+    } else {
+      useExamGuardStore.getState().setCustomLive({
+        total: 0,
+        onSubmit: null,
+      });
+    }
+    return () => {
+      useExamGuardStore.getState().setCustomLive({
+        total: 0,
+        onSubmit: null,
+      });
+    };
+  }, [s.mode, s.started, s.finished, session.length]);
+
   /* Virtualized list modes need a bounded-height container (no outer
      ScrollView) so FlashList can recycle rows instead of mounting all. */
   const isVirtualList =
@@ -1969,7 +1993,7 @@ function SubjectAllQuestionsView({
     if (activeTimed) {
       const initial = timeMinutes * 60;
       setRemain(initial);
-      usePracticeStore.getState().setRemain(initial);
+      useExamGuardStore.getState().setCustomRemain(initial);
       setTimeExpired(false);
     }
   }, [activeTimed, timeMinutes, runId]);
@@ -1979,7 +2003,7 @@ function SubjectAllQuestionsView({
     const timer = setInterval(() => {
       setRemain((prev) => {
         const next = Math.max(0, prev - 1);
-        usePracticeStore.getState().setRemain(next);
+        useExamGuardStore.getState().setCustomRemain(next);
         if (next <= 0) {
           clearInterval(timer);
           setTimeExpired(true);
@@ -1991,19 +2015,6 @@ function SubjectAllQuestionsView({
     }, 1000);
     return () => clearInterval(timer);
   }, [activeTimed, timeExpired, onFinish]);
-
-  // Register Custom Exam total questions & submit handler for top nav TopBar
-  useEffect(() => {
-    if (mode === 'custom') {
-      usePracticeStore.getState().setTotalQuestions(session.length);
-      usePracticeStore.getState().registerSubmitHandler(() => onFinish());
-    } else {
-      usePracticeStore.getState().registerSubmitHandler(null);
-    }
-    return () => {
-      usePracticeStore.getState().registerSubmitHandler(null);
-    };
-  }, [mode, session.length, onFinish]);
 
   // Selected exam slugs for filtering (default: empty = all questions appear, but no tickmarks)
   const [selectedExamSlugs, setSelectedExamSlugs] = useState<string[]>([]);

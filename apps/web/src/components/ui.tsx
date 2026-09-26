@@ -28,11 +28,11 @@ export function TopBar() {
 
   // Custom Exam state
   const isCustomRunning = usePracticeStore((s) => s.mode === 'custom' && s.started && !s.finished);
-  const customRemain = usePracticeStore((s) => s.remain);
   const customTimed = usePracticeStore((s) => s.isTimed);
   const customDone = usePracticeStore((s) => s.done);
-  const customTotal = usePracticeStore((s) => s.totalQuestions);
-  const customSubmit = usePracticeStore((s) => s.onSubmitExam);
+  const customRemain = useExamGuardStore((s) => s.customRemain);
+  const customTotal = useExamGuardStore((s) => s.customTotal);
+  const customSubmit = useExamGuardStore((s) => s.customSubmit);
 
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
