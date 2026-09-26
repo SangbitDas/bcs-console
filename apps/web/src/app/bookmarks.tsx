@@ -5,6 +5,7 @@ import { Bookmark, Play, Trash2, ArrowRight } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { examLabel, toBn, type QuestionRow } from '../lib/format';
 import { useLibrary } from '../lib/library';
+import { usePracticeStore } from '../store/practice';
 import { useQuestionPool, useSubjects } from '../hooks/queries';
 import { Bn, Btn, Tag } from '../components/ui';
 import { Breadcrumb } from '../components/patterns';
@@ -60,7 +61,8 @@ export default function BookmarksScreen() {
   }, []);
 
   const startInteractivePractice = () => {
-    router.push({ pathname: '/practice' as any, params: { mode: 'bookmarks' } });
+    usePracticeStore.getState().backToHub();
+    router.push('/practice' as any);
   };
 
   return (

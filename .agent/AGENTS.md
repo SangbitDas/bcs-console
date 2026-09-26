@@ -6,9 +6,8 @@
 > do not re-run any pipeline.
 
 ## 1. Repo map (pruned for migration — what stayed and why)
-
 ```
-dataset/bcs_preliminary_question_bank.json  # CANONICAL seed source (merged, 41 exams)
+dataset/bcs_preliminary_question_bank.json  # CANONICAL seed source (merged, 41 exams, 5350 questions)
 dataset/data/processed/json/*_bcs.json      # 41 per-exam JSONs — dump fallback / diffing only
 dataset/schema.md                           # Schema spec + validation checklist (type source of truth)
 dataset/topics_taxonomy.md                  # Ground-truth subjects, IDs 1..10 (NEVER rename)
@@ -20,6 +19,12 @@ dataset/LICENSE                             # MIT — covers tooling/code you wr
 dataset_manifest.json                       # Machine-verified counts (2026-09-10) — OVERRIDES stale counts elsewhere
 image_manifest.csv                          # 799 referenced image storage keys (upload list, 1:1 local→bucket)
 SUPABASE_AGENT_BRIEF.md                     # Migration task brief (schema/RLS/seed/storage/API/admin)
+apps/web/src/lib/mathParser.ts              # KaTeX math vs prose parser (protects English prose/slashes from KaTeX)
+apps/web/src/lib/questionPatch.ts           # Client-side question defect normalization (STRICTLY idempotent)
+apps/web/src/components/math-text.tsx       # MathText renderer (handles rich tags <u>/<b> and inline KaTeX)
+scripts/comprehensive_audit.py              # Full 5,350-question KaTeX vs prose rendering audit script
+scripts/update_supabase_english.py          # Synchronizes repaired question content to live Supabase Postgres
+scripts/patch-dataset.js                    # Synchronizes question repairs to merged & per-exam JSON files
 ```
 
 Removed before migration (do not resurrect): `dataset/pipeline/*.py`
@@ -42,6 +47,12 @@ Removed before migration (do not resurrect): `dataset/pipeline/*.py`
   (`dataset/schema.md` / `README.md` saying 825/790 are stale — trust the manifest.)
 - **8 rows have blank `correct_answer` (defective source — DO NOT invent):**
   `25th q65, 26th q91, 34th q100, 36th q113, 36th q120, 38th q83, 39th q76, 47th q110`.
+- **48 English questions repaired (3-Way Synced):**
+  Defects in English Language & Literature (missing blanks, missing underlines, corrupted options, typos)
+  are synchronized 3 ways:
+  1. Frontend patch layer: `apps/web/src/lib/questionPatch.ts`
+  2. Local JSON files: `dataset/bcs_preliminary_question_bank.json` + 23 individual exam JSONs
+  3. Live Supabase database: `public.questions` table via `scripts/update_supabase_english.py`.
 - Every question carries `exam_slug` matching `^\d+(st|nd|rd|th)_bcs$` and its file stem.
   Merged DB sorted by `(exam_num, question_number)`. Encoding: UTF-8 Bangla+English, mojibake repaired.
 - **Image binaries are vendored in this repo at `dataset/images/`**
@@ -77,28 +88,20 @@ Taxonomy IDs 1..10 are fixed (`dataset/topics_taxonomy.md`): 1 Bangla, 2 English
 6 General Science, 7 Computer & IT, 8 Mathematical Reasoning, 9 Mental Ability,
 10 Ethics/Values/Governance.
 
-## 4. Supabase build (your job — details in `SUPABASE_AGENT_BRIEF.md` §3)
+## 4. Architecture & Rendering Rules
 
-1. **Schema** (`supabase/migrations/*.sql`): `subjects` (10 fixed rows) → `exams`
-   (slug PK or id+unique slug, title, date, total_marks, set_code, total_questions) →
-   `questions` (exam FK, question_number, subject FK, question/option_a..d/solve_note TEXT,
-   correct_answer NULLABLE char(1) + check, image path columns or normalized
-   `question_images` table, `has_*` booleans/generated, `search_vector` for Bangla+English FTS).
-   Unique `(exam_id, question_number)`. Indexes: `(exam_id, question_number)`,
-   `(subject_id)`, `(has_image)`, FTS GIN.
-2. **RLS:** anon `SELECT` on exams/questions/images; writes `service_role` only
-   (extensible later for bookmarks/progress).
-3. **Seed (idempotent)** e.g. `scripts/seed.*`: read
-   `dataset/bcs_preliminary_question_bank.json`, upload `images/` → Storage bucket
-   (e.g. `bcs-images/<exam_slug>/q<N>_img<K>.ext`, public read + cache headers) using
-   `image_manifest.csv` as upload list, insert rows with storage/public URLs.
-   Chunk inserts; re-run safe; validate `exam.total_questions == len(questions)` and every referenced path exists.
-4. **Storage:** default Supabase Storage (same project, RLS, CDN); compare vs R2/S3 in design doc.
-   Images are paths/URLs in DB, NEVER base64.
-5. **API:** PostgREST examples — list exams, filter `?exam_slug=&subject_id=&has_image=`,
-   FTS search, fetch one question with images, pagination.
-6. **Admin flow:** 51st BCS = new per-exam JSON + images → same seed script, no downtime.
-   Keep per-exam JSONs as dump fallback + Supabase PITR.
+1. **Schema & RLS:**
+   - `questions`: `(exam_id, question_number)` unique index, FK to `exams` and `subjects`.
+   - Anon `SELECT` allowed on exams/questions/images; writes strictly `service_role`.
+2. **Typography & Formula Parsing (`MathText` + `mathParser.ts`):**
+   - High-fidelity KaTeX inline rendering for mathematical fractions, radicals, powers, and chemical formulas.
+   - **Prose Protection:** English or Bengali prose is NEVER converted into KaTeX equations.
+   - Text with $\ge 2$ English words is recognized as prose and excluded from `isPureMathExpr`.
+   - Common word slashes (`a/an`, `word/phrase`, `TCP/IP`, `and/or`, `either/or`, `his/her`, `I/O`, `w/o`, `km/h`) are protected from being parsed as vertical fractions ($\frac{a}{an}$).
+   - HTML tags (`<u>`, `</b>`, `<i>`) are stripped before relational inequality checking (`<`, `>`).
+3. **Question Normalization Idempotency (`questionPatch.ts`):**
+   - Questions patched in `questionPatch.ts` MUST be strictly idempotent. If the incoming question from Supabase or JSON already contains the fix (e.g. `<u>word</u>` or `_____`), the patcher must NOT duplicate tags or blanks.
+4. **Storage:** Supabase Storage bucket `bcs-images`. Images are relative paths in DB, never base64.
 
 ## 5. Hard constraints (do not violate)
 
@@ -106,6 +109,7 @@ Taxonomy IDs 1..10 are fixed (`dataset/topics_taxonomy.md`): 1 Bangla, 2 English
 - Blank-`correct_answer` semantics (§2): keep 8 rows blank, never fill.
 - `question`/`solve_note` empty ONLY with non-empty respective image array; flags MUST equal array emptiness.
 - DB UTF8; Bangla stays real Unicode. No `question_html`, no generic `image_paths`.
+- KaTeX parser must NEVER convert regular English prose, sentences, or word-slashes into math mode.
 - Read-heavy design; admin writes only.
 - **Licensing:** code you write = your license; QUESTION DATA + IMAGES stay under
   `dataset/DATA_LICENSE.md` (third-party copyright: uttoron.academy/PSC; educational/research
@@ -117,16 +121,17 @@ Taxonomy IDs 1..10 are fixed (`dataset/topics_taxonomy.md`): 1 Bangla, 2 English
 ## 6. Validation (must pass before calling migration done)
 
 - Pre-seed: merged JSON parses UTF-8; 41 exams / 5,350 questions; per-exam counts match §2;
-  `question_number` sequential per exam; taxonomy match; no mojibake (`à¦, à§, â€, Â, �`);
+  `question_number` sequential per exam; taxonomy match; no mojibake (`à¦, à§, â€, Â, `);
   flags match arrays; `exam_slug` matches stem + pattern.
 - Post-seed: row counts per exam match manifest; the 8 blank-answer rows still blank;
   every `image_manifest.csv` key uploaded and resolvable from DB; spot-check Bangla rendering
   and an image question + an image-only solve.
+- Math/Prose Integrity: run `python scripts/comprehensive_audit.py` to ensure 0 prose fields are misclassified as pure math and all genuine math expressions are preserved.
 - Run advisors (`supabase db advisors` / MCP `get_advisors`) after schema changes and fix findings.
 
 ## 7. Read order for a new agent
 
-`SUPABASE_AGENT_BRIEF.md` → this file → `dataset/schema.md` →
+`SUPABASE_AGENT_BRIEF.md` → this file → `memory.md` → `dataset/schema.md` →
 `dataset/topics_taxonomy.md` → `dataset/.agent/AGENTS.md` (field semantics) →
 `dataset/instructions/memory.md` (defect/image-only provenance) →
 `dataset_manifest.json` + `image_manifest.csv`.

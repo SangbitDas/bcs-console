@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
-import { User as UserIcon } from 'lucide-react';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type TextStyle } from 'react-native';
+import { CheckCircle2, Clock, User as UserIcon } from 'lucide-react';
 import { FONT } from '../lib/fonts';
 import { fmtTime, toBn } from '../lib/format';
 import { useExamStore } from '../store/exam';
+import { usePracticeStore } from '../store/practice';
 import { useAuthStore } from '../lib/auth';
+import { isAnyExamActive, useExamGuardStore } from '../store/examGuard';
 import { AuthModal } from './auth-modal';
 import { UserAvatar } from './avatar';
 import { MathText } from './math-text';
@@ -15,8 +17,23 @@ export { MathText, ExplanationImage };
 
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
-  const remain = useExamStore((s) => s.remain);
-  const running = useExamStore((s) => s.running);
+  const { width } = useWindowDimensions();
+
+  // Mock Exam state
+  const mockRemain = useExamStore((s) => s.remain);
+  const isMockRunning = useExamStore((s) => s.running);
+  const mockAnswers = useExamStore((s) => s.answers);
+  const mockTotal = useExamStore((s) => s.config.count);
+  const mockSubmit = useExamStore((s) => s.onSubmitExam);
+
+  // Custom Exam state
+  const isCustomRunning = usePracticeStore((s) => s.mode === 'custom' && s.started && !s.finished);
+  const customRemain = usePracticeStore((s) => s.remain);
+  const customTimed = usePracticeStore((s) => s.isTimed);
+  const customDone = usePracticeStore((s) => s.done);
+  const customTotal = usePracticeStore((s) => s.totalQuestions);
+  const customSubmit = usePracticeStore((s) => s.onSubmitExam);
+
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
   const init = useAuthStore((s) => s.init);
@@ -26,22 +43,69 @@ export function TopBar() {
     init();
   }, [init]);
 
-  return (
-    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-6 py-3">
-      <Link href="/" asChild>
-        <Pressable className="flex-row items-center">
-          <Text style={{ fontFamily: FONT.displayBlack, fontSize: 18 }}>
-            বিসিএস<Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
-          </Text>
-        </Pressable>
-      </Link>
+  const isExamActive = isMockRunning || isCustomRunning;
+  const currentRemain = isMockRunning ? mockRemain : (customTimed ? customRemain : null);
+  const currentAnswered = isMockRunning ? Object.keys(mockAnswers).length : Object.keys(customDone).length;
+  const currentTotal = isMockRunning ? mockTotal : (customTotal || 0);
+  const currentSubmit = isMockRunning ? mockSubmit : customSubmit;
 
-      <View className="flex-row items-center gap-3">
-        {running ? (
-          <View className="border border-black/20 bg-surface px-3 py-1.5">
-            <Text style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#EA0000' }}>
-              {fmtTime(remain)}
-            </Text>
+  return (
+    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-4 sm:px-6 py-2.5 sm:py-3">
+      <Pressable
+        onPress={() => {
+          if (isAnyExamActive()) {
+            useExamGuardStore.getState().openQuitModal(() => router.push('/'));
+          } else {
+            router.push('/');
+          }
+        }}
+        style={{ cursor: 'pointer' } as any}
+        className="flex-row items-center">
+        <Text style={{ fontFamily: FONT.displayBlack, fontSize: 18 }}>
+          বিসিএস<Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
+        </Text>
+      </Pressable>
+
+      <View className="flex-row items-center gap-2.5 sm:gap-3">
+        {isExamActive ? (
+          <View className="flex-row items-center gap-1.5 sm:gap-2">
+            {/* Timer badge */}
+            {currentRemain !== null ? (
+              <View className="flex-row items-center gap-1.5 rounded-lg border border-black/15 bg-surface px-2.5 py-1.5 shadow-2xs">
+                <Clock size={13} color="#EA0000" />
+                <Text style={{ fontFamily: FONT.digitsBold, fontSize: 13, color: '#EA0000' }}>
+                  {fmtTime(currentRemain)}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Answered / উত্তর সম্পন্ন badge */}
+            <View
+              accessibilityLabel={`উত্তর সম্পন্ন ${toBn(currentAnswered)} / ${toBn(currentTotal)}`}
+              className="flex-row items-center gap-1.5 rounded-lg border border-black/15 bg-surface px-2.5 py-1.5 shadow-2xs">
+              <CheckCircle2 size={13} color="#059669" />
+              <Text style={{ fontFamily: FONT.uiSemi, fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
+                {width >= 640 ? 'উত্তর সম্পন্ন:' : 'উত্তর:'}
+              </Text>
+              <Text style={{ fontFamily: FONT.digitsBold, fontSize: 13, color: '#0A0A0A' }}>
+                {`${toBn(currentAnswered)}/${toBn(currentTotal)}`}
+              </Text>
+            </View>
+
+            {/* Submit button */}
+            <Pressable
+              onPress={() => {
+                if (currentSubmit) {
+                  currentSubmit();
+                }
+              }}
+              style={{ cursor: 'pointer' } as any}
+              className="flex-row items-center gap-1.5 rounded-lg bg-[#EA0000] px-3 py-1.5 shadow-2xs transition-all hover:bg-red-700 active:scale-95">
+              <CheckCircle2 size={13} color="#FFFFFF" strokeWidth={2.2} />
+              <Text className="text-white text-xs font-bold" style={{ fontFamily: FONT.uiBold }}>
+                জমা দিন
+              </Text>
+            </Pressable>
           </View>
         ) : null}
 

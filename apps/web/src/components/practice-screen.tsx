@@ -10,6 +10,7 @@ import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sam
 import { useLibrary, type RerunConfig, type RecentSession, type AttemptAnswerInput } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
+import { useExamGuardStore } from '../store/examGuard';
 import { Btn, Bn, Chip, Feedback, MathText, OptBtn, ScorePanel, Tag, type OptState } from './ui';
 import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeCard, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
 import { ExplanationImage } from './image-lightbox';
@@ -739,7 +740,17 @@ export function PracticeScreen({
             mode={s.mode}
             allocationResult={allocationRef.current}
             onFinish={finishSession}
-            onBack={() => { s.backToPicker(); router.push(s.mode === 'custom' ? '/custom' as any : '/practice/subject' as any); }}
+            onBack={() => {
+              if (s.mode === 'custom') {
+                useExamGuardStore.getState().openQuitModal(() => {
+                  s.backToPicker();
+                  router.push('/custom' as any);
+                });
+              } else {
+                s.backToPicker();
+                router.push('/practice/subject' as any);
+              }
+            }}
           />
         ) : (
           <RunnerView session={session} subjectName={subjectName} scope={scopeLabel()} onFinish={finishSession} />
@@ -764,7 +775,7 @@ function HubView({
   const lib = useLibrary();
   const recents = lib.recents
     .filter((r) => r.kind === 'practice' && r.rerun?.mode !== 'custom' && r.score === undefined)
-    .slice(0, 5);
+    .slice(0, 6);
 
   const sidebar = (
     <View>
@@ -832,18 +843,11 @@ function HubView({
 
           {/* — সাম্প্রতিক অনুশীলন */}
           <View className="mb-6">
-            <View className="mb-3 flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2">
-                <View className="h-1 w-3.5 rounded-full bg-[#EA0000]" />
-                <Text style={{ fontFamily: FONT.uiBold, fontSize: 17 }}>
-                  সাম্প্রতিক অনুশীলন
-                </Text>
-              </View>
-              <Pressable onPress={() => onMode('exam')}>
-                <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
-                  সব দেখুন →
-                </Text>
-              </Pressable>
+            <View className="mb-3 flex-row items-center gap-2">
+              <View className="h-1 w-3.5 rounded-full bg-[#EA0000]" />
+              <Text style={{ fontFamily: FONT.uiBold, fontSize: 17 }}>
+                সাম্প্রতিক অনুশীলন
+              </Text>
             </View>
 
             {/* Grid-by-grid Cards Layout */}
@@ -1963,7 +1967,9 @@ function SubjectAllQuestionsView({
 
   useEffect(() => {
     if (activeTimed) {
-      setRemain(timeMinutes * 60);
+      const initial = timeMinutes * 60;
+      setRemain(initial);
+      usePracticeStore.getState().setRemain(initial);
       setTimeExpired(false);
     }
   }, [activeTimed, timeMinutes, runId]);
@@ -1972,17 +1978,32 @@ function SubjectAllQuestionsView({
     if (!activeTimed || timeExpired) return;
     const timer = setInterval(() => {
       setRemain((prev) => {
-        if (prev <= 1) {
+        const next = Math.max(0, prev - 1);
+        usePracticeStore.getState().setRemain(next);
+        if (next <= 0) {
           clearInterval(timer);
           setTimeExpired(true);
           onFinish();
           return 0;
         }
-        return prev - 1;
+        return next;
       });
     }, 1000);
     return () => clearInterval(timer);
   }, [activeTimed, timeExpired, onFinish]);
+
+  // Register Custom Exam total questions & submit handler for top nav TopBar
+  useEffect(() => {
+    if (mode === 'custom') {
+      usePracticeStore.getState().setTotalQuestions(session.length);
+      usePracticeStore.getState().registerSubmitHandler(() => onFinish());
+    } else {
+      usePracticeStore.getState().registerSubmitHandler(null);
+    }
+    return () => {
+      usePracticeStore.getState().registerSubmitHandler(null);
+    };
+  }, [mode, session.length, onFinish]);
 
   // Selected exam slugs for filtering (default: empty = all questions appear, but no tickmarks)
   const [selectedExamSlugs, setSelectedExamSlugs] = useState<string[]>([]);
@@ -2096,44 +2117,6 @@ function SubjectAllQuestionsView({
           </Bn>
         </View>
 
-        {/* Live Timer or Untimed Status in summary for custom mode */}
-        {activeTimed ? (
-          <View className={`rounded-xl p-3 items-center justify-center border ${
-            remain <= 300 ? 'border-rose-300 bg-rose-50' : 'border-black/10 bg-black/[0.03]'
-          }`}>
-            <View className="flex-row items-center gap-1.5 mb-0.5">
-              <Clock size={13} color={remain <= 300 ? '#E11D48' : '#0A0A0A'} />
-              <Text
-                className={remain <= 300 ? 'text-rose-700' : 'text-black/60'}
-                style={{ fontFamily: FONT.uiSemi, fontSize: 11.5 }}>
-                {remain <= 300 ? 'সময় প্রায় শেষ!' : 'অবশিষ্ট সময়'}
-              </Text>
-            </View>
-            <Text
-              style={{
-                fontFamily: FONT.displayBlack,
-                fontSize: 22,
-                color: remain <= 300 ? '#E11D48' : '#0A0A0A',
-              }}>
-              {fmtTime(remain)}
-            </Text>
-            <Text className="text-black/75 text-xs font-semibold mt-0.5" style={{ fontFamily: FONT.uiSemi }}>
-              {`${toBn(Math.ceil(remain / 60))} মিনিট বাকি`}
-            </Text>
-            <Text className="text-black/40 text-[11px] mt-0.5" style={{ fontFamily: FONT.ui }}>
-              {`মোট সময়: ${formatDurationBn(timeMinutes)}`}
-            </Text>
-          </View>
-        ) : mode === 'custom' ? (
-          <View className="flex-row items-center justify-between border-b border-black/5 pb-2.5">
-            <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
-              সময়সীমা
-            </Text>
-            <Bn className="text-black/70" style={{ fontFamily: FONT.uiSemi, fontSize: 12 }}>
-              সময় ছাড়া (স্বাভাবিক)
-            </Bn>
-          </View>
-        ) : null}
 
         {/* Shortfall warning in summary */}
         {mode === 'custom' && allocationResult && allocationResult.shortfall > 0 ? (
@@ -2193,7 +2176,13 @@ function SubjectAllQuestionsView({
         </Pressable>
 
         <Pressable
-          onPress={onBack}
+          onPress={() => {
+            if (mode === 'custom') {
+              useExamGuardStore.getState().openQuitModal(onBack);
+            } else {
+              onBack();
+            }
+          }}
           className="min-h-[40px] w-full items-center justify-center rounded-lg border border-black/10 bg-paper px-4 transition-colors active:bg-black/5">
           <Text className="text-black/75" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
             {mode === 'custom' ? 'বাছাই পরিবর্তন করুন' : 'বিষয় পরিবর্তন করুন'}
@@ -2382,6 +2371,14 @@ function SubjectAllQuestionsView({
             </View>
 
             <View className="h-7 w-px bg-white/20" />
+
+            <Pressable
+              onPress={() => useExamGuardStore.getState().openQuitModal(onBack)}
+              className="rounded-lg border border-white/30 px-3 py-1.5 transition-colors hover:bg-white/10 active:opacity-90">
+              <Text className="text-white/80 font-semibold text-xs" style={{ fontFamily: FONT.uiSemi }}>
+                পরীক্ষা বাতিল
+              </Text>
+            </Pressable>
 
             <Pressable
               onPress={onFinish}
@@ -3132,8 +3129,19 @@ function PracticeResult({
             />
           ))}
         </View>
+      ) : attempted === 0 ? (
+        <View className="my-6 rounded-xl border border-black/10 bg-surface p-8 items-center justify-center">
+          <HelpCircle size={28} color="#0A0A0A" style={{ opacity: 0.35, marginBottom: 8 }} />
+          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, color: '#0A0A0A', marginBottom: 4 }}>
+            কোনো প্রশ্নের উত্তর দেওয়া হয়নি
+          </Bn>
+          <Text className="text-black/60 text-center max-w-[420px]" style={{ fontFamily: FONT.ui, fontSize: 14 }}>
+            এই সেশনে কোনো প্রশ্নের উত্তর প্রদান করা হয়নি। প্রস্তুতি যাচাই করতে প্রশ্নগুলোর উত্তর দিন এবং পুনরায় চেষ্টা করুন।
+          </Text>
+        </View>
       ) : (
         <View className="my-6 rounded-xl border border-black/10 bg-surface p-8 items-center justify-center">
+          <CheckCircle2 size={28} color="#0A7A3D" style={{ marginBottom: 8 }} />
           <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, color: '#0A7A3D', marginBottom: 4 }}>
             সবগুলো সঠিক — চমৎকার দক্ষতা!
           </Bn>

@@ -1,5 +1,59 @@
 # BCS Console — migration memory (maintained, newest first)
 
+## 2026-09-25 — Fixed False "All Correct" Praise When Zero Questions Attempted
+- **Issue Reported**:
+  - In Custom Exam / Practice result screen, when a user submitted without answering any questions (`attempted === 0`, `score = 0/51`), the review card falsely displayed:
+    `সবগুলো সঠিক — চমৎকার দক্ষতা! এই সেশনে কোনো ভুল প্রশ্ন নেই। আপনার প্রস্তুতি নিখুঁত!`
+- **Root Cause**:
+  - `PracticeResult` in `apps/web/src/components/practice-screen.tsx` only branched on `wrongList.length ? (...) : (...)`.
+  - When no questions were answered, `wrongList.length` was 0, triggering the "all correct" praise block unconditionally.
+- **Fix in `apps/web/src/components/practice-screen.tsx`**:
+  - Added explicit condition for `attempted === 0`.
+  - Displays neutral informative card with `HelpCircle` icon:
+    `কোনো প্রশ্নের উত্তর দেওয়া হয়নি`
+    `এই সেশনে কোনো প্রশ্নের উত্তর প্রদান করা হয়নি। প্রস্তুতি যাচাই করতে প্রশ্নগুলোর উত্তর দিন এবং পুনরায় চেষ্টা করুন।`
+  - Reserved `সবগুলো সঠিক — চমৎকার দক্ষতা!` strictly for sessions where questions were actually attempted and answered without error.
+- **Verification**:
+  - `tsc --noEmit` passed with 0 errors.
+
+## 2026-09-25 — KaTeX Math vs Prose Tokenization Fix & Comprehensive Dataset Audit
+- **Issue Reported**:
+  - In 50th BCS Q135, the entire question sentence was swallowed into KaTeX math mode:
+    `‘It is no good falling in love at first sight’. Here the word “falling” is a/an-`
+    rendered in math italic with all prose spaces collapsed (`'Itisnogoodfallinginloveatfirstsight'`) and the word-slash `a/an` converted into a vertical fraction ($\frac{a}{an}$).
+- **Root Cause Analysis**:
+  1. **Fraction false-positive in `hasMathTokens`**: The regex `/(?<![0-9০-৯/])[0-9a-zA-Z০-৯√()]+(?:\^\{[^}]+\}|[²³⁴ⁿ])?\/[0-9a-zA-Z০-৯√()]+(?![0-9০-৯/])/` matched any two words separated by a slash (e.g. `a/an`, `word/phrase`, `TCP/IP`, `either/or`, `his/her`, `I/O`, `w/o`).
+  2. **`isPureMathExpr` prose check flaw**: The prose detector only checked if Bengali letters $> 3$. In English questions, Bengali letter count is 0. Whenever an English question had `a/an`, a range (`70-72`), or an exclamation (`Alas!`), `isPureMathExpr` returned `true`, treating the entire English sentence as pure math.
+  3. **HTML tag conflict with relational operators**: Questions containing `<u>` or `</b>` matched `<` or `>` in `/[0-9a-zA-Z০-৯]\s*[=><≠≤≥]\s*[0-9a-zA-Z০-৯]/`, causing rich text tags to be parsed as mathematical inequalities.
+- **Implementation in `apps/web/src/lib/mathParser.ts`**:
+  - Added `MATH_FUNCS_AND_UNITS` set (`sin`, `cos`, `tan`, `log`, `lim`, `cm`, `km`, etc.) and `COMMON_PROSE_SLASHES` (`a/an`, `and/or`, `TCP/IP`, `w/o`, `i/o`, etc.).
+  - Stripped HTML tags (`<u>`, `</b>`, `<i>`) before relational inequality checks.
+  - Required numeric or symbolic tokens for fractions; prevented multi-letter words from being converted to `\frac{...}{...}` in `convertFractions`.
+  - Added English prose word detector in `isPureMathExpr` ($\ge 2$ non-math English words = prose).
+  - Protected inline segments in `splitTextAndMath` from being converted to KaTeX math blocks when they contain English prose words.
+- **Audit Across All 5,350 Questions (`scripts/comprehensive_audit.py`)**:
+  - Prose fields falsely classified as pure math: **reduced from 79 to 0**.
+  - Word-slashes corrupted into vertical fractions: **reduced from 115 to 0**.
+  - Genuine math/science expressions preserved: **841 detected, 0 regressions**.
+  - Verified live on browser: 50th BCS Q135 renders with native font, full spaces, and normal `a/an-`.
+
+## 2026-09-25 — English Language & Literature Question Bank Fixes & 3-Way Synchronization
+- **Scope & Analysis**:
+  - Audited 977 English questions in `dataset/bcs_preliminary_question_bank.json` across all 41 exams based on `english_analysis.md`.
+  - Identified 48 defective questions (missing underline tags `<u>` for idiom/phrase analysis, missing fill-in blanks `______`, truncated options, and typographic errors).
+- **3-Way Synchronization Architecture**:
+  1. **Frontend Patch Layer (`apps/web/src/lib/questionPatch.ts`)**:
+     - Client-side normalization mapping 48 specific questions to corrected text.
+     - **Strict Idempotency Guard**: Wrapped all tag additions in guards (`!q.includes('<u>')`, `!q.includes('_____')`). If the incoming record already has the fix from the database, the patcher never duplicates tags or blanks.
+  2. **Canonical & Per-Exam Dataset JSONs (`scripts/patch-dataset.js`)**:
+     - Applied exact fixes to `dataset/bcs_preliminary_question_bank.json` and 23 individual JSONs under `dataset/data/processed/json/*.json`.
+  3. **Live Supabase PostgreSQL Database (`scripts/update_supabase_english.py`)**:
+     - Updated `question`, `option_a..d`, and `solve_note` fields directly in the live `public.questions` table via Supabase client.
+- **Verification**:
+  - Pre-seed/post-seed counts match 5,350 questions.
+  - Zero double-tag rendering artifacts on web client.
+  - Pushed to `dev` branch.
+
 ## 2026-09-19 — LaTeX / KaTeX Formula Rendering for Math & Science Questions (Upcoming Item #5)
 - **User Request**:
   - Implement KaTeX integration for Mathematical Reasoning (Subject 8) and General Science (Subject 6) questions, options, and solve notes.

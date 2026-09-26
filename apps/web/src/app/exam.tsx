@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, memo } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react';
 import { FONT } from '../lib/fonts';
@@ -8,6 +9,7 @@ import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sam
 import { useLibrary, type MockRerunConfig, type AttemptAnswerInput } from '../lib/library';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { useExamStore, type MockPresetCount } from '../store/exam';
+import { useExamGuardStore } from '../store/examGuard';
 import { Btn, Bn, MathText, OptBtn, Tag, type OptState } from '../components/ui';
 import { Breadcrumb, Cols, RecentPracticeRow, SidebarLayout } from '../components/patterns';
 import { ExplanationImage } from '../components/image-lightbox';
@@ -219,6 +221,18 @@ export default function Exam() {
       answers,
     });
   }
+
+  /* Register submit handler for top nav TopBar */
+  useEffect(() => {
+    if (st.running) {
+      useExamStore.getState().registerSubmitHandler(() => doSubmit(false));
+    } else {
+      useExamStore.getState().registerSubmitHandler(null);
+    }
+    return () => {
+      useExamStore.getState().registerSubmitHandler(null);
+    };
+  }, [st.running, session, c]);
 
   const startTier = (count: MockPresetCount) => {
     st.setPreset(count);
@@ -662,8 +676,14 @@ function RunnerView({
     <View className="gap-5">
       <Breadcrumb
         trail={[
-          { label: 'হোম', href: '/' },
-          { label: 'মক এক্সাম', onPress: () => st.backToPicker() },
+          {
+            label: 'হোম',
+            onPress: () => useExamGuardStore.getState().openQuitModal(() => router.push('/')),
+          },
+          {
+            label: 'মক এক্সাম',
+            onPress: () => useExamGuardStore.getState().openQuitModal(() => st.backToPicker()),
+          },
           { label: `পরীক্ষা চলছে (${toBn(st.config.count)} প্রশ্ন)` },
         ]}
       />
@@ -680,7 +700,7 @@ function RunnerView({
             </Text>
           </View>
 
-          <View className="flex-row items-center gap-4">
+          <View className="flex-row items-center gap-3 sm:gap-4">
             <View className="items-center">
               <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
                 {fmtTime(st.remain)}
@@ -700,6 +720,15 @@ function RunnerView({
                 উত্তর সম্পন্ন
               </Text>
             </View>
+
+            <Pressable
+              onPress={() => useExamGuardStore.getState().openQuitModal(() => st.backToPicker())}
+              style={{ cursor: 'pointer' } as any}
+              className="rounded-lg border border-white/25 px-3 py-2 transition-colors hover:bg-white/10 active:scale-95">
+              <Text className="text-white/80 text-xs font-semibold" style={{ fontFamily: FONT.uiSemi }}>
+                পরীক্ষা বাতিল
+              </Text>
+            </Pressable>
 
             <Btn
               title="জমা দিন"

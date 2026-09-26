@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import {
   ArrowRight,
   Bookmark,
@@ -8,6 +8,7 @@ import {
   CircleCheck,
   CircleX,
   Flag,
+  Home,
   Info,
   Minus,
   type LucideIcon,
@@ -16,6 +17,7 @@ import { Children, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { FONT } from '../lib/fonts';
 import { examLabel, examNum, toBn } from '../lib/format';
+import { isAnyExamActive, useExamGuardStore } from '../store/examGuard';
 import { Bn } from './ui';
 
 /* ---------- Breadcrumb ---------- */
@@ -23,6 +25,7 @@ export interface Crumb {
   label: string;
   href?: string;
   onPress?: () => void;
+  icon?: ReactNode;
 }
 
 export function Breadcrumb({ trail }: { trail: Crumb[] }) {
@@ -30,22 +33,50 @@ export function Breadcrumb({ trail }: { trail: Crumb[] }) {
     <View className="mb-4 flex-row flex-wrap items-center gap-2">
       {trail.map((c, i) => {
         const last = i === trail.length - 1;
-        const node =
-          last || (!c.href && !c.onPress) ? (
-            <Text key={c.label} className={last ? '' : 'text-black/50'} style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+        const isHome = c.label === 'হোম' || c.href === '/';
+
+        const content = (
+          <View className="flex-row items-center gap-1.5">
+            {c.icon ? (
+              c.icon
+            ) : isHome ? (
+              <Home size={13.5} color={last ? '#0A0A0A' : 'rgba(0,0,0,0.5)'} strokeWidth={2} />
+            ) : null}
+            <Text
+              className={last ? 'text-black/85 font-medium' : 'text-black/50 hover:text-black/80 transition-colors'}
+              style={{ fontFamily: FONT.ui, fontSize: 13 }}>
               {c.label}
             </Text>
-          ) : c.onPress ? (
-            <Pressable key={c.label} onPress={c.onPress}>
-              <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>{c.label}</Text>
-            </Pressable>
+          </View>
+        );
+
+        const handlePress = () => {
+          if (c.onPress) {
+            c.onPress();
+          } else if (c.href) {
+            if (isAnyExamActive()) {
+              useExamGuardStore.getState().openQuitModal(() => router.push(c.href as any));
+            } else {
+              router.push(c.href as any);
+            }
+          }
+        };
+
+        const node =
+          last || (!c.href && !c.onPress) ? (
+            <View key={c.label}>
+              {content}
+            </View>
           ) : (
-            <Link key={c.label} href={c.href as never} asChild>
-              <Pressable>
-                <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>{c.label}</Text>
-              </Pressable>
-            </Link>
+            <Pressable
+              key={c.label}
+              onPress={handlePress}
+              style={{ cursor: 'pointer' } as any}
+              className="active:opacity-75">
+              {content}
+            </Pressable>
           );
+
         return (
           <View key={`${c.label}-${i}`} className="flex-row items-center gap-2">
             {i > 0 ? <Text className="text-black/30" style={{ fontSize: 13 }}>›</Text> : null}

@@ -68,6 +68,19 @@ export function findMatchingClose(
   return -1;
 }
 
+const MATH_FUNCS_AND_UNITS = new Set([
+  'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
+  'log', 'ln', 'lim', 'det',
+  'dx', 'dy', 'dt',
+  'cm', 'm', 'km', 'kg', 'gm', 'sec', 's', 'hr', 'h', 'min'
+]);
+
+const COMMON_PROSE_SLASHES = new Set([
+  'a/an', 'and/or', 'he/she', 'his/her', 'him/her', 'w/o', 'i/o', 'c/o', 'p/a',
+  's/he', 'either/or', 'neither/nor', 'in/out', 'up/down', 'true/false',
+  'yes/no', 'on/off', 'input/output'
+]);
+
 /**
  * Quickly checks if a string contains any mathematical or scientific tokens.
  */
@@ -76,51 +89,79 @@ export function hasMathTokens(text: string | null | undefined): boolean {
   // Ignore URLs
   if (text.startsWith('http://') || text.startsWith('https://')) return false;
 
-  // Distinct math/science symbols
-  if (/[²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉°√^]/.test(text)) return true;
-  if (/[≠≤≥±∞πθ∆∠∴∵⇒]/.test(text)) return true;
-  if (/₍[₀-₉0-9]+₎/.test(text)) return true;
+  // Strip HTML tags (e.g. <u>, </b>, <i>) so they don't trigger '<' or '>' relation tests
+  const clean = text.replace(/<\/?[a-zA-Z]+(?:\s+[^>]*)?>/g, '');
+  if (!clean.trim()) return false;
 
-  // Fractions: not dates (12/05/2020) or options/slashes in text (বাংলা/ইংরেজি)
+  // Distinct math/science symbols
+  if (/[²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉°√^]/.test(clean)) return true;
+  if (/[≠≤≥±∞πθ∆∠∴∵⇒]/.test(clean)) return true;
+  if (/₍[₀-₉0-9]+₎/.test(clean)) return true;
+
+  // Chemical formulas
+  if (/\b(?:HNO[₀-₉0-9]|CO[₀-₉0-9]|CH[₀-₉0-9]|H[₀-₉0-9]O|HCI|CFC|NaCl)\b/.test(clean)) return true;
+
+  // Logarithms
+  if (/\blog[_(0-9]/.test(clean)) return true;
+
+  // LaTeX commands: e.g. \frac, \sqrt, \times, etc.
+  if (/\\[a-zA-Z]+/.test(clean)) return true;
+
+  // Delimiters: $ ... $
+  if (/\$.*?\$/.test(clean)) return true;
+
+  // Factorials: e.g. 8!, n!, 3!, (n-r)! - single variable or number or paren, NOT English words like Alas!
+  if (/(?:[0-9০-৯]+|\b[nkrxabNKRXAB]\b|\))\s*!/.test(clean)) return true;
+
+  // Intervals like [1, ∞) or (0, 1) require a separating comma between bounds
   if (
-    /(?<![0-9০-৯/])[0-9a-zA-Z০-৯√()]+(?:\^\{[^}]+\}|[²³⁴ⁿ])?\/[0-9a-zA-Z০-৯√()]+(?![0-9০-৯/])/.test(
-      text
+    /[[({]\s*[-+−]?[0-9a-zA-Z০-৯/∞.]+\s*,\s*[-+−]?[0-9a-zA-Z০-৯/∞.]+\s*[\])}]/.test(
+      clean
     )
   ) {
     return true;
   }
 
-  // Math equations with relations: e.g. 5x+4y-1=0 or x+y=5 or 3x-2>0
-  if (/[0-9a-zA-Z০-৯]\s*[=><≠≤≥]\s*[0-9a-zA-Z০-৯]/.test(text)) return true;
-
-  // Equations with operators (guard against English hyphenated words like "Co-operative" or "Now-a-days")
-  if (/(?:[0-9০-৯]+|[a-zA-Z])\s*[-+−×/]\s*(?:[0-9০-৯]+|[a-zA-Z]\b)/.test(text)) {
-    if (!/^[a-zA-Z]{2,}-[a-zA-Z]{2,}$/.test(text.trim())) {
-      return true;
+  // Fractions:
+  // 1. Numerator or denominator has numbers: e.g. 1/2, ৩/৪, 125/27, 1/x, x/2, n/2
+  if (
+    /(?<![0-9০-৯/])[0-9০-৯]+(?:\^\{[^}]+\}|[²³⁴ⁿ])?\/[0-9a-zA-Z০-৯√()]+(?![0-9০-৯/])/.test(
+      clean
+    ) ||
+    /(?<![0-9০-৯/])[0-9a-zA-Z০-৯√()]+(?:\^\{[^}]+\}|[²³⁴ⁿ])?\/[0-9০-৯]+(?![0-9০-৯/])/.test(
+      clean
+    )
+  ) {
+    return true;
+  }
+  // 2. Fractions with parens or radicals or powers: (a+b)/c, √(3)/2, x^2/y
+  if (
+    /(?:\([^)]+\)|√[0-9a-zA-Z০-৯]+|[a-zA-Z][²³⁴ⁿ^])\/[0-9a-zA-Z০-৯√()]+/.test(clean) ||
+    /[0-9a-zA-Z০-৯√()]+(?:\^\{[^}]+\}|[²³⁴ⁿ])?\/(?:\([^)]+\)|√[0-9a-zA-Z০-৯]+|[a-zA-Z][²³⁴ⁿ^])/.test(clean)
+  ) {
+    return true;
+  }
+  // 3. Single letter / single letter ONLY if isolated variables (e.g. a/b, x/y), but NOT common abbreviations like w/o, i/o
+  const singleVarSlashes = clean.match(/\b([a-zA-Z])\s*\/\s*([a-zA-Z])\b/g);
+  if (singleVarSlashes) {
+    for (const match of singleVarSlashes) {
+      const pair = match.replace(/\s+/g, '').toLowerCase();
+      if (!COMMON_PROSE_SLASHES.has(pair)) {
+        return true;
+      }
     }
   }
 
-  // LaTeX commands: e.g. \frac, \sqrt, \times, etc.
-  if (/\\[a-zA-Z]+/.test(text)) return true;
+  // Math equations with relations: e.g. 5x+4y-1=0 or x+y=5 or 3x-2>0
+  if (/[0-9a-zA-Z০-৯]\s*[=><≠≤≥]\s*[0-9a-zA-Z০-৯]/.test(clean)) return true;
 
-  // Delimiters: $ ... $
-  if (/\$.*?\$/.test(text)) return true;
+  // Equations with arithmetic operators: e.g. 2 + 3, x × y
+  if (/(?:[0-9০-৯]+|[a-zA-Z])\s*[+−×÷]\s*(?:[0-9০-৯]+|[a-zA-Z]\b)/.test(clean)) {
+    return true;
+  }
 
-  // Chemical formulas
-  if (/\b(?:HNO[₀-₉0-9]|CO[₀-₉0-9]|CH[₀-₉0-9]|H[₀-₉0-9]O|HCI|CFC|NaCl)\b/.test(text)) return true;
-
-  // Logarithms
-  if (/\blog[_(0-9]/.test(text)) return true;
-
-  // Factorials: e.g. 8!, n!, 3!, (n-r)!
-  if (/[0-9a-zA-Z০-৯)]!/.test(text)) return true;
-
-  // Intervals like [1, ∞) or (0, 1) require a separating comma between bounds
-  if (
-    /[[({]\s*[-+−]?[0-9a-zA-Z০-৯/∞.]+\s*,\s*[-+−]?[0-9a-zA-Z০-৯/∞.]+\s*[\])}]/.test(
-      text
-    )
-  ) {
+  // Subtraction / minus: distinguish math subtraction from hyphenated words or number ranges (70-72, 1971-1975)
+  if (/(?:[0-9০-৯]+|[a-zA-Z])\s+-\s+(?:[0-9০-৯]+|[a-zA-Z]\b)/.test(clean)) {
     return true;
   }
 
@@ -231,11 +272,20 @@ function convertFractions(s: string): string {
   }
 
   // 3. Simple fractions: token / token (e.g. ১২৫/২৭, ১/২৫, \sqrt{৩}/৪, 3/2, a/b, 1/x^{2})
-  // Guard against dates (12/05/2020) and Bengali words (বাংলা/ইংরেজি)
+  // Guard against dates (12/05/2020), Bengali words (বাংলা/ইংরেজি), and English words (a/an, TCP/IP)
   const TOKEN = '(?:\\\\sqrt\\{[^}]+\\}|[0-9a-zA-Z০-৯!]+(?:[\\^_]\\{[^}]+\\})*)';
   s = s.replace(
     new RegExp(`(?<![0-9০-৯/])(${TOKEN})/(${TOKEN})(?![0-9০-৯/])`, 'g'),
-    '\\frac{$1}{$2}'
+    (match, num, den) => {
+      // Don't convert English prose words or slashes (e.g. a/an, TCP/IP, and/or, word/phrase)
+      const numIsWord = /^[a-zA-Z]{2,}$/.test(num);
+      const denIsWord = /^[a-zA-Z]{2,}$/.test(den);
+      const pair = `${num.toLowerCase()}/${den.toLowerCase()}`;
+      if (numIsWord || denIsWord || COMMON_PROSE_SLASHES.has(pair)) {
+        return match;
+      }
+      return `\\frac{${num}}{${den}}`;
+    }
   );
 
   return s;
@@ -424,8 +474,11 @@ export function isPureMathExpr(text: string): boolean {
   if (!trimmed) return false;
   if (/_{2,}/.test(trimmed)) return false;
 
+  // Strip HTML tags (e.g. <u>, </b>, <i>)
+  const clean = trimmed.replace(/<\/?[a-zA-Z]+(?:\s+[^>]*)?>/g, '');
+
   // If text contains common Bengali words (excluding trailing unit words like টাকা, মিটার, বর্গমিটার), it is mixed
-  const withoutUnits = trimmed
+  const withoutUnits = clean
     .replace(/\s*(?:টাকা|মিটার|সেমি|বর্গমিটার|বর্গ\s*সেমি|ডিগ্রি|গুণ|সেকেন্ড)\b/g, '')
     .trim();
 
@@ -435,11 +488,17 @@ export function isPureMathExpr(text: string): boolean {
     return false;
   }
 
-  // Must have math token or be numeric/expression
-  return (
-    hasMathTokens(withoutUnits) ||
-    /^[0-9a-zA-Z০-৯\s()+\-*./=,−^√_[\]{}]+$/.test(withoutUnits)
+  // If there are 2 or more English prose words, it is prose, NOT pure math!
+  const englishWords = withoutUnits.match(/\b[a-zA-Z]{2,}\b/g) || [];
+  const proseWords = englishWords.filter(
+    (w) => !MATH_FUNCS_AND_UNITS.has(w.toLowerCase())
   );
+  if (proseWords.length >= 2) {
+    return false;
+  }
+
+  // Must have math token
+  return hasMathTokens(withoutUnits);
 }
 
 /**
@@ -495,6 +554,14 @@ export function splitTextAndMath(raw: string): TextSegment[] {
 
     // Must contain genuine mathematical indicators
     if (matchStr && hasMathTokens(matchStr)) {
+      // Guard: do not treat English prose with word slashes as an inline math block
+      const segEngWords = matchStr.match(/\b[a-zA-Z]{2,}\b/g) || [];
+      const segProseWords = segEngWords.filter(
+        (w) => !MATH_FUNCS_AND_UNITS.has(w.toLowerCase())
+      );
+      if (segProseWords.length >= 2) {
+        continue;
+      }
       if (start > lastIndex) {
         segments.push({
           type: 'text',

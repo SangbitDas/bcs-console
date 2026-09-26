@@ -23,6 +23,9 @@ interface PracticeState {
   timeMinutes: number;
   started: boolean;
   finished: boolean;
+  remain: number;
+  totalQuestions: number;
+  onSubmitExam: (() => void) | null;
   runId: number;
   idx: number;
   right: number;
@@ -41,6 +44,9 @@ interface PracticeState {
   setOrder: (o: OrderKind) => void;
   setIsTimed: (timed: boolean) => void;
   setTimeMinutes: (mins: number) => void;
+  setRemain: (remain: number) => void;
+  setTotalQuestions: (total: number) => void;
+  registerSubmitHandler: (fn: (() => void) | null) => void;
   start: () => void;
   restoreSession: (params: {
     mode: PracticeMode;
@@ -78,6 +84,9 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   timeMinutes: 120,
   started: false,
   finished: false,
+  remain: 0,
+  totalQuestions: 0,
+  onSubmitExam: null,
   runId: 0,
   idx: 0,
   right: 0,
@@ -104,8 +113,11 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   setOrder: (order) => set({ order }),
   setIsTimed: (isTimed) => set({ isTimed }),
   setTimeMinutes: (timeMinutes) => set({ timeMinutes: Math.max(1, timeMinutes) }),
+  setRemain: (remain) => set({ remain }),
+  setTotalQuestions: (totalQuestions) => set({ totalQuestions }),
+  registerSubmitHandler: (onSubmitExam) => set({ onSubmitExam }),
   start: () =>
-    set((s) => ({ started: true, finished: false, idx: 0, right: 0, wrong: 0, done: {}, runId: s.runId + 1 })),
+    set((s) => ({ started: true, finished: false, idx: 0, right: 0, wrong: 0, done: {}, runId: s.runId + 1, remain: s.isTimed ? s.timeMinutes * 60 : 0 })),
   restoreSession: (p) =>
     set((s) => ({
       mode: p.mode,
@@ -137,7 +149,7 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
     })),
   next: (len) => set((s) => ({ idx: Math.min(s.idx + 1, Math.max(0, len - 1)) })),
   prev: () => set((s) => ({ idx: Math.max(s.idx - 1, 0) })),
-  finish: () => set({ finished: true }),
-  backToPicker: () => set({ started: false, finished: false }),
-  backToHub: () => set({ mode: null, started: false, finished: false }),
+  finish: () => set({ finished: true, onSubmitExam: null }),
+  backToPicker: () => set({ started: false, finished: false, onSubmitExam: null }),
+  backToHub: () => set({ mode: null, started: false, finished: false, onSubmitExam: null }),
 }));
