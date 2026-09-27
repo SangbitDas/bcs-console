@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BackHandler, LogBox, Platform } from 'react-native';
+import { BackHandler, LogBox, Platform, Text } from 'react-native';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { FONT, useAppFonts } from '../lib/fonts';
@@ -163,14 +163,27 @@ export default function RootLayout() {
             tabBarStyle: {
               backgroundColor: '#FFFFFF',
               borderTopColor: 'rgba(0,0,0,.08)',
-              height: Platform.OS === 'web' ? 64 : 58 + bottomInset,
+              height: Platform.OS === 'web' ? 64 : 64 + bottomInset,
               paddingTop: 6,
               paddingBottom: Platform.OS === 'web' ? 6 : Math.max(bottomInset, 6),
             },
             tabBarItemStyle: {
-              paddingVertical: 2,
+              paddingHorizontal: 0,
+              paddingVertical: 0,
             },
-            tabBarLabelStyle: { fontFamily: FONT.uiSemi, fontSize: 11, marginTop: 2 },
+            tabBarLabel: ({ children, color }) => (
+              <Text
+                style={{
+                  color,
+                  fontFamily: FONT.uiSemi,
+                  fontSize: 11.5,
+                  textAlign: 'center',
+                  includeFontPadding: false,
+                }}>
+                {children}
+              </Text>
+            ),
+            tabBarAllowFontScaling: false,
           }}>
           <Tabs.Screen
             name="index"

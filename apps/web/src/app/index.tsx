@@ -273,9 +273,9 @@ export default function Home() {
                   className="justify-between rounded-2xl border border-black/10 bg-surface p-5 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:bg-black/[0.02]">
                   <View>
                     <View className="mb-3 flex-row items-center justify-between">
-                      <View className="h-7 w-7 items-center justify-center rounded-full bg-black/[0.05]">
-                        <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: '#0A0A0A' }}>
-                          {String(s.id).padStart(2, '0')}
+                      <View className="min-w-[32px] h-7 px-2 items-center justify-center rounded-full bg-black/[0.05]">
+                        <Text style={{ fontFamily: FONT.digitsBold, fontSize: 11.5, color: '#0A0A0A', includeFontPadding: false }}>
+                          {toBn(String(s.id).padStart(2, '0'))}
                         </Text>
                       </View>
                       <View className="h-7 w-7 items-center justify-center rounded-lg bg-black/[0.03]">
@@ -291,9 +291,9 @@ export default function Home() {
                   </View>
 
                   <View className="flex-row items-center justify-between border-t border-black/5 pt-2">
-                    <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: 16 }}>
-                      {`${toBn(qCount.toLocaleString('en-US'))}`}
-                    </Bn>
+                    <Text style={{ fontFamily: FONT.displayBlack, fontSize: 15.5, color: '#0A0A0A' }}>
+                      {`${toBn(qCount.toLocaleString('en-US'))}টি`}
+                    </Text>
                     <View className="h-6 w-6 items-center justify-center rounded-full bg-black/[0.04]">
                       <ArrowRight size={13} color="#0A0A0A" />
                     </View>

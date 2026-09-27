@@ -154,8 +154,11 @@ export const QuestionCard = memo(function QuestionCard({
       </View>
 
       <View className="mt-3 flex-row items-center justify-between border-t border-black/5 pt-3">
-        <Pressable onPress={() => onToggleNote(q.id)} className="flex-row items-center gap-1.5">
-          <Text className="text-black/60 hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+        <Pressable
+          onPress={() => onToggleNote(q.id)}
+          hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}
+          className="flex-row items-center gap-1.5 py-1">
+          <Text className="text-black/70 hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
             {showExplanation ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
           </Text>
         </Pressable>
@@ -248,6 +251,7 @@ export function QuestionsFlashList({
       data={items}
       renderItem={renderItem}
       keyExtractor={(it) => String(it.q.id)}
+      extraData={[revealAll, expandedNotes]}
       drawDistance={Platform.OS === 'android' ? 300 : undefined}
       ListHeaderComponent={header}
       ListEmptyComponent={empty}
