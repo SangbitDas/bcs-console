@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, memo } from 'react';
-import { AppState, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { AppState, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react-native';
@@ -141,7 +141,7 @@ export default function Exam() {
 
   /* warn on accidental navigation (web) */
   useEffect(() => {
-    if (typeof window === 'undefined' || !st.running) return;
+    if (Platform.OS !== 'web' || !st.running) return;
     const h = (e: BeforeUnloadEvent) => {
       e.preventDefault();
     };

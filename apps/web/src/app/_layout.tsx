@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, LogBox, Platform } from 'react-native';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { FONT, useAppFonts } from '../lib/fonts';
 import { TopBar } from '../components/ui';
@@ -15,12 +16,24 @@ import { usePracticeStore } from '../store/practice';
 import { useLibrary } from '../lib/library';
 import { toBn } from '../lib/format';
 
-SplashScreen.preventAutoHideAsync();
+// Disable Reanimated strict-mode warning for internal library shared-value reads
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
+
+// Suppress development warning overlays from covering the bottom navigation bar
+LogBox.ignoreLogs([
+  '[Reanimated]',
+  "Can't perform a React state update on a component that hasn't mounted yet",
+]);
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const fontsOk = useAppFonts();
   const [qc] = useState(() => new QueryClient());
-  const lib = useLibrary();
+  const wrongBadgeCount = useLibrary((s) => s.wrongIds.length);
 
   const isMockRunning = useExamStore((s) => s.running);
   const isCustomRunning = usePracticeStore((s) => s.mode === 'custom' && s.started && !s.finished);
@@ -29,12 +42,28 @@ export default function RootLayout() {
   const bottomInset = Platform.OS === 'web' ? 0 : initialWindowMetrics?.insets.bottom ?? 0;
 
   useEffect(() => {
-    if (fontsOk) SplashScreen.hideAsync();
+    let isMounted = true;
+    const hideSplash = async () => {
+      try {
+        await SplashScreen.hideAsync();
+      } catch {}
+    };
+
+    if (fontsOk) {
+      hideSplash();
+    } else {
+      // Safety timeout: never freeze on splash screen for more than 1.2s
+      const timer = setTimeout(hideSplash, 1200);
+      return () => {
+        clearTimeout(timer);
+        isMounted = false;
+      };
+    }
   }, [fontsOk]);
 
   // Web browser guard against closing tab or refreshing mid-exam
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (Platform.OS !== 'web') return;
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isAnyExamActive()) {
@@ -50,7 +79,7 @@ export default function RootLayout() {
 
   // Web browser Back Button & History Guard
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (Platform.OS !== 'web') return;
     if (!isExamActive) return;
 
     // Push a guard checkpoint into browser history to capture the back action
@@ -91,11 +120,7 @@ export default function RootLayout() {
     const onBackPress = () => {
       if (isAnyExamActive()) {
         useExamGuardStore.getState().openQuitModal(() => {
-          if (typeof window !== 'undefined' && window.history.length > 2) {
-            window.history.go(-2);
-          } else {
-            router.replace('/');
-          }
+          router.replace('/');
         });
         return true;
       }
@@ -117,8 +142,6 @@ export default function RootLayout() {
     },
   });
 
-  if (!fontsOk) return null;
-
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={qc}>
@@ -129,12 +152,15 @@ export default function RootLayout() {
             tabBarInactiveTintColor: 'rgba(0,0,0,.5)',
             tabBarStyle: {
               backgroundColor: '#FFFFFF',
-              borderTopColor: 'rgba(0,0,0,.12)',
-              // The navigator stops adding the bottom inset once a custom height is
-              // set, so fold it in here (0 on web / devices with no home indicator).
-              height: 64 + bottomInset,
+              borderTopColor: 'rgba(0,0,0,.08)',
+              height: Platform.OS === 'web' ? 64 : 58 + bottomInset,
+              paddingTop: 6,
+              paddingBottom: Platform.OS === 'web' ? 6 : Math.max(bottomInset, 6),
             },
-            tabBarLabelStyle: { fontFamily: FONT.uiSemi, fontSize: 12 },
+            tabBarItemStyle: {
+              paddingVertical: 2,
+            },
+            tabBarLabelStyle: { fontFamily: FONT.uiSemi, fontSize: 11, marginTop: 2 },
           }}>
           <Tabs.Screen
             name="index"
@@ -173,8 +199,13 @@ export default function RootLayout() {
             listeners={createTabListener('/more')}
             options={{
               title: 'আরও',
-              tabBarBadge: lib.wrongIds.length > 0 ? toBn(lib.wrongIds.length) : undefined,
-              tabBarBadgeStyle: { backgroundColor: '#EA0000', fontSize: 10, fontFamily: FONT.digits },
+              tabBarBadge: wrongBadgeCount > 0 ? toBn(wrongBadgeCount) : undefined,
+              tabBarBadgeStyle: {
+                backgroundColor: '#EA0000',
+                fontSize: 10,
+                fontFamily: FONT.digits,
+                top: -2,
+              },
               tabBarIcon: ({ color }) => <MaterialIcons name="more-horiz" size={22} color={color} />,
             }}
           />
@@ -182,6 +213,8 @@ export default function RootLayout() {
           <Tabs.Screen name="custom" options={{ href: null } as any} />
           <Tabs.Screen name="bookmarks" options={{ href: null } as any} />
           <Tabs.Screen name="wrong" options={{ href: null } as any} />
+          {/* OAuth deep-link landing (bcsconsole://auth-callback). */}
+          <Tabs.Screen name="auth-callback" options={{ href: null } as any} />
         </Tabs>
         <ExamQuitModal />
       </QueryClientProvider>

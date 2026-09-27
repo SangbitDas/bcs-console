@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, AppState, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -15,6 +15,7 @@ import { useExamGuardStore } from '../store/examGuard';
 import { Btn, Bn, Chip, Feedback, MathText, OptBtn, ScorePanel, Tag, type OptState } from './ui';
 import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeCard, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
 import { ExplanationImage } from './image-lightbox';
+import { RangeSlider } from './range-slider';
 import { SUBJECT_ICONS } from '../app/index';
 
 const OPT_KEYS = ['A', 'B', 'C', 'D'];
@@ -167,13 +168,13 @@ export const QuestionCard = memo(function QuestionCard({
       </View>
 
       {showExplanation ? (
-        <View className="mt-3 rounded-lg border border-black/10 bg-paper p-4">
-          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 4 }}>
+        <View className="mt-3 overflow-hidden rounded-lg border border-black/10 bg-paper p-4">
+          <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 6 }}>
             {`সঠিক উত্তর: ${q.correct_answer || 'নেই'}`}
           </Bn>
           {q.solve_note ? (
             <MathText
-              style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
+              style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 28, color: 'rgba(0,0,0,0.85)' }}
               text={q.solve_note}
             />
           ) : null}
@@ -215,7 +216,7 @@ export function QuestionsFlashList({
     }
     if (resetScrollKey !== undefined) {
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      if (typeof window !== 'undefined') {
+      if (Platform.OS === 'web') {
         window.scrollTo({ top: 0, left: 0 });
       }
       const t = setTimeout(() => {
@@ -247,6 +248,7 @@ export function QuestionsFlashList({
       data={items}
       renderItem={renderItem}
       keyExtractor={(it) => String(it.q.id)}
+      drawDistance={Platform.OS === 'android' ? 300 : undefined}
       ListHeaderComponent={header}
       ListEmptyComponent={empty}
       showsVerticalScrollIndicator={true}
@@ -1333,24 +1335,13 @@ function ConfigureView({
                               </Text>
                             </View>
 
-                            {/* Horizontal Slider (Web range input with smooth interaction) */}
+                            {/* Horizontal Slider (DOM range input on web, native track on device) */}
                             <View className="px-1 pt-1">
-                              <input
-                                type="range"
+                              <RangeSlider
                                 min={paceStations[0].mins}
                                 max={paceStations[paceStations.length - 1].mins}
-                                step={1}
                                 value={s.timeMinutes}
-                                onChange={(e: any) => s.setTimeMinutes(Number(e.target.value))}
-                                style={{
-                                  width: '100%',
-                                  height: '6px',
-                                  borderRadius: '4px',
-                                  background: 'rgba(0,0,0,0.12)',
-                                  outline: 'none',
-                                  cursor: 'pointer',
-                                  accentColor: '#0A0A0A',
-                                }}
+                                onChange={s.setTimeMinutes}
                               />
                             </View>
 

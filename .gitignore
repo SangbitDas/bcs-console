@@ -56,3 +56,11 @@ pnpm-debug.log*
 # Scratch directory
 scratch/
 
+# Build releases & packages
+release/
+*.apk
+package-lock.json
+
+# Screen captures & debug dumps
+screenshot*.png
+uiautomator*.xml

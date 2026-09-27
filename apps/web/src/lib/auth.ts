@@ -27,6 +27,38 @@ interface AuthState {
   updateProfile: (data: Partial<Pick<UserProfile, 'full_name' | 'phone'>>) => Promise<void>;
 }
 
+/* Parses an OAuth redirect URL (native browser session or the
+ * `bcsconsole://auth-callback` deep link) and turns it into a Supabase session.
+ * PKCE returns `?code=`; the implicit flow returns tokens in the fragment. */
+export async function completeAuthRedirect(url: string): Promise<{ error: Error | null }> {
+  const grab = (key: string) => {
+    const match = new RegExp(`[?&#]${key}=([^&#]+)`).exec(url);
+    return match ? decodeURIComponent(match[1]) : null;
+  };
+
+  try {
+    const code = grab('code');
+    if (code) {
+      const { error } = await db.auth.exchangeCodeForSession(code);
+      return { error: error ?? null };
+    }
+
+    const accessToken = grab('access_token');
+    const refreshToken = grab('refresh_token');
+    if (accessToken && refreshToken) {
+      const { error } = await db.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      return { error: error ?? null };
+    }
+
+    return { error: new Error('Google sign-in returned no authorization code') };
+  } catch (err: any) {
+    return { error: err };
+  }
+}
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   session: null,
@@ -93,13 +125,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
       if (result.type !== 'success') return { error: null };
 
-      const match = /[?&#]code=([^&#]+)/.exec(result.url);
-      if (!match) return { error: new Error('Google sign-in returned no authorization code') };
-
-      const { error: sessionError } = await db.auth.exchangeCodeForSession(
-        decodeURIComponent(match[1]),
-      );
-      return { error: sessionError ?? null };
+      return completeAuthRedirect(result.url);
     } catch (err: any) {
       return { error: err };
     }

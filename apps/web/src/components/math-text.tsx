@@ -1,7 +1,15 @@
 import React, { useMemo } from 'react';
-import { Platform, Text, type StyleProp, type TextStyle } from 'react-native';
+import { Platform, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
+import { InlineTeX } from 'ratex-react-native';
 import { Bn } from './bn';
-import { hasMathTokens, latexToReadableText, splitTextAndMath, type TextSegment } from '../lib/mathParser';
+import { FONT } from '../lib/fonts';
+import {
+  convertPlainMathToLatex,
+  hasMathTokens,
+  hasRichTags,
+  splitRichSegments,
+  splitTextAndMath,
+} from '../lib/mathParser';
 
 export interface MathTextProps {
   text?: string | null;
@@ -10,60 +18,15 @@ export interface MathTextProps {
   numberOfLines?: number;
 }
 
-interface FormattedSegment {
-  content: string;
-  isUnderline?: boolean;
-  isBold?: boolean;
-  isItalic?: boolean;
-}
-
-const RICH_TAG_REGEX = /(<\/?(?:u|b|i|strong|em)>)/i;
-
-function parseRichSegments(text: string): FormattedSegment[] {
-  const parts = text.split(RICH_TAG_REGEX);
-  const segments: FormattedSegment[] = [];
-
-  let isUnderline = false;
-  let isBold = false;
-  let isItalic = false;
-
-  for (const part of parts) {
-    if (!part) continue;
-
-    const lower = part.toLowerCase();
-    if (lower === '<u>') {
-      isUnderline = true;
-    } else if (lower === '</u>') {
-      isUnderline = false;
-    } else if (lower === '<b>' || lower === '<strong>') {
-      isBold = true;
-    } else if (lower === '</b>' || lower === '</strong>') {
-      isBold = false;
-    } else if (lower === '<i>' || lower === '<em>') {
-      isItalic = true;
-    } else if (lower === '</i>' || lower === '</em>') {
-      isItalic = false;
-    } else {
-      segments.push({
-        content: part,
-        isUnderline,
-        isBold,
-        isItalic,
-      });
-    }
-  }
-
-  return segments;
-}
-
 /**
  * MathText Component
  *
  * Intelligently renders questions, options, and solve notes.
  * - For plain non-math, non-formatted text: Passes through directly to `<Bn>` for zero overhead.
  * - For rich formatted text: Renders clean, accessible underlines (<u>), bold (<b>), italics (<i>).
- * - For mathematical/scientific expressions: Renders high-fidelity KaTeX equations
- *   inline with proper baseline alignment and typography.
+ * - For Web (DOM): Renders high-fidelity KaTeX equations inline.
+ * - For Native (Mobile): Renders hardware-accelerated, zero-overhead Vector SVG Math (`<SvgXml>`)
+ *   powered by native GPU canvas (Skia/Android graphics) for fluid 120 FPS scrolling.
  */
 export const MathText = React.memo(function MathText({
   text,
@@ -75,7 +38,7 @@ export const MathText = React.memo(function MathText({
     return null;
   }
 
-  const hasRich = RICH_TAG_REGEX.test(text);
+  const hasRich = hasRichTags(text);
   const hasMath = hasMathTokens(text);
 
   // If there are no mathematical tokens and no rich tags, render standard Bn text
@@ -87,7 +50,7 @@ export const MathText = React.memo(function MathText({
     );
   }
 
-  // Ensure KaTeX stylesheet is loaded in browser head if math is involved
+  // Ensure KaTeX stylesheet is loaded in browser head if math is involved on Web
   if (Platform.OS === 'web' && typeof document !== 'undefined' && hasMath) {
     if (!document.getElementById('katex-css-cdn')) {
       const link = document.createElement('link');
@@ -100,10 +63,9 @@ export const MathText = React.memo(function MathText({
   }
 
   // Parse rich segments (handling <u>, <b>, etc.)
-  const richSegments = useMemo(() => parseRichSegments(text), [text]);
+  const richSegments = useMemo(() => splitRichSegments(text), [text]);
 
-  // Native math fallback: KaTeX needs the DOM, so convert math tokens to readable
-  // Unicode text instead (web keeps rendering real KaTeX HTML).
+  // Native math segments
   const nativeMath = useMemo(
     () =>
       Platform.OS === 'web'
@@ -191,11 +153,59 @@ export const MathText = React.memo(function MathText({
     );
   }
 
-  // Mobile / Native fallback (no DOM/KaTeX available)
+  // Mobile / Native: Hardware-accelerated Math
+  const flatStyle = (StyleSheet.flatten(style) ?? {}) as TextStyle;
+  const fontSize = typeof flatStyle.fontSize === 'number' ? flatStyle.fontSize : 15;
+  const textColor = typeof flatStyle.color === 'string' ? flatStyle.color : '#0A0A0A';
+  const computedLineHeight =
+    typeof flatStyle.lineHeight === 'number'
+      ? Math.max(flatStyle.lineHeight, Math.round(fontSize * 1.85))
+      : Math.round(fontSize * 1.85);
+
+  // Direct InlineTeX rendering for pure math or mixed prose with no HTML tags
+  if (!hasRich && hasMath) {
+    const mathSegs = splitTextAndMath(text, { html: false });
+    const inlineString = mathSegs
+      .map((mSeg) => {
+        if (mSeg.type === 'math') {
+          const latex = convertPlainMathToLatex(mSeg.content);
+          return `$${latex}$`;
+        }
+        return mSeg.content;
+      })
+      .join('');
+
+    const textStyle: TextStyle = {
+      fontSize,
+      lineHeight: computedLineHeight,
+      color: textColor,
+      fontFamily: FONT.ui,
+    };
+
+    return (
+      <View style={{ width: '100%', flexDirection: 'row' }}>
+        <InlineTeX
+          content={inlineString}
+          fontSize={fontSize}
+          color={textColor}
+          textStyle={textStyle}
+          style={[{ width: '100%', flexShrink: 1 }, style as any]}
+        />
+      </View>
+    );
+  }
+
   return (
-    <Bn style={style} className={className} numberOfLines={numberOfLines}>
+    <Bn
+      style={[{ lineHeight: computedLineHeight, color: textColor } as any, style]}
+      className={className}
+      numberOfLines={numberOfLines}>
       {richSegments.map((rSeg, rIdx) => {
-        const textStyle: TextStyle = {};
+        const textStyle: TextStyle = {
+          fontSize,
+          lineHeight: computedLineHeight,
+          color: textColor,
+        };
         if (rSeg.isUnderline) {
           textStyle.textDecorationLine = 'underline';
           textStyle.fontWeight = 'bold';
@@ -208,18 +218,38 @@ export const MathText = React.memo(function MathText({
         }
 
         const mathSegs = nativeMath?.[rIdx];
-        const content = mathSegs
-          ? mathSegs.map((mSeg) =>
-              mSeg.type === 'math' ? latexToReadableText(mSeg.content) : mSeg.content,
-            )
-          : rSeg.content;
+        if (mathSegs) {
+          const inlineString = mathSegs.map((mSeg) => {
+            if (mSeg.type === 'math') {
+              const latex = convertPlainMathToLatex(mSeg.content);
+              return `$${latex}$`;
+            }
+            return mSeg.content;
+          }).join('');
+
+          // Noto Sans Bengali must be explicitly passed down to Native text spans
+          textStyle.fontFamily = textStyle.fontWeight === 'bold' ? FONT.uiBold : FONT.ui;
+
+          return (
+            <View key={rIdx} style={{ width: '100%', flexDirection: 'row' }}>
+              <InlineTeX
+                content={inlineString}
+                fontSize={fontSize}
+                color={textColor}
+                textStyle={textStyle}
+                style={{ width: '100%', flexShrink: 1 }}
+              />
+            </View>
+          );
+        }
 
         return (
           <Text key={rIdx} style={textStyle}>
-            {content}
+            {rSeg.content}
           </Text>
         );
       })}
     </Bn>
   );
 });
+
