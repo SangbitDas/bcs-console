@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { AlertTriangle, Bookmark, ChevronRight, Layers } from 'lucide-react-native';
+import { AlertTriangle, Bookmark, ChevronRight, Trophy } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { toBn } from '../lib/format';
 import { useLibrary } from '../lib/library';
@@ -23,10 +23,10 @@ export default function MoreScreen() {
 
   const rows = [
     {
-      title: 'কাস্টম এক্সাম',
-      sub: 'নিজের বাছাই অনুযায়ী পরীক্ষা তৈরি করুন',
-      icon: Layers,
-      href: '/custom',
+      title: 'ফলাফল',
+      sub: 'কাস্টম ও মক এক্সামের ফলাফল দেখুন',
+      icon: Trophy,
+      href: '/results',
       count: 0,
     },
     {

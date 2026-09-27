@@ -15,7 +15,7 @@ import { useExamStore } from '../store/exam';
 import { usePracticeStore } from '../store/practice';
 import { useLibrary } from '../lib/library';
 import { toBn } from '../lib/format';
-import { isTauri } from '../lib/tauri';
+import { applyTauriBodyClass, isTauri } from '../lib/tauri';
 
 // Disable Reanimated strict-mode warning for internal library shared-value reads
 configureReanimatedLogger({
@@ -91,6 +91,11 @@ export default function RootLayout() {
       };
     }
   }, [fontsOk]);
+
+  // Tauri shell: tag <body> once so Tauri-only CSS (scroll-lock) applies.
+  useEffect(() => {
+    applyTauriBodyClass();
+  }, []);
 
   // Web browser guard against closing tab or refreshing mid-exam
   useEffect(() => {
@@ -228,11 +233,11 @@ export default function RootLayout() {
             }}
           />
           <Tabs.Screen
-            name="results"
-            listeners={createTabListener('/results')}
+            name="custom"
+            listeners={createTabListener('/custom')}
             options={{
-              title: 'ফলাফল',
-              tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={22} color={color} />,
+              title: 'কাস্টম এক্সাম',
+              tabBarIcon: ({ color }) => <MaterialIcons name="tune" size={22} color={color} />,
             }}
           />
           <Tabs.Screen
@@ -251,7 +256,7 @@ export default function RootLayout() {
             }}
           />
           {/* Still routable, but hidden from the tab bar — opened from the "আরও" tab. */}
-          <Tabs.Screen name="custom" options={{ href: null } as any} />
+          <Tabs.Screen name="results" options={{ href: null } as any} />
           <Tabs.Screen name="bookmarks" options={{ href: null } as any} />
           <Tabs.Screen name="wrong" options={{ href: null } as any} />
           {/* OAuth deep-link landing (bcsconsole://auth-callback). */}

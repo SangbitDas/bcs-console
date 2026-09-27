@@ -157,29 +157,42 @@ export default function Home() {
             বছরভিত্তিক বিগত প্রশ্নে অনুশীলন করুন, বিষয় ধরে ধরে দুর্বলতা কাটান, আর ঘড়ি ধরে পূর্ণাঙ্গ মক এক্সাম দিন।
           </Text>
 
-          {/* Hero Action Buttons */}
-          <View className="flex-row flex-wrap justify-center gap-4">
+          {/* Hero Actions — one shared pill, 3 divided segments (icon over label
+              so it fits narrow phones and desktop alike). */}
+          <View className="w-full max-w-[560px] flex-row items-stretch self-center overflow-hidden rounded-2xl border border-black/10 bg-surface shadow-sm">
             <Link href={"/practice" as any} asChild>
-              <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl bg-ink px-8 shadow-sm transition-all hover:bg-black/90 active:scale-[0.98]">
-                <BookOpen size={18} color="#fff" />
-                <Text className="text-white" style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="অনুশীলন শুরু"
+                className="min-h-[64px] flex-1 items-center justify-center gap-1 px-2 py-3 transition-colors active:bg-black/5">
+                <BookOpen size={19} color="#EA0000" />
+                <Text className="text-center text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
                   অনুশীলন শুরু
                 </Text>
-                <ArrowRight size={17} color="#fff" />
               </Pressable>
             </Link>
+            <View className="my-3 w-px bg-black/10" />
             <Link href="/exam" asChild>
-              <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-black/20 bg-surface px-8 shadow-sm transition-all hover:border-black/40 hover:bg-black/[0.02] active:scale-[0.98]">
-                <Timer size={18} color="#0A0A0A" />
-                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>মক এক্সাম</Text>
-                <ArrowRight size={17} color="#0A0A0A" />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="মক এক্সাম"
+                className="min-h-[64px] flex-1 items-center justify-center gap-1 px-2 py-3 transition-colors active:bg-black/5">
+                <Timer size={19} color="#0A0A0A" />
+                <Text className="text-center text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                  মক এক্সাম
+                </Text>
               </Pressable>
             </Link>
+            <View className="my-3 w-px bg-black/10" />
             <Link href="/custom" asChild>
-              <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-black/20 bg-surface px-8 shadow-sm transition-all hover:border-black/40 hover:bg-black/[0.02] active:scale-[0.98]">
-                <SlidersHorizontal size={18} color="#0A0A0A" />
-                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>কাস্টম এক্সাম</Text>
-                <ArrowRight size={17} color="#0A0A0A" />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="কাস্টম এক্সাম"
+                className="min-h-[64px] flex-1 items-center justify-center gap-1 px-2 py-3 transition-colors active:bg-black/5">
+                <SlidersHorizontal size={19} color="#0A0A0A" />
+                <Text className="text-center text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                  কাস্টম এক্সাম
+                </Text>
               </Pressable>
             </Link>
           </View>

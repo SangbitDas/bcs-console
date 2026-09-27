@@ -4,6 +4,11 @@
     "slug": "bcs-console-web",
     "version": "1.0.0",
     "orientation": "portrait",
+    "extra": {
+      "router": {
+        "origin": "http://tauri.localhost"
+      }
+    },
     "icon": "./assets/images/icon.png",
     "scheme": "bcsconsole",
     "userInterfaceStyle": "automatic",

@@ -2,5 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.app" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
+        <!-- No native scrollbar pills anywhere in the app (WebView draws its
+             own overlay pill for scrolled web content; disable it here). -->
+        <item name="android:scrollbars">none</item>
     </style>
 </resources>

@@ -12,6 +12,7 @@ import { applyRerunConfig } from '../lib/rerun';
 import { useExams, useQuestionPool, useSubjects } from '../hooks/queries';
 import { usePracticeStore, type PracticeMode } from '../store/practice';
 import { useExamGuardStore } from '../store/examGuard';
+import { useNoteStore } from '../store/notes';
 import { Btn, Bn, Chip, Feedback, MathText, OptBtn, ScorePanel, Tag, type OptState } from './ui';
 import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeCard, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
 import { ExplanationImage } from './image-lightbox';
@@ -39,8 +40,6 @@ export const QuestionCard = memo(function QuestionCard({
   subjectLabel,
   examBadge,
   revealAll,
-  expanded: controlledExpanded,
-  onToggleNote,
   wrongCount,
 }: {
   q: QuestionRow;
@@ -48,8 +47,6 @@ export const QuestionCard = memo(function QuestionCard({
   subjectLabel: string;
   examBadge?: string;
   revealAll: boolean;
-  expanded?: boolean;
-  onToggleNote?: (qid: number) => void;
   wrongCount?: number;
 }) {
   // Subscribe ONLY to this card's answer + bookmark -> other cards don't re-render.
@@ -58,15 +55,13 @@ export const QuestionCard = memo(function QuestionCard({
   const bookmarked = useLibrary((st) => st.bookmarks.includes(q.id));
   const toggleBookmark = useLibrary((st) => st.toggleBookmark);
 
-  // Self-contained expansion: toggling one card never re-renders the parent
-  // list. Parent-controlled props remain supported for backwards compat.
-  const isControlled = onToggleNote != null;
-  const [localOpen, setLocalOpen] = useState(false);
-  const open = isControlled ? !!controlledExpanded : localOpen;
-  const handleToggleNote = useCallback(() => {
-    if (isControlled) onToggleNote!(q.id);
-    else setLocalOpen((v) => !v);
-  }, [isControlled, onToggleNote, q.id]);
+  // Expansion lives in the shared per-id store (NOT local useState):
+  // FlashList recycles cells by position, so cell-local state leaked onto
+  // unrelated questions after scrolling. Keyed store state follows the
+  // question, and toggling still never re-renders the parent list.
+  const open = useNoteStore((st) => !!st.open[q.id]);
+  const toggleNote = useNoteStore((st) => st.toggle);
+  const handleToggleNote = useCallback(() => toggleNote(q.id), [toggleNote, q.id]);
 
   const isAnswered = !!done;
   const showExplanation = revealAll || done?.reveal || open || (!q.correct_answer && isAnswered);
@@ -240,16 +235,12 @@ export const QuestionCard = memo(function QuestionCard({
 export function QuestionsFlashList({
   items,
   revealAll,
-  expandedNotes,
-  onToggleNote,
   header,
   empty,
   resetScrollKey,
 }: {
   items: DisplayItem[];
   revealAll: boolean;
-  expandedNotes?: Record<number, boolean>;
-  onToggleNote?: (qid: number) => void;
   header?: React.ReactElement | null;
   empty?: React.ReactElement | null;
   resetScrollKey?: any;
@@ -1588,6 +1579,20 @@ function ExamAllQuestionsView({
     [filteredQuestions, subjectName],
   );
 
+  /* Coherent with per-card store opens: hiding via the global button also
+     closes individually opened cards, so "লুকান" always closes everything. */
+  const toggleRevealAll = useCallback(() => {
+    if (revealAll) {
+      setRevealAll(false);
+      useNoteStore.getState().setMany(
+        displayItems.map((d) => d.q.id),
+        false,
+      );
+    } else {
+      setRevealAll(true);
+    }
+  }, [revealAll, displayItems]);
+
   /* 1. Exam Summary Card */
   const summaryCard = (
     <View className="overflow-hidden rounded-xl border border-black/10 bg-surface shadow-sm">
@@ -1718,7 +1723,7 @@ function ExamAllQuestionsView({
     <View className="rounded-xl border border-black/10 bg-surface p-4 shadow-sm gap-2.5">
       <Text style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>অধ্যয়ন সহায়ক</Text>
       <Pressable
-        onPress={() => setRevealAll(!revealAll)}
+        onPress={toggleRevealAll}
         className={`min-h-[42px] flex-row items-center justify-center gap-2 rounded-lg border px-3 transition-colors ${
           revealAll ? 'border-black bg-ink text-white' : 'border-black/15 bg-paper'
         }`}>
@@ -1771,11 +1776,11 @@ function ExamAllQuestionsView({
           </Text>
         </View>
 
-        <Pressable
-          onPress={() => setRevealAll(!revealAll)}
-          className={`flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 transition-colors ${
-            revealAll ? 'border-black bg-ink' : 'border-black/15 bg-surface'
-          }`}>
+          <Pressable
+            onPress={toggleRevealAll}
+            className={`flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 transition-colors ${
+              revealAll ? 'border-black bg-ink' : 'border-black/15 bg-surface'
+            }`}>
           {revealAll ? <EyeOff size={14} color="#FFFFFF" /> : <Eye size={14} color="#0A0A0A" />}
           <Text
             className={revealAll ? 'text-white' : 'text-black/80'}
@@ -2063,6 +2068,20 @@ function SubjectAllQuestionsView({
     }));
   }, [filteredQuestions, subjectName]);
 
+  /* Coherent with per-card store opens: hiding via the global button also
+     closes individually opened cards, so "লুকান" always closes everything. */
+  const toggleRevealAll = useCallback(() => {
+    if (revealAll) {
+      setRevealAll(false);
+      useNoteStore.getState().setMany(
+        displayItems.map((d) => d.q.id),
+        false,
+      );
+    } else {
+      setRevealAll(true);
+    }
+  }, [revealAll, displayItems]);
+
   // Human-readable list of selected subjects
   const subjectTitles = useMemo(() => {
     return subjectIds.map((id) => subjectName(id));
@@ -2183,7 +2202,7 @@ function SubjectAllQuestionsView({
     <View className="rounded-xl border border-black/10 bg-surface p-4 shadow-sm gap-2.5">
       <Text style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>অধ্যয়ন সহায়ক</Text>
       <Pressable
-        onPress={() => setRevealAll(!revealAll)}
+        onPress={toggleRevealAll}
         className={`min-h-[42px] flex-row items-center justify-center gap-2 rounded-lg border px-3 transition-colors ${
           revealAll ? 'border-black bg-ink text-white' : 'border-black/15 bg-paper'
         }`}>
@@ -2458,7 +2477,7 @@ function SubjectAllQuestionsView({
         </View>
 
         <Pressable
-          onPress={() => setRevealAll(!revealAll)}
+          onPress={toggleRevealAll}
           className={`shrink-0 mt-1 flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 transition-colors ${
             revealAll ? 'border-black bg-ink' : 'border-black/15 bg-surface'
           }`}>

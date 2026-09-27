@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ActivityIndicator, InteractionManager, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, InteractionManager, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { Award, Check, ChevronDown, ChevronRight, Clock, LogIn, MinusCircle, Target, X } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
@@ -95,8 +95,39 @@ function LoginPrompt({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-/* Subject breakdown table: attempted / right / wrong / accuracy per topic. */
+/* Subject breakdown: table on wide screens, stacked full-name cards on narrow
+   phones (fixed stat columns truncated long Bengali subject names). */
 function SubjectBreakdown({ rows }: { rows: { id: number; name: string; stat: SubjectStat }[] }) {
+  const { width } = useWindowDimensions();
+  if (width < 640) {
+    return (
+      <View className="gap-2">
+        {rows.map((r) => (
+          <View key={r.id} className="rounded-lg border border-black/10 bg-black/[0.015] px-3.5 py-2.5">
+            <View className="flex-row items-center justify-between gap-2">
+              <Bn className="flex-1" style={{ fontFamily: FONT.uiSemi, fontSize: 13.5, lineHeight: 20 }}>
+                {r.name}
+              </Bn>
+              <Bn style={{ fontFamily: FONT.digitsBold, fontSize: 14 }}>
+                {r.stat.attempted > 0 ? `${toBn(Math.round(accuracyPct(r.stat)))}%` : '—'}
+              </Bn>
+            </View>
+            <View className="mt-1 flex-row flex-wrap items-center gap-x-3 gap-y-0.5">
+              <Bn className="text-black/55" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+                {`${toBn(r.stat.attempted)} চেষ্টা`}
+              </Bn>
+              <Bn style={{ fontFamily: FONT.uiSemi, fontSize: 12, color: '#047857' }}>
+                {`${toBn(r.stat.right)} সঠিক`}
+              </Bn>
+              <Bn style={{ fontFamily: FONT.uiSemi, fontSize: 12, color: '#BE123C' }}>
+                {`${toBn(r.stat.wrong)} ভুল`}
+              </Bn>
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  }
   return (
     <View className="overflow-hidden rounded-xl border border-black/10">
       <View className="flex-row items-center border-b border-black/10 bg-black/[0.03] px-4 py-2.5">

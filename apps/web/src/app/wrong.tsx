@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Play, Trash2, ArrowRight } from 'lucide-react-native';
@@ -6,6 +6,7 @@ import { FONT } from '../lib/fonts';
 import { examLabel, toBn, type QuestionRow } from '../lib/format';
 import { useLibrary } from '../lib/library';
 import { usePracticeStore } from '../store/practice';
+import { useNoteStore } from '../store/notes';
 import { useQuestionPool, useSubjects } from '../hooks/queries';
 import { Bn, Btn, Tag } from '../components/ui';
 import { Breadcrumb } from '../components/patterns';
@@ -57,6 +58,20 @@ export default function WrongQuestionsScreen() {
     }));
   }, [filteredQuestions, subjectMap]);
 
+  /* Coherent with per-card store opens: hiding also closes individually
+     opened cards, so "লুকান" always closes everything. */
+  const toggleRevealAll = useCallback(() => {
+    if (revealAll) {
+      setRevealAll(false);
+      useNoteStore.getState().setMany(
+        displayItems.map((d) => d.q.id),
+        false,
+      );
+    } else {
+      setRevealAll(true);
+    }
+  }, [revealAll, displayItems]);
+
   const startInteractivePractice = () => {
     usePracticeStore.getState().backToHub();
     router.push('/practice' as any);
@@ -91,7 +106,7 @@ export default function WrongQuestionsScreen() {
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => setRevealAll((v) => !v)}
+                  onPress={toggleRevealAll}
                   className="rounded-lg border border-black/15 bg-surface px-3 py-2 transition-colors active:bg-black/5">
                   <Text className="text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
                     {revealAll ? 'উত্তর লুকান' : 'সব উত্তর দেখুন'}
