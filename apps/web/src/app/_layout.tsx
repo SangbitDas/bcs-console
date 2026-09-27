@@ -4,17 +4,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BackHandler, LogBox, Platform } from 'react-native';
+import { BackHandler, LogBox, Platform, Pressable, View } from 'react-native';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { FONT, useAppFonts } from '../lib/fonts';
-import { TopBar } from '../components/ui';
+import { Bn, TopBar } from '../components/ui';
 import { ExamQuitModal } from '../components/exam-quit-modal';
 import { isAnyExamActive, useExamGuardStore } from '../store/examGuard';
 import { useExamStore } from '../store/exam';
 import { usePracticeStore } from '../store/practice';
 import { useLibrary } from '../lib/library';
 import { toBn } from '../lib/format';
+import { isTauri } from '../lib/tauri';
 
 // Disable Reanimated strict-mode warning for internal library shared-value reads
 configureReanimatedLogger({
@@ -40,6 +41,22 @@ if (__DEV__) {
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+/* Tauri-only tab-bar background: white on top + black 28px system strip below,
+ * so the Android gesture pill floats on black (industry edge-to-edge look).
+ * Paint ONLY — icons/labels/badge/listeners stay on the default React
+ * Navigation bar (a full custom tabBar blanked the app on device).
+ * Web/Vercel and RN native never mount this. */
+const USE_TAURI_BAR_BG = Platform.OS === 'web' && isTauri();
+
+function TauriBarBackground() {
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />
+      <View style={{ height: 28, backgroundColor: '#000000' }} />
+    </View>
+  );
+}
+
 export default function RootLayout() {
   const fontsOk = useAppFonts();
   const [qc] = useState(() => new QueryClient());
@@ -50,6 +67,10 @@ export default function RootLayout() {
   const isExamActive = isMockRunning || isCustomRunning;
   // Bottom safe-area inset for the tab bar (0 on web).
   const bottomInset = Platform.OS === 'web' ? 0 : initialWindowMetrics?.insets.bottom ?? 0;
+  // Tauri Android WebView reports Platform.OS === 'web', so it gets no system
+  // inset — but gesture navigation draws its pill over the tab bar. Reserve
+  // room for it (Vercel web and RN native are unaffected: isTauri() is false).
+  const tauriBottomPad = Platform.OS === 'web' && isTauri() ? 28 : 0;
 
   useEffect(() => {
     let isMounted = true;
@@ -160,12 +181,13 @@ export default function RootLayout() {
             header: () => <TopBar />,
             tabBarActiveTintColor: '#EA0000',
             tabBarInactiveTintColor: 'rgba(0,0,0,.5)',
+            tabBarBackground: USE_TAURI_BAR_BG ? TauriBarBackground : undefined,
             tabBarStyle: {
-              backgroundColor: '#FFFFFF',
+              backgroundColor: USE_TAURI_BAR_BG ? 'transparent' : '#FFFFFF',
               borderTopColor: 'rgba(0,0,0,.08)',
-              height: Platform.OS === 'web' ? 64 : 64 + bottomInset,
+              height: Platform.OS === 'web' ? 64 + tauriBottomPad : 64 + bottomInset,
               paddingTop: 6,
-              paddingBottom: Platform.OS === 'web' ? 6 : Math.max(bottomInset, 6),
+              paddingBottom: Platform.OS === 'web' ? 6 + tauriBottomPad : Math.max(bottomInset, 6),
             },
             tabBarItemStyle: {
               paddingHorizontal: 0,
