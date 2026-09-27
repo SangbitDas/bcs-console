@@ -28,6 +28,16 @@ LogBox.ignoreLogs([
   "Can't perform a React state update on a component that hasn't mounted yet",
 ]);
 
+// Silence the top blue "Refreshing..." dev loading bar during Fast Refresh
+if (__DEV__) {
+  try {
+    const { NativeModules } = require('react-native');
+    if (NativeModules?.DevLoadingView) {
+      NativeModules.DevLoadingView.showMessage = () => {};
+    }
+  } catch {}
+}
+
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
