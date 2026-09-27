@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState, memo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import { ActivityIndicator, AppState, InteractionManager, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
@@ -79,6 +79,19 @@ export const MOCK_TIERS: MockTier[] = [
 ];
 
 export default function Exam() {
+  /* Leaving this tab after submit discards the in-memory result so that
+     coming back shows the main picker (saved attempts stay in ফলাফল).
+     Mid-exam leaves go through the quit guard, which resets on its own. */
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (useExamStore.getState().result) {
+          useExamStore.getState().backToPicker();
+        }
+      };
+    }, []),
+  );
+
   const st = useExamStore();
   const lib = useLibrary();
   const { data: subjects } = useSubjects();
@@ -604,8 +617,9 @@ const ExamQuestionCard = memo(function ExamQuestionCard({
           let badgeClass = 'border-black/20 bg-paper text-black/70';
 
           if (isPicked) {
-            btnClass = 'border-[#EA0000] bg-[#EA0000]/[0.05] text-black font-semibold shadow-xs';
-            badgeClass = 'border-[#EA0000] bg-[#EA0000] text-white';
+            // Mock runner never reveals correctness — neutral selected look.
+            btnClass = 'border-black bg-black/[0.04] text-black font-semibold shadow-xs';
+            badgeClass = 'border-black bg-ink text-white';
           }
 
           return (
@@ -1118,7 +1132,7 @@ function ExamResultView({
         })}
       </View>
 
-      {/* Bottom Action Controls */}
+      {/* Bottom Action Controls — retry only. */}
       <View className="mt-4 flex-row flex-wrap gap-3">
         <Pressable
           onPress={onRetry}
@@ -1126,14 +1140,6 @@ function ExamResultView({
           <RotateCcw size={15} color="#FFFFFF" />
           <Text className="text-white" style={{ fontFamily: FONT.uiSemi, fontSize: 15 }}>
             আবার পরীক্ষা দিন
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => st.backToPicker()}
-          className="min-h-[48px] flex-row items-center justify-center gap-2 rounded-lg border border-black/20 bg-surface px-5 py-3 transition-colors hover:bg-black/[0.03]">
-          <Text className="text-black/75" style={{ fontFamily: FONT.uiSemi, fontSize: 15 }}>
-            মক টেস্ট তালিকায় ফিরুন
           </Text>
         </Pressable>
       </View>

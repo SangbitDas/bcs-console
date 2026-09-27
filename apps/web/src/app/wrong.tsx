@@ -212,6 +212,7 @@ export default function WrongQuestionsScreen() {
                   examBadge={item.examBadge}
                   revealAll={revealAll}
                   wrongCount={lib.wrongCounts[item.q.id] ?? 1}
+                  hideBookmark
                 />
               ))}
             </View>

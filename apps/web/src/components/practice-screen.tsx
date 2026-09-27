@@ -14,7 +14,7 @@ import { usePracticeStore, type PracticeMode } from '../store/practice';
 import { useExamGuardStore } from '../store/examGuard';
 import { useNoteStore } from '../store/notes';
 import { Btn, Bn, Chip, Feedback, MathText, OptBtn, ScorePanel, Tag, type OptState } from './ui';
-import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeCard, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
+import { BookmarkBtn, BcsTickPicker, Breadcrumb, Card, Cols, ConfirmModal, CountPicker, DropdownSelect, GoRow, ModeCard, NotesCard, QuoteCard, RadioCircleOption, RangePicker, RecentPracticeCard, RecentPracticeRow, RecentRow, SegControl, SidebarLayout, SidebarNavItem, SummaryCard } from './patterns';
 import { ExplanationImage } from './image-lightbox';
 import { RangeSlider } from './range-slider';
 import { SUBJECT_ICONS } from '../app/index';
@@ -41,6 +41,8 @@ export const QuestionCard = memo(function QuestionCard({
   examBadge,
   revealAll,
   wrongCount,
+  hideBookmark,
+  concealAnswers,
 }: {
   q: QuestionRow;
   indexLabel: string;
@@ -48,6 +50,9 @@ export const QuestionCard = memo(function QuestionCard({
   examBadge?: string;
   revealAll: boolean;
   wrongCount?: number;
+  hideBookmark?: boolean;
+  /* Mock-style exam mode: record picks silently, reveal nothing until submit. */
+  concealAnswers?: boolean;
 }) {
   // Subscribe ONLY to this card's answer + bookmark -> other cards don't re-render.
   const done = usePracticeStore((st) => st.done[q.id]);
@@ -64,8 +69,9 @@ export const QuestionCard = memo(function QuestionCard({
   const handleToggleNote = useCallback(() => toggleNote(q.id), [toggleNote, q.id]);
 
   const isAnswered = !!done;
-  const showExplanation = revealAll || done?.reveal || open || (!q.correct_answer && isAnswered);
-  const showAnswer = isAnswered || revealAll || open;
+  const showExplanation =
+    !concealAnswers && (revealAll || done?.reveal || open || (!q.correct_answer && isAnswered));
+  const showAnswer = !concealAnswers && (isAnswered || revealAll || open);
 
   // Defer WebView-backed math + images one frame after the tap so the label
   // flips instantly even when the JS thread is busy.
@@ -88,9 +94,9 @@ export const QuestionCard = memo(function QuestionCard({
 
   return (
     <View className="overflow-hidden rounded-xl border border-black/10 bg-surface p-5 shadow-sm transition-shadow hover:shadow">
-      <View className="mb-3 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          <View className="h-6 min-w-[26px] items-center justify-center rounded bg-ink px-2">
+      <View className="mb-3 flex-row items-start justify-between gap-2">
+        <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-2 pr-1">
+          <View className="h-6 min-w-[26px] shrink-0 items-center justify-center rounded bg-ink px-2">
             <Bn className="text-white font-bold" style={{ fontFamily: FONT.uiBold, fontSize: 13 }}>
               {indexLabel}
             </Bn>
@@ -99,15 +105,15 @@ export const QuestionCard = memo(function QuestionCard({
           <Tag>{subjectLabel}</Tag>
           {!q.correct_answer ? <Tag warn>উৎসে উত্তর নেই</Tag> : null}
         </View>
-        <View className="flex-row items-center gap-2">
+        <View className="shrink-0 flex-row items-center gap-2">
           {wrongCount && wrongCount > 0 ? (
-            <View className="rounded-full bg-[#EA0000]/10 px-2.5 py-1">
+            <View className="shrink-0 rounded-full bg-[#EA0000]/10 px-2.5 py-1">
               <Bn style={{ fontFamily: FONT.uiBold, fontSize: 12, color: '#EA0000' }}>
                 {`${toBn(wrongCount)} বার ভুল`}
               </Bn>
             </View>
           ) : null}
-          <BookmarkBtn active={bookmarked} onPress={() => toggleBookmark(q.id)} />
+          {hideBookmark ? null : <BookmarkBtn active={bookmarked} onPress={() => toggleBookmark(q.id)} />}
         </View>
       </View>
 
@@ -136,7 +142,10 @@ export const QuestionCard = memo(function QuestionCard({
           let btnClass = 'border-black/15 bg-surface text-black/85';
           let badgeClass = 'border-black/20 bg-paper text-black/70';
 
-          if (showAnswer) {
+          if (concealAnswers && isPicked) {
+            btnClass = 'border-black bg-black/[0.04] text-black font-medium';
+            badgeClass = 'border-black bg-ink text-white';
+          } else if (showAnswer) {
             if (isCorrect) {
               btnClass = 'border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold';
               badgeClass = 'border-emerald-600 bg-emerald-600 text-white';
@@ -159,7 +168,7 @@ export const QuestionCard = memo(function QuestionCard({
               key={k}
               onPress={() => {
                 answer(q.id, k, k === q.correct_answer);
-                if (!q.correct_answer && !open) {
+                if (!q.correct_answer && !open && !concealAnswers) {
                   handleToggleNote();
                 }
               }}
@@ -177,6 +186,7 @@ export const QuestionCard = memo(function QuestionCard({
         })}
       </View>
 
+      {concealAnswers ? null : (
       <View className="mt-3 flex-row items-center justify-between border-t border-black/5 pt-3">
         <Pressable
           onPress={handleToggleNote}
@@ -198,6 +208,7 @@ export const QuestionCard = memo(function QuestionCard({
           </Bn>
         ) : null}
       </View>
+      )}
 
       {showExplanation ? (
         <View className="mt-3 overflow-hidden rounded-lg border border-black/10 bg-paper p-4">
@@ -232,18 +243,43 @@ export const QuestionCard = memo(function QuestionCard({
 
 /* Virtualized continuous-scroll list shared by exam + subject views.
    renderItem is stable across answer updates -> only the tapped card re-renders. */
+/* Last-attempted visible index for continue-from-recents. Fires once per
+   store run (start/restore); answering more questions never re-triggers it,
+   so the list never jumps while working. */
+function useResumeIndex(displayItems: DisplayItem[]): number | null {
+  const runId = usePracticeStore((s) => s.runId);
+  const resumedForRun = useRef<number | null>(null);
+  const [resumeIndex, setResumeIndex] = useState<number | null>(null);
+  useEffect(() => {
+    if (displayItems.length === 0) return;
+    if (resumedForRun.current === runId) return;
+    resumedForRun.current = runId;
+    const doneIds = new Set(Object.keys(usePracticeStore.getState().done).map(Number));
+    let last = -1;
+    displayItems.forEach((d, i) => {
+      if (doneIds.has(d.q.id)) last = i;
+    });
+    setResumeIndex(last > 0 ? last : null);
+  }, [runId, displayItems]);
+  return resumeIndex;
+}
+
 export function QuestionsFlashList({
   items,
   revealAll,
   header,
   empty,
   resetScrollKey,
+  resumeIndex,
+  concealAnswers,
 }: {
   items: DisplayItem[];
   revealAll: boolean;
   header?: React.ReactElement | null;
   empty?: React.ReactElement | null;
   resetScrollKey?: any;
+  resumeIndex?: number | null;
+  concealAnswers?: boolean;
 }) {
   const listRef = useRef<FlashListRef<DisplayItem>>(null);
   const isFirstRender = useRef(true);
@@ -265,6 +301,19 @@ export function QuestionsFlashList({
     }
   }, [resetScrollKey]);
 
+  // Continue-from-recents: land on the last attempted question.
+  useEffect(() => {
+    if (resumeIndex == null || resumeIndex < 0 || resumeIndex >= items.length) return;
+    const raf = requestAnimationFrame(() => {
+      try {
+        listRef.current?.scrollToIndex({ index: resumeIndex, animated: false, viewPosition: 0 });
+      } catch {
+        /* variable heights — stay at top */
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [resumeIndex, items.length]);
+
   // Cards own their ব্যাখ্যা open-state internally, so renderItem stays
   // stable across toggles and only the tapped card re-renders.
   const renderItem = useCallback(
@@ -276,10 +325,11 @@ export function QuestionsFlashList({
           subjectLabel={item.subjectLabel}
           examBadge={item.examBadge}
           revealAll={revealAll}
+          concealAnswers={concealAnswers}
         />
       </View>
     ),
-    [revealAll],
+    [revealAll, concealAnswers],
   );
   return (
     <FlashList
@@ -768,6 +818,7 @@ function HubView({
     ),
   );
   const recents = practiceRecents.slice(0, 6);
+  const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
 
   const sidebar = (
     <View>
@@ -861,6 +912,7 @@ function HubView({
                       onPress={() => r.rerun && onRerun(r.rerun, r)}
                       pinned={r.pinned}
                       onTogglePin={() => lib.togglePinRecent(r.key)}
+                      onRemove={() => setPendingDeleteKey(r.key)}
                     />
                   );
                 })
@@ -916,6 +968,17 @@ function HubView({
           <QuoteCard />
         </View>
       </SidebarLayout>
+      <ConfirmModal
+        visible={pendingDeleteKey != null}
+        title="সেশন মুছে ফেলবেন?"
+        message="এই সাম্প্রতিক অনুশীলনটি তালিকা থেকে মুছে যাবে। সংরক্ষিত প্রশ্ন, বুকমার্ক বা ভুলের তালিকায় কোনো পরিবর্তন হবে না।"
+        confirmLabel="মুছে ফেলুন"
+        onCancel={() => setPendingDeleteKey(null)}
+        onConfirm={() => {
+          if (pendingDeleteKey) lib.removeRecent(pendingDeleteKey);
+          setPendingDeleteKey(null);
+        }}
+      />
     </View>
   );
 }
@@ -1579,6 +1642,9 @@ function ExamAllQuestionsView({
     [filteredQuestions, subjectName],
   );
 
+  // Continue-from-recents lands on the last attempted visible question.
+  const resumeIndex = useResumeIndex(displayItems);
+
   /* Coherent with per-card store opens: hiding via the global button also
      closes individually opened cards, so "লুকান" always closes everything. */
   const toggleRevealAll = useCallback(() => {
@@ -1825,6 +1891,7 @@ function ExamAllQuestionsView({
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedSubjectIds.join(',')}
+              resumeIndex={resumeIndex}
             />
           </View>
         </SidebarLayout>
@@ -1924,6 +1991,7 @@ function ExamAllQuestionsView({
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedSubjectIds.join(',')}
+              resumeIndex={resumeIndex}
             />
           </View>
         </View>
@@ -1961,6 +2029,9 @@ function SubjectAllQuestionsView({
   const runId = usePracticeStore((st) => st.runId);
 
   const activeTimed = mode === 'custom' && isTimed && (timeMinutes ?? 0) > 0;
+  // Custom exam runs mock-style: picks are recorded silently, answers and
+  // explanations stay hidden until submit (PracticeResult shows them).
+  const conceal = mode === 'custom';
   const [remain, setRemain] = useState(() => (activeTimed ? timeMinutes * 60 : 0));
   // Wall-clock deadline: JS timers stop while the app is backgrounded, so the
   // remaining time is always recomputed from a timestamp instead of a tick.
@@ -2082,6 +2153,9 @@ function SubjectAllQuestionsView({
     }
   }, [revealAll, displayItems]);
 
+  // Continue-from-recents lands on the last attempted visible question.
+  const resumeIndex = useResumeIndex(displayItems);
+
   // Human-readable list of selected subjects
   const subjectTitles = useMemo(() => {
     return subjectIds.map((id) => subjectName(id));
@@ -2197,8 +2271,8 @@ function SubjectAllQuestionsView({
     </View>
   );
 
-  /* 2. Controls: Reveal Answers */
-  const controlsCard = (
+  /* 2. Controls: Reveal Answers (hidden in custom exam mode — mock-style). */
+  const controlsCard = conceal ? null : (
     <View className="rounded-xl border border-black/10 bg-surface p-4 shadow-sm gap-2.5">
       <Text style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>অধ্যয়ন সহায়ক</Text>
       <Pressable
@@ -2476,6 +2550,7 @@ function SubjectAllQuestionsView({
           ) : null}
         </View>
 
+        {conceal ? null : (
         <Pressable
           onPress={toggleRevealAll}
           className={`shrink-0 mt-1 flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 transition-colors ${
@@ -2488,6 +2563,7 @@ function SubjectAllQuestionsView({
             {revealAll ? 'উত্তর লুকান' : 'সব উত্তর দেখুন'}
           </Text>
         </Pressable>
+        )}
       </View>
     </View>
   );
@@ -2545,6 +2621,8 @@ function SubjectAllQuestionsView({
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedExamSlugs.join(',')}
+              resumeIndex={resumeIndex}
+              concealAnswers={conceal}
             />
           </View>
         </SidebarLayout>
@@ -2644,6 +2722,8 @@ function SubjectAllQuestionsView({
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedExamSlugs.join(',')}
+              resumeIndex={resumeIndex}
+              concealAnswers={conceal}
             />
           </View>
         </View>
@@ -2953,6 +3033,11 @@ function PracticeResult({
     const d = s.done[q.id];
     return d && !d.ok && d.pick && q.correct_answer;
   });
+  // Mock-style review: unattempted questions also show answers + explanations.
+  const skippedList = session.filter((q) => {
+    const d = s.done[q.id];
+    return !d?.pick;
+  });
 
   const isWide = width >= 768;
 
@@ -3136,6 +3221,34 @@ function PracticeResult({
             />
           ))}
         </View>
+      ) : null}
+
+      {/* Unattempted questions — answers + explanations, mock-style review */}
+      {skippedList.length ? (
+        <View className="mt-2">
+          <View className="mb-4 flex-row flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-3">
+            <View>
+              <Bn style={{ fontFamily: FONT.uiBold, fontSize: 18, color: '#0A0A0A' }}>
+                {`উত্তর দেওয়া হয়নি (${toBn(skippedList.length)})`}
+              </Bn>
+              <Text className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13, marginTop: 2 }}>
+                এই প্রশ্নগুলোর সঠিক উত্তর ও ব্যাখ্যা দেখে নিন:
+              </Text>
+            </View>
+          </View>
+
+          {skippedList.map((q, idx) => (
+            <WrongQuestionCard
+              key={q.id}
+              q={q}
+              index={wrongList.length + idx}
+              userPick={null}
+              subjectName={subjectName(q.subject_id)}
+              bookmarked={lib.bookmarks.includes(q.id)}
+              onToggleBookmark={() => lib.toggleBookmark(q.id)}
+            />
+          ))}
+        </View>
       ) : attempted === 0 ? (
         <View className="my-6 rounded-xl border border-black/10 bg-surface p-8 items-center justify-center">
           <HelpCircle size={28} color="#0A0A0A" style={{ opacity: 0.35, marginBottom: 8 }} />
@@ -3158,7 +3271,8 @@ function PracticeResult({
         </View>
       )}
 
-      {/* Bottom Action Controls — Clean button row */}
+      {/* Bottom Action Controls — hidden for custom exam results. */}
+      {s.mode === 'custom' ? null : (
       <View className="mt-4 flex-row flex-wrap gap-3">
         <Pressable
           onPress={onRetry}
@@ -3185,6 +3299,7 @@ function PracticeResult({
           </Text>
         </Pressable>
       </View>
+      )}
     </View>
   );
 }

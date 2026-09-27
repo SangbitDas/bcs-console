@@ -201,6 +201,7 @@ interface LibraryState {
   wrongCounts: Record<number, number>;
   pushRecent: (r: Omit<RecentSession, 'id' | 'at' | 'key'>) => void;
   togglePinRecent: (key: string) => Promise<void>;
+  removeRecent: (key: string) => Promise<void>;
   toggleBookmark: (qid: number) => Promise<void>;
   addWrong: (qids: number[]) => Promise<void>;
   clearWrong: () => Promise<void>;
@@ -290,6 +291,24 @@ export const useLibrary = create<LibraryState>()(
             .upsert(toCloudRow(session, user.id), { onConflict: 'user_id,session_key' });
         } catch (err) {
           console.warn('Error syncing pin to cloud:', err);
+        }
+      },
+
+      removeRecent: async (key) => {
+        // 1. Optimistic local remove.
+        set((s) => ({ recents: s.recents.filter((r) => r.key !== key) }));
+
+        // 2. Cloud delete if authenticated (unique per user + session key).
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        try {
+          await db
+            .from('user_recent_sessions')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('session_key', key);
+        } catch (err) {
+          console.warn('Error deleting recent from cloud:', err);
         }
       },
 

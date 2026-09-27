@@ -12,10 +12,72 @@ import {
   Info,
   Minus,
   Pin,
+  Trash2,
   type LucideIcon,
 } from 'lucide-react-native';
 import { Children, useMemo, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+
+/* Generic destructive-action confirm dialog (recent delete, etc.).
+ * Controlled: parent owns `visible` + callbacks. Backdrop tap cancels. */
+export function ConfirmModal({
+  visible,
+  title,
+  message,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+}: {
+  visible: boolean;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!visible) return null;
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}>
+      <Pressable
+        onPress={onCancel}
+        accessibilityRole="button"
+        accessibilityLabel={cancelLabel ?? 'বাতিল করুন'}
+        className="flex-1 items-center justify-center bg-black/65 p-5">
+        <Pressable
+          onPress={(e) => e.stopPropagation()}
+          className="w-full max-w-[400px] rounded-2xl border border-black/10 bg-surface p-5 shadow-2xl">
+          <View className="mb-3 h-10 w-10 items-center justify-center rounded-xl border border-[#EA0000]/30 bg-[#EA0000]/10">
+            <Trash2 size={18} color="#EA0000" />
+          </View>
+          <Text style={{ fontFamily: FONT.uiBold, fontSize: 17, color: '#0A0A0A', marginBottom: 4 }}>
+            {title}
+          </Text>
+          <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 21 }}>
+            {message}
+          </Text>
+          <View className="mt-4 flex-row gap-2.5">
+            <Pressable
+              onPress={onCancel}
+              className="min-h-[48px] flex-1 items-center justify-center rounded-xl border border-black/15 bg-surface active:bg-black/5">
+              <Text style={{ fontFamily: FONT.uiSemi, fontSize: 14 }}>
+                {cancelLabel ?? 'বাতিল'}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={onConfirm}
+              className="min-h-[48px] flex-1 items-center justify-center rounded-xl bg-[#EA0000] active:opacity-90">
+              <Text className="text-white" style={{ fontFamily: FONT.uiSemi, fontSize: 14 }}>
+                {confirmLabel}
+              </Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
 import { FONT } from '../lib/fonts';
 import { examLabel, examNum, toBn } from '../lib/format';
 import { isAnyExamActive, useExamGuardStore } from '../store/examGuard';
@@ -649,6 +711,7 @@ export function RecentPracticeCard({
   onPress,
   pinned,
   onTogglePin,
+  onRemove,
   fullWidth,
 }: {
   title: string;
@@ -661,6 +724,7 @@ export function RecentPracticeCard({
   onPress: () => void;
   pinned?: boolean;
   onTogglePin?: () => void;
+  onRemove?: () => void;
   fullWidth?: boolean;
 }) {
   return (
@@ -703,8 +767,10 @@ export function RecentPracticeCard({
                   e.stopPropagation();
                   onTogglePin();
                 }}
+                accessibilityRole="button"
                 accessibilityLabel={pinned ? 'আনপিন করুন' : 'পিন করুন'}
-                className={`h-7 w-7 items-center justify-center rounded-md border transition-colors active:bg-black/[0.08] ${
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className={`h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors active:bg-black/[0.08] ${
                   pinned ? 'border-[#EA0000] bg-[#EA0000]/10' : 'border-black/15 bg-black/[0.04]'
                 }`}>
                 <Pin
@@ -712,6 +778,20 @@ export function RecentPracticeCard({
                   color={pinned ? '#EA0000' : 'rgba(0,0,0,0.45)'}
                   fill={pinned ? '#EA0000' : 'none'}
                 />
+              </Pressable>
+            ) : null}
+
+            {onRemove ? (
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="তালিকা থেকে মুছুন"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="h-7 w-7 shrink-0 items-center justify-center rounded-md border border-black/15 bg-black/[0.04] transition-colors active:bg-black/[0.08]">
+                <Trash2 size={14} color="rgba(0,0,0,0.45)" />
               </Pressable>
             ) : null}
           </View>
