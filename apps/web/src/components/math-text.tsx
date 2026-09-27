@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Platform, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
-import { InlineTeX } from 'ratex-react-native';
+import { InlineTeX } from './ratex-native';
 import { Bn } from './bn';
 import { FONT } from '../lib/fonts';
 import {
@@ -34,18 +34,70 @@ export const MathText = React.memo(function MathText({
   className = '',
   numberOfLines,
 }: MathTextProps) {
-  if (!text) {
+  const raw = text ?? '';
+  const flags = useMemo(
+    () => ({ rich: hasRichTags(raw), math: hasMathTokens(raw) }),
+    [raw],
+  );
+  const hasRich = flags.rich;
+  const hasMath = flags.math;
+  // Parse rich segments (handling <u>, <b>, etc.)
+  const richSegments = useMemo(() => splitRichSegments(raw), [raw]);
+
+  // Native math segments
+  const nativeMath = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? null
+        : richSegments.map((seg) =>
+            seg.content && hasMathTokens(seg.content)
+              ? splitTextAndMath(seg.content, { html: false })
+              : null,
+          ),
+    [richSegments],
+  );
+  // Memoized native inline strings per rich segment (avoids re-running the
+  // tokenizer + LaTeX converter on every parent re-render).
+  const nativeInlineStrings = useMemo(
+    () =>
+      nativeMath?.map((mathSegs) => {
+        if (!mathSegs) return null;
+        return mathSegs
+          .map((mSeg) => {
+            if (mSeg.type === 'math') {
+              const latex = convertPlainMathToLatex(mSeg.content);
+              return `$${latex}$`;
+            }
+            return mSeg.content;
+          })
+          .join('');
+      }) ?? null,
+    [nativeMath],
+  );
+  // Memoized pure-math inline string for the no-rich-tags native path.
+  const pureMathInline = useMemo(() => {
+    if (Platform.OS === 'web' || hasRich || !hasMath || !raw) return null;
+    const mathSegs = splitTextAndMath(raw, { html: false });
+    return mathSegs
+      .map((mSeg) => {
+        if (mSeg.type === 'math') {
+          const latex = convertPlainMathToLatex(mSeg.content);
+          return `$${latex}$`;
+        }
+        return mSeg.content;
+      })
+      .join('');
+  }, [raw, hasRich, hasMath]);
+
+  if (!raw) {
     return null;
   }
-
-  const hasRich = hasRichTags(text);
-  const hasMath = hasMathTokens(text);
 
   // If there are no mathematical tokens and no rich tags, render standard Bn text
   if (!hasRich && !hasMath) {
     return (
       <Bn style={style} className={className} numberOfLines={numberOfLines}>
-        {text}
+        {raw}
       </Bn>
     );
   }
@@ -61,22 +113,6 @@ export const MathText = React.memo(function MathText({
       document.head.appendChild(link);
     }
   }
-
-  // Parse rich segments (handling <u>, <b>, etc.)
-  const richSegments = useMemo(() => splitRichSegments(text), [text]);
-
-  // Native math segments
-  const nativeMath = useMemo(
-    () =>
-      Platform.OS === 'web'
-        ? null
-        : richSegments.map((seg) =>
-            seg.content && hasMathTokens(seg.content)
-              ? splitTextAndMath(seg.content, { html: false })
-              : null,
-          ),
-    [richSegments],
-  );
 
   // If running on Web, render inline HTML for KaTeX & rich tags
   if (Platform.OS === 'web') {
@@ -162,19 +198,9 @@ export const MathText = React.memo(function MathText({
       ? Math.max(flatStyle.lineHeight, Math.round(fontSize * 1.85))
       : Math.round(fontSize * 1.85);
 
-  // Direct InlineTeX rendering for pure math or mixed prose with no HTML tags
-  if (!hasRich && hasMath) {
-    const mathSegs = splitTextAndMath(text, { html: false });
-    const inlineString = mathSegs
-      .map((mSeg) => {
-        if (mSeg.type === 'math') {
-          const latex = convertPlainMathToLatex(mSeg.content);
-          return `$${latex}$`;
-        }
-        return mSeg.content;
-      })
-      .join('');
-
+  // Direct InlineTeX rendering for pure math or mixed prose with no HTML tags.
+  if (!hasRich && hasMath && pureMathInline != null) {
+    const inlineString = pureMathInline;
     const textStyle: TextStyle = {
       fontSize,
       lineHeight: computedLineHeight,
@@ -218,15 +244,8 @@ export const MathText = React.memo(function MathText({
         }
 
         const mathSegs = nativeMath?.[rIdx];
-        if (mathSegs) {
-          const inlineString = mathSegs.map((mSeg) => {
-            if (mSeg.type === 'math') {
-              const latex = convertPlainMathToLatex(mSeg.content);
-              return `$${latex}$`;
-            }
-            return mSeg.content;
-          }).join('');
-
+        const inlineString = nativeInlineStrings?.[rIdx];
+        if (mathSegs && inlineString != null) {
           // Noto Sans Bengali must be explicitly passed down to Native text spans
           textStyle.fontFamily = textStyle.fontWeight === 'bold' ? FONT.uiBold : FONT.ui;
 

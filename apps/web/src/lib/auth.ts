@@ -4,6 +4,25 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import type { Session, User } from '@supabase/supabase-js';
 import { db } from './supabase';
+import { consumeTauriAuthUrls, getTauriStartUrls, isTauri, onTauriOpenUrl, openSystemBrowser } from './tauri';
+
+let tauriDeepLinkListening = false;
+
+/* Registers the Tauri deep-link listener once per app lifetime. Any
+ * `bcsconsole://auth-callback?code=...` return from the system browser is
+ * exchanged for a Supabase session (auth state flows through
+ * onAuthStateChange like every other provider path). */
+async function ensureTauriDeepLinkListener(): Promise<void> {
+  if (!isTauri() || tauriDeepLinkListening) return;
+  tauriDeepLinkListening = true;
+  try {
+    await onTauriOpenUrl((urls) => {
+      consumeTauriAuthUrls(urls, completeAuthRedirect).catch(() => {});
+    });
+  } catch {
+    tauriDeepLinkListening = false;
+  }
+}
 
 export interface UserProfile {
   id: string;
@@ -70,6 +89,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     if (get().initialized) return;
 
     try {
+      // Tauri cold start via deep link (app was not running when the
+      // system browser redirected back): consume the auth return first.
+      if (isTauri()) {
+        try {
+          await ensureTauriDeepLinkListener();
+          await consumeTauriAuthUrls(await getTauriStartUrls(), completeAuthRedirect);
+        } catch {}
+      }
+
       const { data: { session }, error } = await db.auth.getSession();
       if (error) throw error;
 
@@ -99,6 +127,52 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   signInWithGoogle: async () => {
     try {
       const queryParams = { access_type: 'offline', prompt: 'select_account' };
+
+      // Tauri (Android WebView shell): prefer the native Credential Manager
+      // bottom sheet (device Gmail accounts, no password typing). The Google
+      // ID token is exchanged via signInWithIdToken — no browser round-trip,
+      // so no Supabase redirect URL is needed for this path. Falls back to
+      // the system-browser + bcsconsole:// deep-link flow below.
+      if (isTauri()) {
+        const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+        if (webClientId) {
+          try {
+            const { signIn } = await import('@choochmeque/tauri-plugin-google-auth-api');
+            const tokens = await signIn({
+              clientId: webClientId,
+              scopes: ['openid', 'email', 'profile'],
+              flowType: 'native',
+            });
+            if (tokens.idToken) {
+              const { error } = await db.auth.signInWithIdToken({
+                provider: 'google',
+                token: tokens.idToken,
+                access_token: tokens.accessToken,
+              });
+              return { error: error ?? null };
+            }
+            console.warn('[tauri-auth] native returned no idToken, keys:', Object.keys(tokens ?? {}).join(','));
+          } catch (err) {
+            // User cancelled or Play Services unavailable — fall through to
+            // the system-browser flow.
+            console.warn('[tauri-auth] native failed, falling back:', err instanceof Error ? err.message : String(err));
+          }
+        } else {
+          console.warn('[tauri-auth] missing EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID, falling back');
+        }
+
+        const redirectTo = 'bcsconsole://auth-callback';
+        await ensureTauriDeepLinkListener();
+        const { data, error } = await db.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo, skipBrowserRedirect: true, queryParams },
+        });
+        if (error) return { error };
+        if (!data?.url) return { error: new Error('Google sign-in URL was not returned') };
+
+        await openSystemBrowser(data.url);
+        return { error: null };
+      }
 
       // Web: full-page redirect back to the current origin.
       if (Platform.OS === 'web') {

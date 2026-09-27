@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Play, Trash2, ArrowRight } from 'lucide-react-native';
@@ -16,7 +16,6 @@ export default function WrongQuestionsScreen() {
   const { data: subjects } = useSubjects();
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
   const [revealAll, setRevealAll] = useState(false);
-  const [expandedNotes, setExpandedNotes] = useState<Record<number, boolean>>({});
 
   const pool = useQuestionPool({
     key: `wr-screen-${lib.wrongIds.length}`,
@@ -57,10 +56,6 @@ export default function WrongQuestionsScreen() {
         : `${examLabel(q.exam_slug)}`,
     }));
   }, [filteredQuestions, subjectMap]);
-
-  const toggleNote = useCallback((qid: number) => {
-    setExpandedNotes((prev) => ({ ...prev, [qid]: !prev[qid] }));
-  }, []);
 
   const startInteractivePractice = () => {
     usePracticeStore.getState().backToHub();
@@ -201,8 +196,6 @@ export default function WrongQuestionsScreen() {
                   subjectLabel={item.subjectLabel}
                   examBadge={item.examBadge}
                   revealAll={revealAll}
-                  expanded={!!expandedNotes[item.q.id]}
-                  onToggleNote={toggleNote}
                   wrongCount={lib.wrongCounts[item.q.id] ?? 1}
                 />
               ))}

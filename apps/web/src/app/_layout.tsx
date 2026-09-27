@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BackHandler, LogBox, Platform, Text } from 'react-native';
+import { BackHandler, LogBox, Platform } from 'react-native';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { FONT, useAppFonts } from '../lib/fonts';
@@ -171,18 +171,14 @@ export default function RootLayout() {
               paddingHorizontal: 0,
               paddingVertical: 0,
             },
-            tabBarLabel: ({ children, color }) => (
-              <Text
-                style={{
-                  color,
-                  fontFamily: FONT.uiSemi,
-                  fontSize: 11.5,
-                  textAlign: 'center',
-                  includeFontPadding: false,
-                }}>
-                {children}
-              </Text>
-            ),
+            // NOTE: keep the default label renderer (style-only). A custom
+            // tabBarLabel component clipped the last glyph of Bengali titles
+            // on Android (হোম→হো, আরও→আর).
+            tabBarLabelStyle: {
+              fontFamily: FONT.uiSemi,
+              fontSize: 11,
+              marginTop: 2,
+            },
             tabBarAllowFontScaling: false,
           }}>
           <Tabs.Screen

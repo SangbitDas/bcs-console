@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Bookmark, Play, Trash2, ArrowRight } from 'lucide-react-native';
@@ -16,7 +16,6 @@ export default function BookmarksScreen() {
   const { data: subjects } = useSubjects();
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
   const [revealAll, setRevealAll] = useState(false);
-  const [expandedNotes, setExpandedNotes] = useState<Record<number, boolean>>({});
 
   const pool = useQuestionPool({
     key: `bm-screen-${lib.bookmarks.length}`,
@@ -55,10 +54,6 @@ export default function BookmarksScreen() {
       examBadge: `${examLabel(q.exam_slug)} বিসিএস`,
     }));
   }, [filteredQuestions, subjectMap]);
-
-  const toggleNote = useCallback((qid: number) => {
-    setExpandedNotes((prev) => ({ ...prev, [qid]: !prev[qid] }));
-  }, []);
 
   const startInteractivePractice = () => {
     usePracticeStore.getState().backToHub();
@@ -191,8 +186,6 @@ export default function BookmarksScreen() {
                   subjectLabel={item.subjectLabel}
                   examBadge={item.examBadge}
                   revealAll={revealAll}
-                  expanded={!!expandedNotes[item.q.id]}
-                  onToggleNote={toggleNote}
                 />
               ))}
             </View>

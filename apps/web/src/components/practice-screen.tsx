@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, AppState, InteractionManager, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -39,7 +39,7 @@ export const QuestionCard = memo(function QuestionCard({
   subjectLabel,
   examBadge,
   revealAll,
-  expanded,
+  expanded: controlledExpanded,
   onToggleNote,
   wrongCount,
 }: {
@@ -48,8 +48,8 @@ export const QuestionCard = memo(function QuestionCard({
   subjectLabel: string;
   examBadge?: string;
   revealAll: boolean;
-  expanded: boolean;
-  onToggleNote: (qid: number) => void;
+  expanded?: boolean;
+  onToggleNote?: (qid: number) => void;
   wrongCount?: number;
 }) {
   // Subscribe ONLY to this card's answer + bookmark -> other cards don't re-render.
@@ -58,9 +58,38 @@ export const QuestionCard = memo(function QuestionCard({
   const bookmarked = useLibrary((st) => st.bookmarks.includes(q.id));
   const toggleBookmark = useLibrary((st) => st.toggleBookmark);
 
+  // Self-contained expansion: toggling one card never re-renders the parent
+  // list. Parent-controlled props remain supported for backwards compat.
+  const isControlled = onToggleNote != null;
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = isControlled ? !!controlledExpanded : localOpen;
+  const handleToggleNote = useCallback(() => {
+    if (isControlled) onToggleNote!(q.id);
+    else setLocalOpen((v) => !v);
+  }, [isControlled, onToggleNote, q.id]);
+
   const isAnswered = !!done;
-  const showExplanation = revealAll || done?.reveal || expanded || (!q.correct_answer && isAnswered);
-  const showAnswer = isAnswered || revealAll || expanded;
+  const showExplanation = revealAll || done?.reveal || open || (!q.correct_answer && isAnswered);
+  const showAnswer = isAnswered || revealAll || open;
+
+  // Defer WebView-backed math + images one frame after the tap so the label
+  // flips instantly even when the JS thread is busy.
+  const [heavyReady, setHeavyReady] = useState(false);
+  useEffect(() => {
+    if (!showExplanation) {
+      setHeavyReady(false);
+      return;
+    }
+    setHeavyReady(false);
+    const task = InteractionManager.runAfterInteractions(() => {
+      setHeavyReady(true);
+    });
+    const fallback = setTimeout(() => setHeavyReady(true), 160);
+    return () => {
+      task.cancel();
+      clearTimeout(fallback);
+    };
+  }, [showExplanation, q.id]);
 
   return (
     <View className="overflow-hidden rounded-xl border border-black/10 bg-surface p-5 shadow-sm transition-shadow hover:shadow">
@@ -135,8 +164,8 @@ export const QuestionCard = memo(function QuestionCard({
               key={k}
               onPress={() => {
                 answer(q.id, k, k === q.correct_answer);
-                if (!q.correct_answer && !expanded) {
-                  onToggleNote(q.id);
+                if (!q.correct_answer && !open) {
+                  handleToggleNote();
                 }
               }}
               disabled={isAnswered && !revealAll}
@@ -155,9 +184,14 @@ export const QuestionCard = memo(function QuestionCard({
 
       <View className="mt-3 flex-row items-center justify-between border-t border-black/5 pt-3">
         <Pressable
-          onPress={() => onToggleNote(q.id)}
-          hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}
-          className="flex-row items-center gap-1.5 py-1">
+          onPress={handleToggleNote}
+          accessibilityRole="button"
+          accessibilityLabel={showExplanation ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
+          accessibilityState={{ expanded: showExplanation }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          pressRetentionOffset={{ top: 24, bottom: 24, left: 24, right: 24 }}
+          android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
+          className="min-h-[44px] flex-row items-center gap-1.5 px-2 -mx-2 py-2.5 active:opacity-70">
           <Text className="text-black/70 hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
             {showExplanation ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
           </Text>
@@ -175,15 +209,26 @@ export const QuestionCard = memo(function QuestionCard({
           <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 6 }}>
             {`সঠিক উত্তর: ${q.correct_answer || 'নেই'}`}
           </Bn>
-          {q.solve_note ? (
-            <MathText
-              style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 28, color: 'rgba(0,0,0,0.85)' }}
-              text={q.solve_note}
-            />
-          ) : null}
-          {(q.solve_note_image_urls ?? []).map((u) => (
-            <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
-          ))}
+          {heavyReady ? (
+            <>
+              {q.solve_note ? (
+                <MathText
+                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 28, color: 'rgba(0,0,0,0.85)' }}
+                  text={q.solve_note}
+                />
+              ) : null}
+              {(q.solve_note_image_urls ?? []).map((u) => (
+                <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
+              ))}
+            </>
+          ) : (
+            <View className="flex-row items-center gap-2 py-2">
+              <ActivityIndicator size="small" color="#0A0A0A" />
+              <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                ব্যাখ্যা লোড হচ্ছে…
+              </Bn>
+            </View>
+          )}
         </View>
       ) : null}
     </View>
@@ -203,8 +248,8 @@ export function QuestionsFlashList({
 }: {
   items: DisplayItem[];
   revealAll: boolean;
-  expandedNotes: Record<number, boolean>;
-  onToggleNote: (qid: number) => void;
+  expandedNotes?: Record<number, boolean>;
+  onToggleNote?: (qid: number) => void;
   header?: React.ReactElement | null;
   empty?: React.ReactElement | null;
   resetScrollKey?: any;
@@ -229,6 +274,8 @@ export function QuestionsFlashList({
     }
   }, [resetScrollKey]);
 
+  // Cards own their ব্যাখ্যা open-state internally, so renderItem stays
+  // stable across toggles and only the tapped card re-renders.
   const renderItem = useCallback(
     ({ item }: { item: DisplayItem }) => (
       <View className="mb-4">
@@ -238,12 +285,10 @@ export function QuestionsFlashList({
           subjectLabel={item.subjectLabel}
           examBadge={item.examBadge}
           revealAll={revealAll}
-          expanded={!!expandedNotes[item.q.id]}
-          onToggleNote={onToggleNote}
         />
       </View>
     ),
-    [revealAll, expandedNotes, onToggleNote],
+    [revealAll],
   );
   return (
     <FlashList
@@ -251,8 +296,9 @@ export function QuestionsFlashList({
       data={items}
       renderItem={renderItem}
       keyExtractor={(it) => String(it.q.id)}
-      extraData={[revealAll, expandedNotes]}
-      drawDistance={Platform.OS === 'android' ? 300 : undefined}
+      extraData={[revealAll]}
+      drawDistance={Platform.OS === 'android' ? 150 : undefined}
+      keyboardShouldPersistTaps="handled"
       ListHeaderComponent={header}
       ListEmptyComponent={empty}
       showsVerticalScrollIndicator={true}
@@ -1493,7 +1539,6 @@ function ExamAllQuestionsView({
   }, [examSlug]);
 
   const [revealAll, setRevealAll] = useState(false);
-  const [expandedNotes, setExpandedNotes] = useState<Record<number, boolean>>({});
 
   const toggleSubject = (id: number) => {
     setSelectedSubjectIds((prev) =>
@@ -1529,10 +1574,6 @@ function ExamAllQuestionsView({
     }
     return n;
   }, [session, doneMap]);
-
-  const toggleNote = useCallback((qid: number) => {
-    setExpandedNotes((prev) => ({ ...prev, [qid]: !prev[qid] }));
-  }, []);
 
   /* Normalize display data ONCE per filter change — the list then passes
      stable primitives, so memoized cards skip re-render on tap. */
@@ -1776,8 +1817,6 @@ function ExamAllQuestionsView({
             <QuestionsFlashList
               items={displayItems}
               revealAll={revealAll}
-              expandedNotes={expandedNotes}
-              onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedSubjectIds.join(',')}
@@ -1877,8 +1916,6 @@ function ExamAllQuestionsView({
             <QuestionsFlashList
               items={displayItems}
               revealAll={revealAll}
-              expandedNotes={expandedNotes}
-              onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedSubjectIds.join(',')}
@@ -1962,7 +1999,6 @@ function SubjectAllQuestionsView({
   // Selected exam slugs for filtering (default: empty = all questions appear, but no tickmarks)
   const [selectedExamSlugs, setSelectedExamSlugs] = useState<string[]>([]);
   const [revealAll, setRevealAll] = useState(false);
-  const [expandedNotes, setExpandedNotes] = useState<Record<number, boolean>>({});
 
   // Question counts per exam slug in this session
   const examQuestionCounts = useMemo(() => {
@@ -2014,10 +2050,6 @@ function SubjectAllQuestionsView({
     }
     return n;
   }, [session, doneMap]);
-
-  const toggleNote = useCallback((qid: number) => {
-    setExpandedNotes((prev) => ({ ...prev, [qid]: !prev[qid] }));
-  }, []);
 
   /* Normalize display data ONCE per filter change — the list then passes
      stable primitives, so memoized cards skip re-render on tap. */
@@ -2491,8 +2523,6 @@ function SubjectAllQuestionsView({
             <QuestionsFlashList
               items={displayItems}
               revealAll={revealAll}
-              expandedNotes={expandedNotes}
-              onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedExamSlugs.join(',')}
@@ -2592,8 +2622,6 @@ function SubjectAllQuestionsView({
             <QuestionsFlashList
               items={displayItems}
               revealAll={revealAll}
-              expandedNotes={expandedNotes}
-              onToggleNote={toggleNote}
               header={listHeader}
               empty={listEmpty}
               resetScrollKey={selectedExamSlugs.join(',')}
@@ -2846,7 +2874,13 @@ function WrongQuestionCard({
         <View className="mt-3">
           <Pressable
             onPress={() => setShowNote((v) => !v)}
-            className="flex-row items-center gap-1.5 py-1">
+            accessibilityRole="button"
+            accessibilityLabel={showNote ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
+            accessibilityState={{ expanded: showNote }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            pressRetentionOffset={{ top: 24, bottom: 24, left: 24, right: 24 }}
+            android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
+            className="min-h-[44px] flex-row items-center gap-1.5 px-2 -mx-2 py-2.5 active:opacity-70">
             <Text className="text-black/60 hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
               {showNote ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
             </Text>

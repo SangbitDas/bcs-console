@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ActivityIndicator, InteractionManager, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Award, Check, ChevronDown, ChevronRight, Clock, LogIn, MinusCircle, Target, X } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
@@ -165,6 +165,20 @@ function ReviewQuestionCard({
   userPick?: string | null;
 }) {
   const [open, setOpen] = useState(true);
+  const [noteReady, setNoteReady] = useState(false);
+  useEffect(() => {
+    if (!open) {
+      setNoteReady(false);
+      return;
+    }
+    setNoteReady(false);
+    const task = InteractionManager.runAfterInteractions(() => setNoteReady(true));
+    const fallback = setTimeout(() => setNoteReady(true), 160);
+    return () => {
+      task.cancel();
+      clearTimeout(fallback);
+    };
+  }, [open, q.id]);
   const hasNote = !!q.solve_note || (q.solve_note_image_urls?.length ?? 0) > 0;
 
   return (
@@ -237,7 +251,15 @@ function ReviewQuestionCard({
 
       {hasNote ? (
         <View className="mt-3">
-          <Pressable onPress={() => setOpen((v) => !v)} className="flex-row items-center gap-1.5 py-1">
+          <Pressable
+            onPress={() => setOpen((v) => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={open ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
+            accessibilityState={{ expanded: open }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            pressRetentionOffset={{ top: 24, bottom: 24, left: 24, right: 24 }}
+            android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
+            className="min-h-[44px] flex-row items-center gap-1.5 px-2 -mx-2 py-2.5 active:opacity-70">
             <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
               {open ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
             </Text>
@@ -247,15 +269,26 @@ function ReviewQuestionCard({
               <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, marginBottom: 4 }}>
                 {`সঠিক উত্তর: ${q.correct_answer || 'নেই'}`}
               </Bn>
-              {q.solve_note ? (
-                <MathText
-                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
-                  text={q.solve_note}
-                />
-              ) : null}
-              {(q.solve_note_image_urls ?? []).map((u) => (
-                <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
-              ))}
+              {noteReady ? (
+                <>
+                  {q.solve_note ? (
+                    <MathText
+                      style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
+                      text={q.solve_note}
+                    />
+                  ) : null}
+                  {(q.solve_note_image_urls ?? []).map((u) => (
+                    <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
+                  ))}
+                </>
+              ) : (
+                <View className="flex-row items-center gap-2 py-2">
+                  <ActivityIndicator size="small" color="#0A0A0A" />
+                  <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                    ব্যাখ্যা লোড হচ্ছে…
+                  </Bn>
+                </View>
+              )}
             </View>
           ) : null}
         </View>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, memo } from 'react';
-import { AppState, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, AppState, InteractionManager, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react-native';
@@ -757,6 +757,20 @@ function ExamReviewCard({
   subjectName: string;
 }) {
   const [showNote, setShowNote] = useState(true);
+  const [noteReady, setNoteReady] = useState(false);
+  useEffect(() => {
+    if (!showNote) {
+      setNoteReady(false);
+      return;
+    }
+    setNoteReady(false);
+    const task = InteractionManager.runAfterInteractions(() => setNoteReady(true));
+    const fallback = setTimeout(() => setNoteReady(true), 160);
+    return () => {
+      task.cancel();
+      clearTimeout(fallback);
+    };
+  }, [showNote, q.id]);
   const exam = examLabel(q.exam_slug);
   const qNum = toBn(q.question_number);
   const isWrong = status === 'wrong';
@@ -870,7 +884,13 @@ function ExamReviewCard({
         <View className="mt-3">
           <Pressable
             onPress={() => setShowNote((v) => !v)}
-            className="flex-row items-center gap-1.5 py-1">
+            accessibilityRole="button"
+            accessibilityLabel={showNote ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
+            accessibilityState={{ expanded: showNote }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            pressRetentionOffset={{ top: 24, bottom: 24, left: 24, right: 24 }}
+            android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
+            className="min-h-[44px] flex-row items-center gap-1.5 px-2 -mx-2 py-2.5 active:opacity-70">
             <Text className="text-black/60 hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
               {showNote ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
             </Text>
@@ -881,15 +901,26 @@ function ExamReviewCard({
               <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 4 }}>
                 {`সঠিক উত্তর: ${q.correct_answer || 'নেই'}`}
               </Bn>
-              {q.solve_note ? (
-                <MathText
-                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
-                  text={q.solve_note}
-                />
-              ) : null}
-              {(q.solve_note_image_urls ?? []).map((u) => (
-                <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
-              ))}
+              {noteReady ? (
+                <>
+                  {q.solve_note ? (
+                    <MathText
+                      style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
+                      text={q.solve_note}
+                    />
+                  ) : null}
+                  {(q.solve_note_image_urls ?? []).map((u) => (
+                    <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
+                  ))}
+                </>
+              ) : (
+                <View className="flex-row items-center gap-2 py-2">
+                  <ActivityIndicator size="small" color="#0A0A0A" />
+                  <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                    ব্যাখ্যা লোড হচ্ছে…
+                  </Bn>
+                </View>
+              )}
             </View>
           ) : null}
         </View>
