@@ -68,40 +68,23 @@ export default function Home() {
 
   const displaySubjects = subjects && subjects.length > 0 ? subjects : TAXONOMY_SUBJECTS;
 
-  /* Compute column counts for uniform grids */
-  const statCols = width > 900 ? 4 : 2;
+  /* Compute column counts and pixel-perfect responsive widths for uniform grids */
+  const statCols = width >= 768 ? 4 : 2;
+  const statGap = width > 600 ? 12 : 10;
+  const statCardWidth =
+    statCols === 4
+      ? `calc(25% - ${(3 * statGap) / 4}px)`
+      : `calc(50% - ${statGap / 2}px)`;
+
   const subjectCols = width > 1000 ? 5 : width > 750 ? 4 : width > 500 ? 3 : 2;
+  const subjectGap = 12;
+  const subjectCardWidth = `calc(${100 / subjectCols}% - ${((subjectCols - 1) * subjectGap) / subjectCols}px)`;
 
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={true}>
       <View className="mx-auto w-full max-w-[1100px] px-5 py-12">
         {/* Hero Section - Centered with commanding typography & calligraphy */}
         <View className="relative items-center overflow-hidden pb-10 pt-2 md:pb-16 md:pt-6">
-          {/* Subtle watermarked numerals framing the empty side spaces */}
-          <View
-            style={{
-              position: 'absolute',
-              left: -10,
-              top: 10,
-              opacity: 0.035,
-              pointerEvents: 'none',
-            }}>
-            <Text style={{ fontFamily: FONT.displayBlack, fontSize: width > 700 ? 160 : 90, userSelect: 'none' }}>
-              ১০
-            </Text>
-          </View>
-          <View
-            style={{
-              position: 'absolute',
-              right: -10,
-              top: 10,
-              opacity: 0.035,
-              pointerEvents: 'none',
-            }}>
-            <Text style={{ fontFamily: FONT.displayBlack, fontSize: width > 700 ? 160 : 90, userSelect: 'none' }}>
-              ৫০
-            </Text>
-          </View>
 
           {/* Subtitle kicker pill with flanking decorative flourish lines */}
           <View className="mb-6 flex-row items-center justify-center gap-3">
@@ -159,14 +142,16 @@ export default function Home() {
 
           {/* Hero Actions — one shared pill, 3 divided segments (icon over label
               so it fits narrow phones and desktop alike). */}
-          <View className="w-full max-w-[560px] flex-row items-stretch self-center overflow-hidden rounded-2xl border border-black/10 bg-surface shadow-sm">
+          <View className="w-full max-w-[560px] flex-row items-stretch self-center overflow-hidden rounded-2xl border border-black/10 bg-surface shadow-sm transition-all duration-300 hover:border-black/20 hover:shadow-md">
             <Link href={"/practice" as any} asChild>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="অনুশীলন শুরু"
-                className="min-h-[64px] flex-1 items-center justify-center gap-1 px-2 py-3 transition-colors active:bg-black/5">
-                <BookOpen size={19} color="#EA0000" />
-                <Text className="text-center text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                className="group min-h-[68px] flex-1 items-center justify-center gap-1.5 px-3 py-3.5 transition-all duration-200 hover:bg-[#EA0000]/[0.06] active:bg-[#EA0000]/[0.12]">
+                <View className="transition-transform duration-200 group-hover:scale-110 group-hover:-translate-y-0.5">
+                  <BookOpen size={20} color="#EA0000" />
+                </View>
+                <Text className="text-center text-black transition-colors duration-200 group-hover:text-[#EA0000]" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
                   অনুশীলন শুরু
                 </Text>
               </Pressable>
@@ -176,9 +161,11 @@ export default function Home() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="মক এক্সাম"
-                className="min-h-[64px] flex-1 items-center justify-center gap-1 px-2 py-3 transition-colors active:bg-black/5">
-                <Timer size={19} color="#0A0A0A" />
-                <Text className="text-center text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                className="group min-h-[68px] flex-1 items-center justify-center gap-1.5 px-3 py-3.5 transition-all duration-200 hover:bg-black/[0.04] active:bg-black/[0.08]">
+                <View className="transition-transform duration-200 group-hover:scale-110 group-hover:-translate-y-0.5">
+                  <Timer size={20} color="#0A0A0A" />
+                </View>
+                <Text className="text-center text-black/80 transition-colors duration-200 group-hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
                   মক এক্সাম
                 </Text>
               </Pressable>
@@ -188,9 +175,11 @@ export default function Home() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="কাস্টম এক্সাম"
-                className="min-h-[64px] flex-1 items-center justify-center gap-1 px-2 py-3 transition-colors active:bg-black/5">
-                <SlidersHorizontal size={19} color="#0A0A0A" />
-                <Text className="text-center text-black/80" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                className="group min-h-[68px] flex-1 items-center justify-center gap-1.5 px-3 py-3.5 transition-all duration-200 hover:bg-black/[0.04] active:bg-black/[0.08]">
+                <View className="transition-transform duration-200 group-hover:scale-110 group-hover:-translate-y-0.5">
+                  <SlidersHorizontal size={20} color="#0A0A0A" />
+                </View>
+                <Text className="text-center text-black/80 transition-colors duration-200 group-hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
                   কাস্টম এক্সাম
                 </Text>
               </Pressable>
@@ -200,7 +189,7 @@ export default function Home() {
 
         {/* Stat Cards Banner — uniform 4-col on desktop, 2x2 on mobile */}
         <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: width > 600 ? 12 : 10 }}>
+          <View className="flex-row flex-wrap" style={{ gap: statGap }}>
             {[
               {
                 label: 'মোট পরীক্ষা',
@@ -238,7 +227,7 @@ export default function Home() {
                   key={stat.label}
                   style={
                     {
-                      width: statCols === 4 ? 'calc(25% - 9px)' : 'calc(50% - 5px)',
+                      width: statCardWidth,
                       minHeight: width > 600 ? 130 : 118,
                     } as any
                   }
@@ -274,7 +263,7 @@ export default function Home() {
           desc="সরাসরি অনুশীলন করুন"
         />
         <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+          <View className="flex-row flex-wrap" style={{ gap: subjectGap }}>
             {displaySubjects.map((s) => {
               const Icon = SUBJECT_ICONS[s.id] ?? BookOpen;
               const qCount = SUBJECT_COUNT[s.id] ?? 0;
@@ -282,7 +271,7 @@ export default function Home() {
                 <Pressable
                   key={s.id}
                   onPress={() => router.push(`/practice/subject/${s.id}` as any)}
-                  style={{ width: `${100 / subjectCols - 2}%`, height: 165 }}
+                  style={{ width: subjectCardWidth, height: 165 } as any}
                   className="justify-between rounded-2xl border border-black/10 bg-surface p-5 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:bg-black/[0.02]">
                   <View>
                     <View className="mb-3 flex-row items-center justify-between">
