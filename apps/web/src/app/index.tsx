@@ -71,18 +71,6 @@ export default function Home() {
 
   const displaySubjects = subjects && subjects.length > 0 ? subjects : TAXONOMY_SUBJECTS;
 
-  /* Compute column counts and pixel-perfect responsive widths for uniform grids */
-  const statCols = width >= 768 ? 4 : 2;
-  const statGap = width > 600 ? 12 : 10;
-  const statCardWidth =
-    statCols === 4
-      ? `calc(25% - ${(3 * statGap) / 4}px)`
-      : `calc(50% - ${statGap / 2}px)`;
-
-  const subjectCols = width > 1000 ? 5 : width > 750 ? 4 : width > 500 ? 3 : 2;
-  const subjectGap = 12;
-  const subjectCardWidth = `calc(${100 / subjectCols}% - ${((subjectCols - 1) * subjectGap) / subjectCols}px)`;
-
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={true}>
       <View className="mx-auto w-full max-w-[1100px] px-5 py-12">
@@ -192,7 +180,7 @@ export default function Home() {
 
         {/* Stat Cards Banner — uniform 4-col on desktop, 2x2 on mobile */}
         <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: statGap }}>
+          <View className="flex-row flex-wrap gap-2.5 sm:gap-3">
             {[
               {
                 label: 'মোট পরীক্ষা',
@@ -228,13 +216,7 @@ export default function Home() {
               return (
                 <View
                   key={stat.label}
-                  style={
-                    {
-                      width: statCardWidth,
-                      minHeight: width > 600 ? 130 : 118,
-                    } as any
-                  }
-                  className="group justify-between rounded-xl sm:rounded-2xl border border-black/10 bg-surface p-3.5 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-black/25 hover:shadow-md">
+                  className="w-[calc(50%-5px)] sm:w-[calc(50%-6px)] md:w-[calc(25%-9px)] min-h-[118px] sm:min-h-[130px] group justify-between rounded-xl sm:rounded-2xl border border-black/10 bg-surface p-3.5 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-black/25 hover:shadow-md">
                   <View className="mb-2 sm:mb-3 flex-row items-center justify-between">
                     <Text className="text-black/60" style={{ fontFamily: FONT.uiSemi, fontSize: width > 600 ? 13 : 11.5 }}>
                       {stat.label}
@@ -266,7 +248,7 @@ export default function Home() {
           desc="সরাসরি অনুশীলন করুন"
         />
         <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: subjectGap }}>
+          <View className="flex-row flex-wrap gap-3">
             {displaySubjects.map((s) => {
               const Icon = SUBJECT_ICONS[s.id] ?? BookOpen;
               const qCount = SUBJECT_COUNT[s.id] ?? 0;
@@ -274,8 +256,7 @@ export default function Home() {
                 <Pressable
                   key={s.id}
                   onPress={() => router.push(`/practice/subject/${s.id}` as any)}
-                  style={{ width: subjectCardWidth, height: 165 } as any}
-                  className="justify-between rounded-2xl border border-black/10 bg-surface p-5 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:bg-black/[0.02]">
+                  className="w-[calc(50%-6px)] min-[500px]:w-[calc(33.333%-8px)] md:w-[calc(25%-9px)] lg:w-[calc(20%-9.6px)] h-[165px] justify-between rounded-2xl border border-black/10 bg-surface p-5 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:bg-black/[0.02]">
                   <View>
                     <View className="mb-3 flex-row items-center justify-between">
                       <View className="min-w-[32px] h-7 px-2 items-center justify-center rounded-full bg-black/[0.05]">

@@ -54,7 +54,7 @@ export default function RootLayout() {
   // Wide screens fit every feature in the bar; narrow ones collapse the last
   // three into the "আরও" overflow tab.
   const { width } = useWindowDimensions();
-  const isWideBar = width >= 900;
+  const isWideBar = width >= 768;
 
   useEffect(() => {
     let isMounted = true;
