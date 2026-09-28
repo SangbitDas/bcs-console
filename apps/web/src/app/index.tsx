@@ -20,7 +20,6 @@ import {
   SlidersHorizontal,
   Smartphone,
   Timer,
-  WifiOff,
   type LucideIcon,
 } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
@@ -371,7 +370,7 @@ export default function Home() {
         {/* Mobile App Download Banner */}
         <View className="mb-14 overflow-hidden rounded-3xl border border-black/10 bg-surface p-6 sm:p-8 shadow-xs">
           <View className="flex-col md:flex-row md:items-center md:justify-between gap-6">
-            {/* Left Column: Information & Feature chips */}
+            {/* Left Column: Information */}
             <View className="flex-1 max-w-xl">
               <View className="flex-row items-center gap-2 mb-3">
                 <View className="flex-row items-center gap-1.5 rounded-full bg-black/[0.04] px-3 py-1 border border-black/5">
@@ -382,47 +381,24 @@ export default function Home() {
                     {`অ্যান্ড্রয়েড অ্যাপ • ${toBn(ANDROID_APP_VERSION)}`}
                   </Text>
                 </View>
-                <View className="flex-row items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 border border-emerald-500/20">
-                  <WifiOff size={11} color="#059669" />
-                  <Text
-                    className="text-emerald-700 font-semibold"
-                    style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
-                    অফলাইন রেডি
-                  </Text>
-                </View>
               </View>
 
               <Text
                 style={{
                   fontFamily: FONT.displayBold,
-                  fontSize: width > 600 ? 24 : 20,
-                  lineHeight: width > 600 ? 32 : 28,
+                  fontSize: width > 600 ? 23 : 19,
+                  lineHeight: width > 600 ? 30 : 26,
                   color: '#0A0A0A',
-                  marginBottom: 8,
+                  marginBottom: 6,
                 }}>
                 স্মার্টফোনে সরাসরি অনুশীলন করুন
               </Text>
 
               <Text
-                className="text-black/65"
-                style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 22, marginBottom: 14 }}>
-                ইন্টারনেট ছাড়াই সম্পূর্ণ ৫,৩৫০টি প্রশ্নব্যাংক, বিষয়ভিত্তিক অনুশীলন এবং টাইমারসহ পূর্ণাঙ্গ মক টেস্টের সুবিধা।
+                className="text-black/60"
+                style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 22 }}>
+                বিসিএস কনসোলের পূর্ণাঙ্গ প্রশ্নব্যাংক, বিষয়ভিত্তিক প্রস্তুতি ও মক টেস্ট এখন সরাসরি অ্যান্ড্রয়েড অ্যাপেও ব্যবহারযোগ্য।
               </Text>
-
-              <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1.5">
-                {[
-                  '১০০% অফলাইন সুবিধা',
-                  'তাৎক্ষণিক সমাধান ও চিত্রব্যাখ্যা',
-                  'স্মুথ ও লাইটওয়েট (~১৫ MB)',
-                ].map((feature) => (
-                  <View key={feature} className="flex-row items-center gap-1.5">
-                    <CheckCircle2 size={13} color="#EA0000" />
-                    <Text className="text-black/60" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-                      {feature}
-                    </Text>
-                  </View>
-                ))}
-              </View>
             </View>
 
             {/* Right Column: CTA Action */}
@@ -440,11 +416,6 @@ export default function Home() {
                   </Text>
                 </Pressable>
               </Link>
-              <Text
-                className="text-black/45 mt-2.5 md:text-right"
-                style={{ fontFamily: FONT.ui, fontSize: 11.5 }}>
-                সরাসরি ওয়ান-ক্লিক ডাউনলোড • নিরাপদ ও ভেরিফায়েড
-              </Text>
             </View>
           </View>
         </View>
