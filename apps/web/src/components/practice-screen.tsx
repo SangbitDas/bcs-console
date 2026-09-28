@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, InteractionManager, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, AppState, InteractionManager, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -291,9 +291,7 @@ export function QuestionsFlashList({
     }
     if (resetScrollKey !== undefined) {
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      if (Platform.OS === 'web') {
-        window.scrollTo({ top: 0, left: 0 });
-      }
+      window.scrollTo({ top: 0, left: 0 });
       const t = setTimeout(() => {
         listRef.current?.scrollToOffset({ offset: 0, animated: false });
       }, 0);
@@ -338,7 +336,6 @@ export function QuestionsFlashList({
       renderItem={renderItem}
       keyExtractor={(it) => String(it.q.id)}
       extraData={[revealAll]}
-      drawDistance={Platform.OS === 'android' ? 150 : undefined}
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={header}
       ListEmptyComponent={empty}

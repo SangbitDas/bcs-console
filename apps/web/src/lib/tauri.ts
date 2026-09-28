@@ -9,8 +9,6 @@
  * `bcsconsole://auth-callback?code=...` deep link -> deep-link plugin ->
  * completeAuthRedirect() in ./auth.
  */
-import { Platform } from 'react-native';
-
 export function isTauri(): boolean {
   return typeof window !== 'undefined' && '__TAURI__' in window;
 }
@@ -18,7 +16,6 @@ export function isTauri(): boolean {
 /* Tags <body> so Tauri-only CSS (edge-to-edge, scroll-lock) can apply.
  * No-op everywhere else. Safe to call on every mount. */
 export function applyTauriBodyClass(): void {
-  if (Platform.OS !== 'web') return;
   if (typeof document === 'undefined') return;
   if (isTauri()) document.body.classList.add('tauri-app');
 }

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, Text, View } from 'react-native';
-import { Image } from 'expo-image';
+import { Text, View } from 'react-native';
 import { FONT } from '../lib/fonts';
 
 export function UserAvatar({
@@ -16,29 +15,19 @@ export function UserAvatar({
   const initial = (name?.[0] ?? 'U').toUpperCase();
 
   if (url && !failed) {
-    if (Platform.OS === 'web') {
-      return (
-        <img
-          src={url}
-          referrerPolicy="no-referrer"
-          alt={name ?? 'User'}
-          onError={() => setFailed(true)}
-          style={{
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            objectFit: 'cover',
-            display: 'block',
-          }}
-        />
-      );
-    }
-
     return (
-      <Image
-        source={{ uri: url }}
+      <img
+        src={url}
+        referrerPolicy="no-referrer"
+        alt={name ?? 'User'}
         onError={() => setFailed(true)}
-        style={{ width: size, height: size, borderRadius: size / 2 }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          objectFit: 'cover',
+          display: 'block',
+        }}
       />
     );
   }

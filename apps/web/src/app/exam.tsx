@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
-import { ActivityIndicator, AppState, InteractionManager, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, AppState, InteractionManager, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
 import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react-native';
@@ -152,9 +152,9 @@ export default function Exam() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st.running, st.poolKey, session.length]);
 
-  /* warn on accidental navigation (web) */
+  /* warn on accidental navigation */
   useEffect(() => {
-    if (Platform.OS !== 'web' || !st.running) return;
+    if (!st.running) return;
     const h = (e: BeforeUnloadEvent) => {
       e.preventDefault();
     };
