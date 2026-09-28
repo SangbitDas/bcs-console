@@ -652,6 +652,8 @@ function RunnerView({
 }) {
   const st = useExamStore();
   const answeredCount = Object.keys(st.answers).length;
+  const totalMinutes = st.config.minutes;
+  const hoursPart = totalMinutes % 60 === 0 ? ` (${toBn(totalMinutes / 60)} ঘণ্টা)` : '';
 
   return (
     <View className="gap-5">
@@ -669,54 +671,47 @@ function RunnerView({
         ]}
       />
 
-      {/* Top Header Bar with Timer, Progress & Submit */}
-      <View className="overflow-hidden rounded-xl border border-black/10 bg-ink shadow-sm">
-        <View className="flex-row flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-          <View>
-            <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
-              {`মডেল টেস্ট • ${toBn(st.config.count)}টি প্রশ্ন`}
+      {/* Running-exam strip (custom-exam black bar style): info + timer + actions */}
+      <View className="flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-xl bg-ink px-4 py-3 shadow-sm sm:px-5">
+        <View className="min-w-0 flex-row items-center gap-2.5">
+          <Clock size={20} color="#FFFFFF" strokeWidth={2} />
+          <View className="min-w-0">
+            <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
+              মক এক্সাম চলছে
             </Bn>
-            <Text className="text-white/70" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-              {`পূর্ণমান: ${toBn(list.filter((x) => x.correct_answer).length)} · ভুল উত্তরে −০.৫০`}
+            <Text className="text-white/60" style={{ fontFamily: FONT.ui, fontSize: 11.5 }} numberOfLines={1}>
+              {`মোট সময়: ${toBn(totalMinutes)} মিনিট${hoursPart} · সঠিক: +১.০০, ভুল: −০.৫০`}
             </Text>
           </View>
+        </View>
 
-          <View className="flex-row items-center gap-3 sm:gap-4">
-            <View className="items-center">
-              <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
-                {fmtTime(st.remain)}
-              </Text>
-              <Text className="text-white/70" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
-                সময় বাকি
-              </Text>
-            </View>
-
-            <View className="h-8 w-px bg-white/20" />
-
-            <View className="items-center">
-              <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
-                {`${toBn(answeredCount)}/${toBn(list.length)}`}
-              </Text>
-              <Text className="text-white/70" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
-                উত্তর সম্পন্ন
-              </Text>
-            </View>
-
-            <Pressable
-              onPress={() => useExamGuardStore.getState().openQuitModal(() => st.backToPicker())}
-              style={{ cursor: 'pointer' } as any}
-              className="rounded-lg border border-white/25 px-3 py-2 transition-colors hover:bg-white/10 active:scale-95">
-              <Text className="text-white/80 text-xs font-semibold" style={{ fontFamily: FONT.uiSemi }}>
-                পরীক্ষা বাতিল
-              </Text>
-            </Pressable>
-
-            <Btn
-              title="জমা দিন"
-              variant="accent"
-              onPress={() => onSubmit(false)}
-            />
+        <View className="flex-row items-center gap-3 sm:gap-4">
+          <View className="items-center">
+            <Bn style={{ fontFamily: FONT.digitsBold, fontSize: 20, color: '#FFFFFF' }}>
+              {fmtTime(st.remain)}
+            </Bn>
+            <Bn className="text-white/60" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
+              {`${toBn(Math.max(0, Math.ceil(st.remain / 60)))} মিনিট বাকি`}
+            </Bn>
           </View>
+
+          <Pressable
+            onPress={() => useExamGuardStore.getState().openQuitModal(() => st.backToPicker())}
+            style={{ cursor: 'pointer' } as any}
+            className="min-h-[40px] items-center justify-center rounded-lg border border-white/25 px-3.5 transition-colors hover:bg-white/10 active:scale-95">
+            <Text className="text-white/80" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+              পরীক্ষা বাতিল
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => onSubmit(false)}
+            style={{ cursor: 'pointer' } as any}
+            className="min-h-[40px] items-center justify-center rounded-lg bg-white px-4 transition-opacity hover:bg-white/90 active:scale-95">
+            <Text className="text-black" style={{ fontFamily: FONT.uiBold, fontSize: 13.5 }}>
+              জমা দিন
+            </Text>
+          </Pressable>
         </View>
       </View>
 

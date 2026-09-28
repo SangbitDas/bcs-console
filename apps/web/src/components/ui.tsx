@@ -71,11 +71,9 @@ export function TopBar() {
         className="flex-row items-center flex-shrink-0">
         <Text style={{ fontFamily: FONT.displayBlack, fontSize: isNarrow ? 16 : 18 }}>
           বিসিএস
-          {isNarrow && isExamActive ? null : (
-            <>
-              <Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
-            </>
-          )}
+          <>
+            <Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
+          </>
         </Text>
       </Pressable>
 
@@ -92,7 +90,9 @@ export function TopBar() {
               </View>
             ) : null}
 
-            {/* Answered / উত্তর সম্পন্ন badge */}
+            {/* Answered / উত্তর সম্পন্ন badge — hidden on narrow exam screens
+                so the full brand name always fits. */}
+            {isExamActive && isNarrow ? null : (
             <View
               accessibilityLabel={`উত্তর সম্পন্ন ${toBn(currentAnswered)} / ${toBn(currentTotal)}`}
               className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg border border-black/15 bg-surface px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-2xs">
@@ -110,6 +110,7 @@ export function TopBar() {
                 {`${toBn(currentAnswered)}/${toBn(currentTotal)}`}
               </Text>
             </View>
+            )}
 
             {/* Submit button */}
             <Pressable
