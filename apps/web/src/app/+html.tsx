@@ -43,25 +43,21 @@ export default function Root({ children }: PropsWithChildren) {
                 font-family: 'Noto Sans Bengali', system-ui, sans-serif;
               }
 
-              /* Ensure vertical scrollbars and sliders are always visible and styled */
-              * {
-                scrollbar-width: thin !important;
-                scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.05) !important;
+              /* TAURI-ONLY scrollbar rules (body.tauri-app is set by
+                 applyTauriBodyClass() inside the Tauri shell — desktop web
+                 never has this class, so Vercel is pixel-identical).
+                 Kills every web-drawn scrollbar pill in the mobile app,
+                 including question lists (accepted tradeoff). */
+              body.tauri-app, body.tauri-app #root {
+                scrollbar-width: none;
+                height: 100dvh;
+                overflow: hidden;
+                overscroll-behavior: none;
               }
-              ::-webkit-scrollbar {
-                width: 8px !important;
-                height: 8px !important;
-                display: block !important;
-              }
-              ::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.04) !important;
-              }
-              ::-webkit-scrollbar-thumb {
-                background-color: rgba(0, 0, 0, 0.3) !important;
-                border-radius: 9999px !important;
-              }
-              ::-webkit-scrollbar-thumb:hover {
-                background-color: rgba(0, 0, 0, 0.5) !important;
+              body.tauri-app::-webkit-scrollbar,
+              body.tauri-app #root::-webkit-scrollbar,
+              body.tauri-app *::-webkit-scrollbar {
+                display: none !important;
               }
             `,
           }}

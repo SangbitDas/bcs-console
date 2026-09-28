@@ -152,6 +152,12 @@ export function hasMathTokens(text: string | null | undefined): boolean {
     }
   }
 
+  // Standalone absolute value expressions: e.g. |3x-1|, |-5|, |x|
+  if (/\|[0-9a-zA-Z০-৯+\-−/*.]+\|/.test(clean)) return true;
+
+  // Mathematical ratios: e.g. a:b, 2:3, a:b:c
+  if (/[0-9a-zA-Z০-৯]:[0-9a-zA-Z০-৯]/.test(clean)) return true;
+
   // Math equations with relations: e.g. 5x+4y-1=0 or x+y=5 or 3x-2>0
   if (/[0-9a-zA-Z০-৯]\s*[=><≠≤≥]\s*[0-9a-zA-Z০-৯]/.test(clean)) return true;
 
@@ -400,12 +406,15 @@ export function convertPlainMathToLatex(raw: string): string {
   s = s.replace(/\bS_\{\\infty\}\b/g, 'S_{\\infty}');
 
   // 11. Logarithms
-  s = s.replace(/\blog_\(([^)]+)\)/g, (_match, base) => `\\log_{${convertPlainMathToLatex(base)}}`);
-  s = s.replace(/\blog_([a-zA-Z0-9০-৯]+)([a-zA-Z0-9০-৯])/g, '\\log_{$1} $2');
-  s = s.replace(/\blog_([a-zA-Z0-9০-৯]+)/g, '\\log_{$1}');
-  s = s.replace(/\blog_\{([0-9০-৯a-zA-Z]+)\}/g, '\\log_{$1}');
-  s = s.replace(/\blog([0-9০-৯])\b/g, '\\log_{$1}');
-  s = s.replace(/\blog\b/g, '\\log');
+  s = s.replace(/(?<!\\)\blog_\(([^)]+)\)/g, (_match, base) => `\\log_{${convertPlainMathToLatex(base)}}`);
+  s = s.replace(/(?<!\\)\blog_([a-zA-Z])([0-9০-৯a-zA-Z]+)/g, (_m, base, arg) => `\\log_{${base}} ${arg}`);
+  s = s.replace(/(?<!\\)\blog_([0-9০-৯]+)\s*([0-9০-৯a-zA-Z]+)/g, (_m, base, arg) => `\\log_{${base}} ${arg}`);
+  s = s.replace(/(?<!\\)\blog_([a-zA-Z0-9০-৯]+)/g, (_m, base) => `\\log_{${base}}`);
+  s = s.replace(/(?<!\\)\blog_\{([0-9০-৯a-zA-Z]+)\}/g, (_m, base) => `\\log_{${base}}`);
+  s = s.replace(/(?<!\\)\blog([a-zA-Z])([0-9০-৯]+)/g, (_m, base, arg) => `\\log_{${base}} ${arg}`);
+  s = s.replace(/(?<!\\)\blog([0-9০-৯]+)\s+([0-9০-৯a-zA-Z]+)/g, (_m, base, arg) => `\\log_{${base}} ${arg}`);
+  s = s.replace(/(?<!\\)\blog([0-9০-৯]+)\b/g, (_m, arg) => `\\log ${arg}`);
+  s = s.replace(/(?<!\\)\blog\b/g, '\\log');
 
   // 12. Common Chemical formulas in science questions
   s = s.replace(/\bHNO_3\b/g, '\\text{HNO}_3');
@@ -436,7 +445,10 @@ export function convertPlainMathToLatex(raw: string): string {
   // 14. Add clean spacing around binary operators (+, -)
   s = s.replace(/(\d|[a-zA-Z০-৯\}])\s*([\+\-])\s*(\d|[a-zA-Z০-৯\\\{])/g, '$1 $2 $3');
 
-  // 15. Balance unclosed and stray braces
+  // 15. Clean duplicate backslashes on standard LaTeX commands
+  s = s.replace(/\\{2,}([a-zA-Z]+)/g, '\\$1');
+
+  // 16. Balance unclosed and stray braces
   s = balanceBraces(s);
 
   return s;
@@ -459,6 +471,179 @@ export function renderKaTeXHtml(latex: string, displayMode = false): string {
   }
 }
 
+/* ---------- Native (no-DOM) math fallback: LaTeX / plain math -> Unicode text ---------- */
+
+const SUP_UNICODE: Record<string, string> = {
+  '0': '\u2070', '1': '\u00b9', '2': '\u00b2', '3': '\u00b3', '4': '\u2074',
+  '5': '\u2075', '6': '\u2076', '7': '\u2077', '8': '\u2078', '9': '\u2079',
+  '+': '\u207a', '-': '\u207b', '=': '\u207c', '(': '\u207d', ')': '\u207e', 'n': '\u207f',
+};
+
+const SUB_UNICODE: Record<string, string> = {
+  '0': '\u2080', '1': '\u2081', '2': '\u2082', '3': '\u2083', '4': '\u2084',
+  '5': '\u2085', '6': '\u2086', '7': '\u2087', '8': '\u2088', '9': '\u2089',
+  '+': '\u208a', '-': '\u208b', '=': '\u208c', '(': '\u208d', ')': '\u208e',
+};
+
+/** Symbol table for the native pass. Order matters (longer commands first). */
+const LATEX_SYMBOLS: [RegExp, string][] = [
+  [/\\longrightarrow\b/g, '\u27f6'],
+  [/\\rightarrow\b/g, '\u2192'],
+  [/\\leftarrow\b/g, '\u2190'],
+  [/\\Rightarrow\b/g, '\u21d2'],
+  [/\\implies\b/g, '\u21d2'],
+  [/\\therefore\b/g, '\u2234'],
+  [/\\because\b/g, '\u2235'],
+  [/\\approx\b/g, '\u2248'],
+  [/\\neq\b/g, '\u2260'],
+  [/\\leq\b/g, '\u2264'],
+  [/\\le\b/g, '\u2264'],
+  [/\\geq\b/g, '\u2265'],
+  [/\\ge\b/g, '\u2265'],
+  [/\\pm\b/g, '\u00b1'],
+  [/\\mp\b/g, '\u2213'],
+  [/\\infty\b/g, '\u221e'],
+  [/\\times\b/g, '\u00d7'],
+  [/\\div\b/g, '\u00f7'],
+  [/\\cdot\b/g, '\u00b7'],
+  [/\\circ\b/g, '\u00b0'],
+  [/\\pi\b/g, '\u03c0'],
+  [/\\theta\b/g, '\u03b8'],
+  [/\\Delta\b/g, '\u0394'],
+  [/\\angle\b/g, '\u2220'],
+  [/\\log\b/g, 'log'],
+  [/\\ln\b/g, 'ln'],
+  [/\\sin\b/g, 'sin'],
+  [/\\cos\b/g, 'cos'],
+  [/\\tan\b/g, 'tan'],
+  [/\\cot\b/g, 'cot'],
+  [/\\sec\b/g, 'sec'],
+  [/\\csc\b/g, 'csc'],
+  [/\\lim\b/g, 'lim'],
+  [/\\dot\{([^{}]*)\}/g, '$1\u0307'],
+  [/\\hat\{([^{}]*)\}/g, '$1\u0302'],
+  [/\\bar\{([^{}]*)\}/g, '$1\u0304'],
+];
+
+/** Reads a balanced `{...}` group starting at `openIdx` (index of the opening brace). */
+function readBraceGroup(s: string, openIdx: number): [string, number] | null {
+  if (s[openIdx] !== '{') return null;
+  const close = findMatchingClose(s, openIdx, '{', '}');
+  if (close === -1) return null;
+  return [s.slice(openIdx + 1, close), close];
+}
+
+/** Maps every char of `inner` through `map`; returns null when any char is unmapped. */
+function toUnicodeScript(inner: string, map: Record<string, string>): string | null {
+  let out = '';
+  for (const ch of inner) {
+    const mapped = map[ch];
+    if (!mapped) return null;
+    out += mapped;
+  }
+  return out;
+}
+
+/** Parenthesises an operand that contains spaces or operators (so a/b stays unambiguous). */
+function wrapOperand(value: string): string {
+  return /[\s+\-\u00d7\u00f7\u00b1\u00b7]/.test(value.trim()) ? `(${value})` : value;
+}
+
+/** \frac{a}{b} -> a/b (nested-aware, recursive). */
+function expandFractions(s: string): string {
+  let i = 0;
+  while (i < s.length) {
+    const pos = s.indexOf('\\frac', i);
+    if (pos === -1) break;
+    const num = readBraceGroup(s, pos + 5);
+    const den = num ? readBraceGroup(s, num[1] + 1) : null;
+    if (!num || !den) {
+      i = pos + 5;
+      continue;
+    }
+    const replacement = `${wrapOperand(latexToReadableText(num[0]))}/${wrapOperand(latexToReadableText(den[0]))}`;
+    s = s.slice(0, pos) + replacement + s.slice(den[1] + 1);
+    i = pos + replacement.length;
+  }
+  return s;
+}
+
+/** \sqrt{x} -> \u221ax, \sqrt[3]{x} -> \u221bx (nested-aware). */
+function expandRadicals(s: string): string {
+  let i = 0;
+  while (i < s.length) {
+    const pos = s.indexOf('\\sqrt', i);
+    if (pos === -1) break;
+    let cursor = pos + 5;
+    let index = '';
+    if (s[cursor] === '[') {
+      const close = s.indexOf(']', cursor);
+      if (close !== -1) {
+        index = s.slice(cursor + 1, close);
+        cursor = close + 1;
+      }
+    }
+    const group = readBraceGroup(s, cursor);
+    if (!group) {
+      i = cursor;
+      continue;
+    }
+    const inner = wrapOperand(latexToReadableText(group[0]));
+    const prefix = index === '3' ? '\u221b' : index ? `\u221a[${index}]` : '\u221a';
+    const replacement = `${prefix}${inner}`;
+    s = s.slice(0, pos) + replacement + s.slice(group[1] + 1);
+    i = pos + replacement.length;
+  }
+  return s;
+}
+
+/**
+ * Converts LaTeX / plain mathematical notation into readable Unicode text.
+ * Used on native, where the DOM-based KaTeX renderer is unavailable.
+ */
+export function latexToReadableText(input: string): string {
+  if (!input) return '';
+  let s = input;
+
+  s = s.replace(/\\displaystyle\b/g, '');
+  s = s.replace(/\\left\b|\\right\b/g, '');
+  s = s.replace(/\\quad\b|\\qquad\b/g, ' ');
+  s = s.replace(/\\[,;:!]/g, ' ');
+  s = s.replace(/\\text\{([^{}]*)\}/g, '$1');
+  s = s.replace(/\\mathrm\{([^{}]*)\}/g, '$1');
+  s = s.replace(/\\\{/g, '{').replace(/\\\}/g, '}');
+  s = s.replace(/\\([%&$#_])/g, '$1');
+
+  s = expandFractions(s);
+  s = expandRadicals(s);
+
+  for (const [pattern, value] of LATEX_SYMBOLS) {
+    s = s.replace(pattern, value);
+  }
+
+  // Degrees: ^{\circ}, ^\circ and ^\u2218 collapse to a single degree sign.
+  s = s.replace(/\^\s*\{?\s*(?:\\circ|\u00b0|\u2218)\s*\}?\s*C\b/g, '\u00b0C');
+  s = s.replace(/\^\s*\{?\s*(?:\\circ|\u00b0|\u2218)\s*\}?/g, '\u00b0');
+
+  s = s.replace(/\^\{([^{}]*)\}/g, (_m, inner: string) => {
+    const uni = toUnicodeScript(inner, SUP_UNICODE);
+    if (uni) return uni;
+    return inner.length === 1 ? `^${inner}` : `^(${inner})`;
+  });
+  s = s.replace(/\^([0-9a-zA-Z])/g, (_m, ch: string) => SUP_UNICODE[ch] ?? `^${ch}`);
+
+  s = s.replace(/_\{([^{}]*)\}/g, (_m, inner: string) => {
+    const uni = toUnicodeScript(inner, SUB_UNICODE);
+    return uni ?? `_${inner}`;
+  });
+  s = s.replace(/_([0-9])/g, (_m, ch: string) => SUB_UNICODE[ch] ?? `_${ch}`);
+
+  // Any remaining \command -> its bare name, never a stray backslash.
+  s = s.replace(/\\+([a-zA-Z]+)/g, '$1');
+
+  return s;
+}
+
 export interface TextSegment {
   type: 'text' | 'math';
   content: string;
@@ -477,19 +662,26 @@ export function isPureMathExpr(text: string): boolean {
   // Strip HTML tags (e.g. <u>, </b>, <i>)
   const clean = trimmed.replace(/<\/?[a-zA-Z]+(?:\s+[^>]*)?>/g, '');
 
-  // If text contains common Bengali words (excluding trailing unit words like টাকা, মিটার, বর্গমিটার), it is mixed
-  const withoutUnits = clean
-    .replace(/\s*(?:টাকা|মিটার|সেমি|বর্গমিটার|বর্গ\s*সেমি|ডিগ্রি|গুণ|সেকেন্ড)\b/g, '')
-    .trim();
+  // Strip LaTeX \text{...} commands before checking for Bengali prose
+  const withoutTextCmds = clean.replace(/\\text\{[^{}]*\}/g, '');
 
-  // If there are Bengali alphabet letters (not digits ০-৯), check if it's prose
-  const bengaliLetters = withoutUnits.match(/[\u0985-\u09B9\u09CE\u09DC-\u09DF]/g);
-  if (bengaliLetters && bengaliLetters.length > 3) {
+  // If there are ANY Bengali alphabet letters outside \text{...},
+  // it is mixed prose and MUST NOT be treated as pure math!
+  // This guarantees that Bengali words/units like "মিটার", "টাকা", "বর্গমিটার", "টি"
+  // are rendered by Android native HarfBuzz text engine, preventing broken conjuncts like "মটি ার".
+  if (/[\u0985-\u09B9\u09CE\u09DC-\u09DF]/.test(withoutTextCmds)) {
+    return false;
+  }
+
+  // If the expression contains step arrows or chained relations, it is a multi-step sequence
+  // and must be split so each step wraps naturally across lines rather than shrinking into one giant block.
+  if (/[⇒∴∵⇔⟹⟸→]/.test(withoutTextCmds)) {
     return false;
   }
 
   // If there are 2 or more English prose words, it is prose, NOT pure math!
-  const englishWords = withoutUnits.match(/\b[a-zA-Z]{2,}\b/g) || [];
+  // LaTeX command names (\frac, \sqrt, ...) are math, not prose.
+  const englishWords = withoutTextCmds.match(/(?<!\\)\b[a-zA-Z]{2,}\b/g) || [];
   const proseWords = englishWords.filter(
     (w) => !MATH_FUNCS_AND_UNITS.has(w.toLowerCase())
   );
@@ -498,17 +690,26 @@ export function isPureMathExpr(text: string): boolean {
   }
 
   // Must have math token
-  return hasMathTokens(withoutUnits);
+  return hasMathTokens(clean);
 }
 
 /**
  * Splits mixed text (Bengali sentences containing mathematical expressions)
  * into a sequence of plain text and math segments for rendering.
  */
-export function splitTextAndMath(raw: string): TextSegment[] {
-  if (!raw || !raw.trim()) {
-    return [{ type: 'text', content: raw || '' }];
+export function splitTextAndMath(rawText: string, options?: { html?: boolean }): TextSegment[] {
+  const wantHtml = options?.html !== false;
+  if (!rawText || !rawText.trim()) {
+    return [{ type: 'text', content: rawText || '' }];
   }
+
+  // Normalize LaTeX newline commands, standardize step arrows, and ensure clean spacing between math and Bengali text
+  const raw = rawText
+    .replace(/\\{1,2}\[[0-9]+pt\]|\\{2,}(?=\s*[\n=+\-০-৯0-9a-zA-Z])/g, '\n')
+    .replace(/\s*=>\s*/g, ' ⇒ ')
+    .replace(/([⇒∴∵⇔⟹⟸→])/g, ' $1 ')
+    .replace(/([0-9a-zA-Z²³⁴ⁿ\)\]\}√=\+\-×÷\/<>≠≤≥±∞πθ])([\u0985-\u09B9\u09CE\u09DC-\u09DF])/g, '$1 $2')
+    .replace(/([\u0985-\u09B9\u09CE\u09DC-\u09DF])([a-zA-Z²³⁴ⁿ√\(\[\{=\+\-×÷\/<>≠≤≥±∞πθ])/g, '$1 $2');
 
   // 1. If it's pure math, render directly with textbook display fraction sizing
   if (isPureMathExpr(raw)) {
@@ -517,7 +718,7 @@ export function splitTextAndMath(raw: string): TextSegment[] {
       latex.includes('\\frac') && !latex.includes('\\displaystyle')
         ? `\\displaystyle ${latex}`
         : latex;
-    const html = renderKaTeXHtml(styledLatex);
+    const html = wantHtml ? renderKaTeXHtml(styledLatex) : undefined;
     return [{ type: 'math', content: raw, html }];
   }
 
@@ -529,9 +730,9 @@ export function splitTextAndMath(raw: string): TextSegment[] {
   // 3. For mixed sentences, identify math expressions embedded within prose.
   const segments: TextSegment[] = [];
 
-  // Match contiguous sequences of mathematical characters with optional spacing around operators
+  // Match discrete mathematical expressions without swallowing step arrows or newlines
   const mathBlockPattern =
-    /([0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!∴⇒%]+(?:\s+[-+−×÷/=><≠≤≥]\s+[0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!∴⇒%]+)*)/g;
+    /([0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!%|:]+(?:\s+[-+−×÷/=><≠≤≥|:]\s+[0-9a-zA-Z০-৯().,+\-*−×÷/=\\<>≠≤≥±∞πθ∆∠°_²³⁴⁵⁶⁷⁸⁹ⁿ₀₁₂₃₄₅₆₇₈₉^{}\[\]~√!%|:]+)*)/g;
 
   let lastIndex = 0;
   let m: RegExpExecArray | null;
@@ -555,7 +756,7 @@ export function splitTextAndMath(raw: string): TextSegment[] {
     // Must contain genuine mathematical indicators
     if (matchStr && hasMathTokens(matchStr)) {
       // Guard: do not treat English prose with word slashes as an inline math block
-      const segEngWords = matchStr.match(/\b[a-zA-Z]{2,}\b/g) || [];
+      const segEngWords = matchStr.match(/(?<!\\)\b[a-zA-Z]{2,}\b/g) || [];
       const segProseWords = segEngWords.filter(
         (w) => !MATH_FUNCS_AND_UNITS.has(w.toLowerCase())
       );
@@ -573,11 +774,10 @@ export function splitTextAndMath(raw: string): TextSegment[] {
         latex.includes('\\frac') && !latex.includes('\\displaystyle')
           ? `\\displaystyle ${latex}`
           : latex;
-      const html = renderKaTeXHtml(styledLatex);
       segments.push({
         type: 'math',
         content: matchStr,
-        html,
+        html: wantHtml ? renderKaTeXHtml(styledLatex) : undefined,
       });
       if (trailingPunct) {
         segments.push({
@@ -601,4 +801,100 @@ export function splitTextAndMath(raw: string): TextSegment[] {
   }
 
   return segments;
+}
+
+/* ------------------------------------------------------------------ *
+ * Rich-text helpers shared by the web DOM renderer and the native
+ * WebView renderer, so both produce identical markup.
+ * ------------------------------------------------------------------ */
+
+const RICH_TAG_SPLIT = /(<\/?(?:u|b|i|strong|em)>)/i;
+
+export interface RichSegment {
+  content: string;
+  isUnderline: boolean;
+  isBold: boolean;
+  isItalic: boolean;
+}
+
+/** True when the string contains the inline rich tags the dataset uses. */
+export function hasRichTags(text: string | null | undefined): boolean {
+  return !!text && RICH_TAG_SPLIT.test(text);
+}
+
+/** Splits text on inline rich tags (`<u>`, `<b>`, `<i>`, `<strong>`, `<em>`). */
+export function splitRichSegments(text: string): RichSegment[] {
+  const segments: RichSegment[] = [];
+  let isUnderline = false;
+  let isBold = false;
+  let isItalic = false;
+
+  for (const part of text.split(RICH_TAG_SPLIT)) {
+    if (!part) continue;
+
+    const lower = part.toLowerCase();
+    if (lower === '<u>') isUnderline = true;
+    else if (lower === '</u>') isUnderline = false;
+    else if (lower === '<b>' || lower === '<strong>') isBold = true;
+    else if (lower === '</b>' || lower === '</strong>') isBold = false;
+    else if (lower === '<i>' || lower === '<em>') isItalic = true;
+    else if (lower === '</i>' || lower === '</em>') isItalic = false;
+    else segments.push({ content: part, isUnderline, isBold, isItalic });
+  }
+
+  return segments;
+}
+
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/*
+ * `latexToReadableText()` is fine for simple expressions, but fractions,
+ * radicals, big operators, matrices and multi-character scripts only look
+ * right with KaTeX's own layout engine. Those go to the native WebView.
+ */
+const RICH_MATH_TOKEN =
+  /\\(?:frac|dfrac|tfrac|sqrt|sum|prod|coprod|int|iint|iiint|oint|lim|binom|dbinom|tbinom|overline|underline|vec|hat|bar|dot|ddot|begin|matrix|pmatrix|bmatrix|cases|array|substack|stackrel|overset|underset|displaystyle|left|right)(?![a-zA-Z])/;
+
+/*
+ * Database content stores math as plain text (`১/২`, `√৩/৪`, `n/(√2-1)`), so
+ * the raw string rarely contains LaTeX. The decision has to be made on the
+ * *generated* LaTeX that `convertPlainMathToLatex()` produces for each math
+ * segment: only fractions, radicals, big operators, matrices and similar
+ * layout-sensitive constructs need KaTeX. Superscripts/subscripts are NOT
+ * included - `45^{\circ}`, `10^{-2}`, `H_{2}O` all render fine in Unicode
+ * and stay on the cheap text path.
+ */
+export function needsRichMath(raw: string | null | undefined): boolean {
+  if (!raw || !hasMathTokens(raw)) return false;
+  return splitTextAndMath(raw, { html: false }).some(
+    (seg) => seg.type === 'math' && RICH_MATH_TOKEN.test(convertPlainMathToLatex(seg.content)),
+  );
+}
+
+/** Builds the full HTML body for a rich-text run (prose tags + inline KaTeX). */
+export function richTextToHtml(raw: string): string {
+  return splitRichSegments(raw)
+    .map((seg) => {
+      const inner = hasMathTokens(seg.content)
+        ? splitTextAndMath(seg.content)
+            .map((mSeg) =>
+              mSeg.type === 'math' && mSeg.html
+                ? `<span class="bcs-inline-math">${mSeg.html}</span>`
+                : escapeHtml(mSeg.content).replace(/\n/g, '<br/>'),
+            )
+            .join('')
+        : escapeHtml(seg.content).replace(/\n/g, '<br/>');
+
+      if (seg.isUnderline) return `<u>${inner}</u>`;
+      if (seg.isBold) return `<strong>${inner}</strong>`;
+      if (seg.isItalic) return `<em>${inner}</em>`;
+      return inner;
+    })
+    .join('');
 }

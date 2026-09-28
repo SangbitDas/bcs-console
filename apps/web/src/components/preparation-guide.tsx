@@ -8,7 +8,7 @@ import {
   SlidersHorizontal,
   Timer,
   Sparkles,
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { db } from '../lib/supabase';
 

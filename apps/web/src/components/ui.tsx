@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, router } from 'expo-router';
+import { Link, router, usePathname } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type TextStyle } from 'react-native';
-import { CheckCircle2, Clock, User as UserIcon } from 'lucide-react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CheckCircle2, Clock, Download, User as UserIcon } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { fmtTime, toBn } from '../lib/format';
+import { ANDROID_APK_URL } from '../lib/download';
 import { useExamStore } from '../store/exam';
 import { usePracticeStore } from '../store/practice';
 import { useAuthStore } from '../lib/auth';
@@ -19,6 +21,7 @@ export { MathText, ExplanationImage, Bn };
 /* ---------- Top bar (used as router header) ---------- */
 export function TopBar() {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // Mock Exam state
   const mockRemain = useExamStore((s) => s.remain);
@@ -39,6 +42,8 @@ export function TopBar() {
   const profile = useAuthStore((s) => s.profile);
   const init = useAuthStore((s) => s.init);
   const [authOpen, setAuthOpen] = useState(false);
+  const pathname = usePathname();
+  const isHome = pathname === '/';
 
   useEffect(() => {
     init();
@@ -54,7 +59,9 @@ export function TopBar() {
   const isMobile = width < 640;
 
   return (
-    <View className="flex-row items-center justify-between border-b border-black/10 bg-paper px-3 sm:px-6 py-2 sm:py-3">
+    <View
+      className="flex-row items-center justify-between border-b border-black/10 bg-paper px-3 sm:px-6 py-2 sm:py-3"
+      style={{ paddingTop: insets.top + (isMobile ? 8 : 12) }}>
       <Pressable
         onPress={() => {
           if (isAnyExamActive()) {
@@ -67,11 +74,9 @@ export function TopBar() {
         className="flex-row items-center flex-shrink-0">
         <Text style={{ fontFamily: FONT.displayBlack, fontSize: isNarrow ? 16 : 18 }}>
           বিসিএস
-          {isNarrow && isExamActive ? null : (
-            <>
-              <Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
-            </>
-          )}
+          <>
+            <Text style={{ color: '#EA0000', fontFamily: FONT.displayBlack }}> • </Text>কনসোল
+          </>
         </Text>
       </Pressable>
 
@@ -88,7 +93,9 @@ export function TopBar() {
               </View>
             ) : null}
 
-            {/* Answered / উত্তর সম্পন্ন badge */}
+            {/* Answered / উত্তর সম্পন্ন badge — hidden on narrow exam screens
+                so the full brand name always fits. */}
+            {isExamActive && isNarrow ? null : (
             <View
               accessibilityLabel={`উত্তর সম্পন্ন ${toBn(currentAnswered)} / ${toBn(currentTotal)}`}
               className="flex-row items-center gap-1 sm:gap-1.5 rounded-lg border border-black/15 bg-surface px-2 sm:px-2.5 py-1 sm:py-1.5 shadow-2xs">
@@ -106,6 +113,7 @@ export function TopBar() {
                 {`${toBn(currentAnswered)}/${toBn(currentTotal)}`}
               </Text>
             </View>
+            )}
 
             {/* Submit button */}
             <Pressable
@@ -122,6 +130,17 @@ export function TopBar() {
               </Text>
             </Pressable>
           </View>
+        ) : null}
+
+        {isHome ? (
+          <Link href={ANDROID_APK_URL as any} asChild>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="অ্যান্ড্রয়েড অ্যাপ ডাউনলোড"
+              className="h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-surface shadow-2xs transition-all hover:border-black/40 hover:bg-black/[0.03] active:scale-95">
+              <Download size={16} color="#0A0A0A" />
+            </Pressable>
+          </Link>
         ) : null}
 
         {user ? (

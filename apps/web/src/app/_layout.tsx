@@ -4,35 +4,85 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BackHandler } from 'react-native';
+import { Pressable, View, useWindowDimensions } from 'react-native';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FONT, useAppFonts } from '../lib/fonts';
-import { TopBar } from '../components/ui';
+import { Bn, TopBar } from '../components/ui';
 import { ExamQuitModal } from '../components/exam-quit-modal';
 import { isAnyExamActive, useExamGuardStore } from '../store/examGuard';
 import { useExamStore } from '../store/exam';
 import { usePracticeStore } from '../store/practice';
 import { useLibrary } from '../lib/library';
 import { toBn } from '../lib/format';
+import { applyTauriBodyClass, isTauri } from '../lib/tauri';
 
-SplashScreen.preventAutoHideAsync();
+// Disable Reanimated strict-mode warning for internal library shared-value reads
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+/* Tauri-only tab-bar background: white on top + black 28px system strip below,
+ * so the Android gesture pill floats on black (industry edge-to-edge look).
+ * Paint ONLY — icons/labels/badge/listeners stay on the default React
+ * Navigation bar (a full custom tabBar blanked the app on device).
+ * Web/Vercel and RN native never mount this. */
+const USE_TAURI_BAR_BG = isTauri();
+
+function TauriBarBackground() {
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />
+      <View style={{ height: 28, backgroundColor: '#000000' }} />
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const fontsOk = useAppFonts();
   const [qc] = useState(() => new QueryClient());
-  const lib = useLibrary();
+  const wrongBadgeCount = useLibrary((s) => s.wrongIds.length);
 
   const isMockRunning = useExamStore((s) => s.running);
   const isCustomRunning = usePracticeStore((s) => s.mode === 'custom' && s.started && !s.finished);
   const isExamActive = isMockRunning || isCustomRunning;
+  // Tauri shell reserves room for the Android gesture pill; plain web gets none.
+  const tauriBottomPad = isTauri() ? 28 : 0;
+  // Wide screens fit every feature in the bar; narrow ones collapse the last
+  // three into the "আরও" overflow tab.
+  const { width } = useWindowDimensions();
+  const isWideBar = width >= 900;
 
   useEffect(() => {
-    if (fontsOk) SplashScreen.hideAsync();
+    let isMounted = true;
+    const hideSplash = async () => {
+      try {
+        await SplashScreen.hideAsync();
+      } catch {}
+    };
+
+    if (fontsOk) {
+      hideSplash();
+    } else {
+      // Safety timeout: never freeze on splash screen for more than 1.2s
+      const timer = setTimeout(hideSplash, 1200);
+      return () => {
+        clearTimeout(timer);
+        isMounted = false;
+      };
+    }
   }, [fontsOk]);
 
-  // Web browser guard against closing tab or refreshing mid-exam
+  // Tauri shell: tag <body> once so Tauri-only CSS (scroll-lock) applies.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    applyTauriBodyClass();
+  }, []);
 
+  // Browser guard against closing tab or refreshing mid-exam
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isAnyExamActive()) {
         e.preventDefault();
@@ -45,9 +95,8 @@ export default function RootLayout() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // Web browser Back Button & History Guard
+  // Browser Back Button & History Guard
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     if (!isExamActive) return;
 
     // Push a guard checkpoint into browser history to capture the back action
@@ -81,28 +130,6 @@ export default function RootLayout() {
     };
   }, [isExamActive]);
 
-  // Android hardware back button guard
-  useEffect(() => {
-    if (!isExamActive) return;
-
-    const onBackPress = () => {
-      if (isAnyExamActive()) {
-        useExamGuardStore.getState().openQuitModal(() => {
-          if (typeof window !== 'undefined' && window.history.length > 2) {
-            window.history.go(-2);
-          } else {
-            router.replace('/');
-          }
-        });
-        return true;
-      }
-      return false;
-    };
-
-    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => sub.remove();
-  }, [isExamActive]);
-
   const createTabListener = (targetRoute: string) => ({
     tabPress: (e: any) => {
       if (isAnyExamActive()) {
@@ -114,80 +141,152 @@ export default function RootLayout() {
     },
   });
 
-  if (!fontsOk) return null;
-
   return (
-    <QueryClientProvider client={qc}>
-      <Tabs
-        screenOptions={{
-          header: () => <TopBar />,
-          tabBarActiveTintColor: '#EA0000',
-          tabBarInactiveTintColor: 'rgba(0,0,0,.5)',
-          tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: 'rgba(0,0,0,.12)', height: 64 },
-          tabBarLabelStyle: { fontFamily: FONT.uiSemi, fontSize: 12 },
-        }}>
-        <Tabs.Screen
-          name="index"
-          listeners={createTabListener('/')}
-          options={{
-            title: 'হোম',
-            tabBarIcon: ({ color }) => <MaterialIcons name="home" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="practice"
-          listeners={createTabListener('/practice')}
-          options={{
-            title: 'অনুশীলন',
-            tabBarIcon: ({ color }) => <MaterialIcons name="menu-book" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="exam"
-          listeners={createTabListener('/exam')}
-          options={{
-            title: 'মক এক্সাম',
-            tabBarIcon: ({ color }) => <MaterialIcons name="timer" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="custom"
-          listeners={createTabListener('/custom')}
-          options={{
-            title: 'কাস্টম',
-            tabBarIcon: ({ color }) => <MaterialIcons name="tune" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="results"
-          listeners={createTabListener('/results')}
-          options={{
-            title: 'ফলাফল',
-            tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="bookmarks"
-          listeners={createTabListener('/bookmarks')}
-          options={{
-            title: 'বুকমার্ক',
-            tabBarBadge: lib.bookmarks.length > 0 ? toBn(lib.bookmarks.length) : undefined,
-            tabBarBadgeStyle: { backgroundColor: '#EA0000', fontSize: 10, fontFamily: FONT.digits },
-            tabBarIcon: ({ color }) => <MaterialIcons name="bookmark-border" size={22} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="wrong"
-          listeners={createTabListener('/wrong')}
-          options={{
-            title: 'ভুলসমূহ',
-            tabBarBadge: lib.wrongIds.length > 0 ? toBn(lib.wrongIds.length) : undefined,
-            tabBarBadgeStyle: { backgroundColor: '#EA0000', fontSize: 10, fontFamily: FONT.digits },
-            tabBarIcon: ({ color }) => <MaterialIcons name="error-outline" size={22} color={color} />,
-          }}
-        />
-      </Tabs>
-      <ExamQuitModal />
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={qc}>
+        <Tabs
+          screenOptions={{
+            header: () => <TopBar />,
+            tabBarActiveTintColor: '#EA0000',
+            tabBarInactiveTintColor: 'rgba(0,0,0,.5)',
+            tabBarBackground: USE_TAURI_BAR_BG ? TauriBarBackground : undefined,
+            tabBarStyle: {
+              backgroundColor: USE_TAURI_BAR_BG ? 'transparent' : '#FFFFFF',
+              borderTopColor: 'rgba(0,0,0,.08)',
+              height: 64 + tauriBottomPad,
+              paddingTop: 6,
+              paddingBottom: 6 + tauriBottomPad,
+            },
+            tabBarItemStyle: {
+              paddingHorizontal: 0,
+              paddingVertical: 0,
+            },
+            // NOTE: keep the default label renderer (style-only). A custom
+            // tabBarLabel component clipped the last glyph of Bengali titles
+            // on Android (হোম→হো, আরও→আর).
+            tabBarLabelStyle: {
+              fontFamily: FONT.uiSemi,
+              fontSize: 11,
+              marginTop: 2,
+            },
+            tabBarAllowFontScaling: false,
+          }}>
+          <Tabs.Screen
+            name="index"
+            listeners={createTabListener('/')}
+            options={{
+              title: 'হোম',
+              tabBarIcon: ({ color }) => <MaterialIcons name="home" size={22} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="practice"
+            listeners={createTabListener('/practice')}
+            options={{
+              title: 'অনুশীলন',
+              tabBarIcon: ({ color }) => <MaterialIcons name="menu-book" size={22} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="exam"
+            listeners={createTabListener('/exam')}
+            options={{
+              title: 'মক এক্সাম',
+              tabBarIcon: ({ color }) => <MaterialIcons name="timer" size={22} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="custom"
+            listeners={createTabListener('/custom')}
+            options={{
+              title: 'কাস্টম এক্সাম',
+              tabBarIcon: ({ color }) => <MaterialIcons name="tune" size={22} color={color} />,
+            }}
+          />
+          {/* Wide screens show every feature; narrow screens collapse the
+              last three into the "আরও" overflow tab. */}
+          <Tabs.Screen
+            name="more"
+            listeners={createTabListener('/more')}
+            options={{
+                    title: 'আরও',
+                    tabBarBadge: wrongBadgeCount > 0 ? toBn(wrongBadgeCount) : undefined,
+                    tabBarBadgeStyle: {
+                      backgroundColor: '#EA0000',
+                      fontSize: 10,
+                      fontFamily: FONT.digits,
+                      top: -2,
+                    },
+                    tabBarIcon: ({ color }) => (
+                      <MaterialIcons name="more-horiz" size={22} color={color} />
+                    ),
+                    tabBarItemStyle: {
+                      paddingHorizontal: 0,
+                      paddingVertical: 0,
+                      display: isWideBar ? 'none' : 'flex',
+                    },
+                  }}
+          />
+          <Tabs.Screen
+            name="results"
+            listeners={createTabListener('/results')}
+            options={{
+                    href: '/results',
+                    title: 'ফলাফল',
+                    tabBarIcon: ({ color }) => (
+                      <MaterialIcons name="bar-chart" size={22} color={color} />
+                    ),
+                    tabBarItemStyle: {
+                      paddingHorizontal: 0,
+                      paddingVertical: 0,
+                      display: isWideBar ? 'flex' : 'none',
+                    },
+                  }}
+          />
+          <Tabs.Screen
+            name="bookmarks"
+            listeners={createTabListener('/bookmarks')}
+            options={{
+                    href: '/bookmarks',
+                    title: 'বুকমার্ক',
+                    tabBarIcon: ({ color }) => (
+                      <MaterialIcons name="bookmark" size={22} color={color} />
+                    ),
+                    tabBarItemStyle: {
+                      paddingHorizontal: 0,
+                      paddingVertical: 0,
+                      display: isWideBar ? 'flex' : 'none',
+                    },
+                  }}
+          />
+          <Tabs.Screen
+            name="wrong"
+            listeners={createTabListener('/wrong')}
+            options={{
+                    href: '/wrong',
+                    title: 'ভুলসমূহ',
+                    tabBarBadge: wrongBadgeCount > 0 ? toBn(wrongBadgeCount) : undefined,
+                    tabBarBadgeStyle: {
+                      backgroundColor: '#EA0000',
+                      fontSize: 10,
+                      fontFamily: FONT.digits,
+                      top: -2,
+                    },
+                    tabBarIcon: ({ color }) => (
+                      <MaterialIcons name="error" size={22} color={color} />
+                    ),
+                    tabBarItemStyle: {
+                      paddingHorizontal: 0,
+                      paddingVertical: 0,
+                      display: isWideBar ? 'flex' : 'none',
+                    },
+                  }}
+          />
+          {/* OAuth deep-link landing (bcsconsole://auth-callback). */}
+          <Tabs.Screen name="auth-callback" options={{ href: null } as any} />
+        </Tabs>
+        <ExamQuitModal />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

@@ -1,6 +1,5 @@
 import {
   useFonts,
-  NotoSansBengali_300Light,
   NotoSansBengali_400Regular,
   NotoSansBengali_500Medium,
   NotoSansBengali_600SemiBold,
@@ -8,7 +7,7 @@ import {
 } from '@expo-google-fonts/noto-sans-bengali';
 
 export const FONT = {
-  light: 'NotoSansBengali_300Light',
+  light: 'NotoSansBengali_400Regular',
   ui: 'NotoSansBengali_400Regular',
   uiMed: 'NotoSansBengali_500Medium',
   uiSemi: 'NotoSansBengali_600SemiBold',
@@ -23,7 +22,6 @@ export const FONT = {
 
 export function useAppFonts(): boolean {
   const [loaded] = useFonts({
-    NotoSansBengali_300Light,
     NotoSansBengali_400Regular,
     NotoSansBengali_500Medium,
     NotoSansBengali_600SemiBold,

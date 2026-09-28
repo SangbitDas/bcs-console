@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState, memo } from 'react';
-import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import { router } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
+import { ActivityIndicator, AppState, InteractionManager, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
-import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock, FileText, HelpCircle, Lightbulb, RotateCcw, ShieldCheck, Sparkles, Target, Trophy, X, XCircle, Zap } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { examLabel, fmtTime, optText, shuffle, toBn, type QuestionRow } from '../lib/format';
 import { allocateQuestionCounts, buildSubjectInputs, computeAvailableCounts, sampleQuestions } from '../lib/examAllocation';
@@ -79,6 +79,19 @@ export const MOCK_TIERS: MockTier[] = [
 ];
 
 export default function Exam() {
+  /* Leaving this tab after submit discards the in-memory result so that
+     coming back shows the main picker (saved attempts stay in ফলাফল).
+     Mid-exam leaves go through the quit guard, which resets on its own. */
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (useExamStore.getState().result) {
+          useExamStore.getState().backToPicker();
+        }
+      };
+    }, []),
+  );
+
   const st = useExamStore();
   const lib = useLibrary();
   const { data: subjects } = useSubjects();
@@ -116,24 +129,32 @@ export default function Exam() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st.poolKey, pool.data]);
 
-  /* countdown */
+  /* countdown (deadline-based, so it survives app backgrounding) */
   useEffect(() => {
     if (!st.running || !session.length) return;
-    const id = setInterval(() => {
-      const remain = useExamStore.getState().remain - 1;
-      useExamStore.getState().tick();
-      if (remain <= 0) {
-        clearInterval(id);
+    let finished = false;
+    const sync = () => {
+      if (finished) return;
+      useExamStore.getState().syncClock();
+      if (useExamStore.getState().remain <= 0) {
+        finished = true;
         doSubmit(true);
       }
-    }, 1000);
-    return () => clearInterval(id);
+    };
+    const id = setInterval(sync, 1000);
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') sync();
+    });
+    return () => {
+      clearInterval(id);
+      sub.remove();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st.running, st.poolKey, session.length]);
 
-  /* warn on accidental navigation (web) */
+  /* warn on accidental navigation */
   useEffect(() => {
-    if (typeof window === 'undefined' || !st.running) return;
+    if (!st.running) return;
     const h = (e: BeforeUnloadEvent) => {
       e.preventDefault();
     };
@@ -596,8 +617,9 @@ const ExamQuestionCard = memo(function ExamQuestionCard({
           let badgeClass = 'border-black/20 bg-paper text-black/70';
 
           if (isPicked) {
-            btnClass = 'border-[#EA0000] bg-[#EA0000]/[0.05] text-black font-semibold shadow-xs';
-            badgeClass = 'border-[#EA0000] bg-[#EA0000] text-white';
+            // Mock runner never reveals correctness — neutral selected look.
+            btnClass = 'border-black bg-black/[0.04] text-black font-semibold shadow-xs';
+            badgeClass = 'border-black bg-ink text-white';
           }
 
           return (
@@ -630,6 +652,8 @@ function RunnerView({
 }) {
   const st = useExamStore();
   const answeredCount = Object.keys(st.answers).length;
+  const totalMinutes = st.config.minutes;
+  const hoursPart = totalMinutes % 60 === 0 ? ` (${toBn(totalMinutes / 60)} ঘণ্টা)` : '';
 
   return (
     <View className="gap-5">
@@ -647,54 +671,47 @@ function RunnerView({
         ]}
       />
 
-      {/* Top Header Bar with Timer, Progress & Submit */}
-      <View className="overflow-hidden rounded-xl border border-black/10 bg-ink shadow-sm">
-        <View className="flex-row flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-          <View>
-            <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
-              {`মডেল টেস্ট • ${toBn(st.config.count)}টি প্রশ্ন`}
+      {/* Running-exam strip (custom-exam black bar style): info + timer + actions */}
+      <View className="flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-xl bg-ink px-4 py-3 shadow-sm sm:px-5">
+        <View className="min-w-0 flex-row items-center gap-2.5">
+          <Clock size={20} color="#FFFFFF" strokeWidth={2} />
+          <View className="min-w-0">
+            <Bn className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
+              মক এক্সাম চলছে
             </Bn>
-            <Text className="text-white/70" style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-              {`পূর্ণমান: ${toBn(list.filter((x) => x.correct_answer).length)} · ভুল উত্তরে −০.৫০`}
+            <Text className="text-white/60" style={{ fontFamily: FONT.ui, fontSize: 11.5 }} numberOfLines={1}>
+              {`মোট সময়: ${toBn(totalMinutes)} মিনিট${hoursPart} · সঠিক: +১.০০, ভুল: −০.৫০`}
             </Text>
           </View>
+        </View>
 
-          <View className="flex-row items-center gap-3 sm:gap-4">
-            <View className="items-center">
-              <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
-                {fmtTime(st.remain)}
-              </Text>
-              <Text className="text-white/70" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
-                সময় বাকি
-              </Text>
-            </View>
-
-            <View className="h-8 w-px bg-white/20" />
-
-            <View className="items-center">
-              <Text className="text-white" style={{ fontFamily: FONT.displayBlack, fontSize: 20 }}>
-                {`${toBn(answeredCount)}/${toBn(list.length)}`}
-              </Text>
-              <Text className="text-white/70" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
-                উত্তর সম্পন্ন
-              </Text>
-            </View>
-
-            <Pressable
-              onPress={() => useExamGuardStore.getState().openQuitModal(() => st.backToPicker())}
-              style={{ cursor: 'pointer' } as any}
-              className="rounded-lg border border-white/25 px-3 py-2 transition-colors hover:bg-white/10 active:scale-95">
-              <Text className="text-white/80 text-xs font-semibold" style={{ fontFamily: FONT.uiSemi }}>
-                পরীক্ষা বাতিল
-              </Text>
-            </Pressable>
-
-            <Btn
-              title="জমা দিন"
-              variant="accent"
-              onPress={() => onSubmit(false)}
-            />
+        <View className="flex-row items-center gap-3 sm:gap-4">
+          <View className="items-center">
+            <Bn style={{ fontFamily: FONT.digitsBold, fontSize: 20, color: '#FFFFFF' }}>
+              {fmtTime(st.remain)}
+            </Bn>
+            <Bn className="text-white/60" style={{ fontFamily: FONT.uiSemi, fontSize: 11 }}>
+              {`${toBn(Math.max(0, Math.ceil(st.remain / 60)))} মিনিট বাকি`}
+            </Bn>
           </View>
+
+          <Pressable
+            onPress={() => useExamGuardStore.getState().openQuitModal(() => st.backToPicker())}
+            style={{ cursor: 'pointer' } as any}
+            className="min-h-[40px] items-center justify-center rounded-lg border border-white/25 px-3.5 transition-colors hover:bg-white/10 active:scale-95">
+            <Text className="text-white/80" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+              পরীক্ষা বাতিল
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => onSubmit(false)}
+            style={{ cursor: 'pointer' } as any}
+            className="min-h-[40px] items-center justify-center rounded-lg bg-white px-4 transition-opacity hover:bg-white/90 active:scale-95">
+            <Text className="text-black" style={{ fontFamily: FONT.uiBold, fontSize: 13.5 }}>
+              জমা দিন
+            </Text>
+          </Pressable>
         </View>
       </View>
 
@@ -749,6 +766,20 @@ function ExamReviewCard({
   subjectName: string;
 }) {
   const [showNote, setShowNote] = useState(true);
+  const [noteReady, setNoteReady] = useState(false);
+  useEffect(() => {
+    if (!showNote) {
+      setNoteReady(false);
+      return;
+    }
+    setNoteReady(false);
+    const task = InteractionManager.runAfterInteractions(() => setNoteReady(true));
+    const fallback = setTimeout(() => setNoteReady(true), 160);
+    return () => {
+      task.cancel();
+      clearTimeout(fallback);
+    };
+  }, [showNote, q.id]);
   const exam = examLabel(q.exam_slug);
   const qNum = toBn(q.question_number);
   const isWrong = status === 'wrong';
@@ -862,7 +893,13 @@ function ExamReviewCard({
         <View className="mt-3">
           <Pressable
             onPress={() => setShowNote((v) => !v)}
-            className="flex-row items-center gap-1.5 py-1">
+            accessibilityRole="button"
+            accessibilityLabel={showNote ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
+            accessibilityState={{ expanded: showNote }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            pressRetentionOffset={{ top: 24, bottom: 24, left: 24, right: 24 }}
+            android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
+            className="min-h-[44px] flex-row items-center gap-1.5 px-2 -mx-2 py-2.5 active:opacity-70">
             <Text className="text-black/60 hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
               {showNote ? 'ব্যাখ্যা লুকান' : 'ব্যাখ্যা দেখুন'}
             </Text>
@@ -873,15 +910,26 @@ function ExamReviewCard({
               <Bn style={{ fontFamily: FONT.uiBold, fontSize: 13, color: '#0A0A0A', marginBottom: 4 }}>
                 {`সঠিক উত্তর: ${q.correct_answer || 'নেই'}`}
               </Bn>
-              {q.solve_note ? (
-                <MathText
-                  style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
-                  text={q.solve_note}
-                />
-              ) : null}
-              {(q.solve_note_image_urls ?? []).map((u) => (
-                <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
-              ))}
+              {noteReady ? (
+                <>
+                  {q.solve_note ? (
+                    <MathText
+                      style={{ fontFamily: FONT.ui, fontSize: 14, lineHeight: 22, color: 'rgba(0,0,0,0.85)' }}
+                      text={q.solve_note}
+                    />
+                  ) : null}
+                  {(q.solve_note_image_urls ?? []).map((u) => (
+                    <ExplanationImage key={u} uri={u} title="ব্যাখ্যার চিত্র" height={260} />
+                  ))}
+                </>
+              ) : (
+                <View className="flex-row items-center gap-2 py-2">
+                  <ActivityIndicator size="small" color="#0A0A0A" />
+                  <Bn className="text-black/50" style={{ fontFamily: FONT.ui, fontSize: 13 }}>
+                    ব্যাখ্যা লোড হচ্ছে…
+                  </Bn>
+                </View>
+              )}
             </View>
           ) : null}
         </View>
@@ -1079,7 +1127,7 @@ function ExamResultView({
         })}
       </View>
 
-      {/* Bottom Action Controls */}
+      {/* Bottom Action Controls — retry only. */}
       <View className="mt-4 flex-row flex-wrap gap-3">
         <Pressable
           onPress={onRetry}
@@ -1087,14 +1135,6 @@ function ExamResultView({
           <RotateCcw size={15} color="#FFFFFF" />
           <Text className="text-white" style={{ fontFamily: FONT.uiSemi, fontSize: 15 }}>
             আবার পরীক্ষা দিন
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => st.backToPicker()}
-          className="min-h-[48px] flex-row items-center justify-center gap-2 rounded-lg border border-black/20 bg-surface px-5 py-3 transition-colors hover:bg-black/[0.03]">
-          <Text className="text-black/75" style={{ fontFamily: FONT.uiSemi, fontSize: 15 }}>
-            মক টেস্ট তালিকায় ফিরুন
           </Text>
         </Pressable>
       </View>

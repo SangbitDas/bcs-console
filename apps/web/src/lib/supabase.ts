@@ -20,6 +20,8 @@ export const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: isBrowser,
     persistSession: isBrowser,
     detectSessionInUrl: isBrowser,
+    // Required for exchangeCodeForSession() in the native OAuth deep-link flow.
+    flowType: 'pkce',
   },
 });
 

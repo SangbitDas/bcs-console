@@ -7,6 +7,7 @@ import {
   Calculator,
   CheckCircle2,
   Cpu,
+  Download,
   Earth,
   FlaskConical,
   Globe,
@@ -17,6 +18,7 @@ import {
   Layers,
   Scale,
   SlidersHorizontal,
+  Smartphone,
   Timer,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -28,6 +30,7 @@ import { PreparationGuideSection } from '../components/preparation-guide';
 import { useBankStats, useSubjects } from '../hooks/queries';
 import { FONT } from '../lib/fonts';
 import { SUBJECT_COUNT, toBn, type Subject } from '../lib/format';
+import { ANDROID_APP_VERSION, ANDROID_APK_URL } from '../lib/download';
 
 const TAXONOMY_SUBJECTS: Subject[] = [
   { id: 1, subject_bn: 'বাংলা ভাষা ও সাহিত্য', subject_en: 'Bangla Language & Literature' },
@@ -68,40 +71,23 @@ export default function Home() {
 
   const displaySubjects = subjects && subjects.length > 0 ? subjects : TAXONOMY_SUBJECTS;
 
-  /* Compute column counts for uniform grids */
-  const statCols = width > 900 ? 4 : 2;
+  /* Compute column counts and pixel-perfect responsive widths for uniform grids */
+  const statCols = width >= 768 ? 4 : 2;
+  const statGap = width > 600 ? 12 : 10;
+  const statCardWidth =
+    statCols === 4
+      ? `calc(25% - ${(3 * statGap) / 4}px)`
+      : `calc(50% - ${statGap / 2}px)`;
+
   const subjectCols = width > 1000 ? 5 : width > 750 ? 4 : width > 500 ? 3 : 2;
+  const subjectGap = 12;
+  const subjectCardWidth = `calc(${100 / subjectCols}% - ${((subjectCols - 1) * subjectGap) / subjectCols}px)`;
 
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={true}>
       <View className="mx-auto w-full max-w-[1100px] px-5 py-12">
         {/* Hero Section - Centered with commanding typography & calligraphy */}
         <View className="relative items-center overflow-hidden pb-10 pt-2 md:pb-16 md:pt-6">
-          {/* Subtle watermarked numerals framing the empty side spaces */}
-          <View
-            style={{
-              position: 'absolute',
-              left: -10,
-              top: 10,
-              opacity: 0.035,
-              pointerEvents: 'none',
-            }}>
-            <Text style={{ fontFamily: FONT.displayBlack, fontSize: width > 700 ? 160 : 90, userSelect: 'none' }}>
-              ১০
-            </Text>
-          </View>
-          <View
-            style={{
-              position: 'absolute',
-              right: -10,
-              top: 10,
-              opacity: 0.035,
-              pointerEvents: 'none',
-            }}>
-            <Text style={{ fontFamily: FONT.displayBlack, fontSize: width > 700 ? 160 : 90, userSelect: 'none' }}>
-              ৫০
-            </Text>
-          </View>
 
           {/* Subtitle kicker pill with flanking decorative flourish lines */}
           <View className="mb-6 flex-row items-center justify-center gap-3">
@@ -157,29 +143,48 @@ export default function Home() {
             বছরভিত্তিক বিগত প্রশ্নে অনুশীলন করুন, বিষয় ধরে ধরে দুর্বলতা কাটান, আর ঘড়ি ধরে পূর্ণাঙ্গ মক এক্সাম দিন।
           </Text>
 
-          {/* Hero Action Buttons */}
-          <View className="flex-row flex-wrap justify-center gap-4">
+          {/* Hero Actions — one shared pill, 3 divided segments (icon over label
+              so it fits narrow phones and desktop alike). */}
+          <View className="w-full max-w-[560px] flex-row items-stretch self-center overflow-hidden rounded-2xl border border-black/10 bg-surface shadow-sm transition-all duration-300 hover:border-black/20 hover:shadow-md">
             <Link href={"/practice" as any} asChild>
-              <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl bg-ink px-8 shadow-sm transition-all hover:bg-black/90 active:scale-[0.98]">
-                <BookOpen size={18} color="#fff" />
-                <Text className="text-white" style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="অনুশীলন শুরু"
+                className="group min-h-[68px] flex-1 items-center justify-center gap-1.5 px-3 py-3.5 transition-all duration-200 hover:bg-[#EA0000]/[0.06] active:bg-[#EA0000]/[0.12]">
+                <View className="transition-transform duration-200 group-hover:scale-110 group-hover:-translate-y-0.5">
+                  <BookOpen size={20} color="#EA0000" />
+                </View>
+                <Text className="text-center text-black transition-colors duration-200 group-hover:text-[#EA0000]" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
                   অনুশীলন শুরু
                 </Text>
-                <ArrowRight size={17} color="#fff" />
               </Pressable>
             </Link>
+            <View className="my-3 w-px bg-black/10" />
             <Link href="/exam" asChild>
-              <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-black/20 bg-surface px-8 shadow-sm transition-all hover:border-black/40 hover:bg-black/[0.02] active:scale-[0.98]">
-                <Timer size={18} color="#0A0A0A" />
-                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>মক এক্সাম</Text>
-                <ArrowRight size={17} color="#0A0A0A" />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="মক এক্সাম"
+                className="group min-h-[68px] flex-1 items-center justify-center gap-1.5 px-3 py-3.5 transition-all duration-200 hover:bg-black/[0.04] active:bg-black/[0.08]">
+                <View className="transition-transform duration-200 group-hover:scale-110 group-hover:-translate-y-0.5">
+                  <Timer size={20} color="#0A0A0A" />
+                </View>
+                <Text className="text-center text-black/80 transition-colors duration-200 group-hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                  মক এক্সাম
+                </Text>
               </Pressable>
             </Link>
+            <View className="my-3 w-px bg-black/10" />
             <Link href="/custom" asChild>
-              <Pressable className="min-h-[50px] flex-row items-center gap-2.5 rounded-xl border border-black/20 bg-surface px-8 shadow-sm transition-all hover:border-black/40 hover:bg-black/[0.02] active:scale-[0.98]">
-                <SlidersHorizontal size={18} color="#0A0A0A" />
-                <Text style={{ fontFamily: FONT.uiSemi, fontSize: 15.5 }}>কাস্টম এক্সাম</Text>
-                <ArrowRight size={17} color="#0A0A0A" />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="কাস্টম এক্সাম"
+                className="group min-h-[68px] flex-1 items-center justify-center gap-1.5 px-3 py-3.5 transition-all duration-200 hover:bg-black/[0.04] active:bg-black/[0.08]">
+                <View className="transition-transform duration-200 group-hover:scale-110 group-hover:-translate-y-0.5">
+                  <SlidersHorizontal size={20} color="#0A0A0A" />
+                </View>
+                <Text className="text-center text-black/80 transition-colors duration-200 group-hover:text-black" style={{ fontFamily: FONT.uiSemi, fontSize: 13 }}>
+                  কাস্টম এক্সাম
+                </Text>
               </Pressable>
             </Link>
           </View>
@@ -187,7 +192,7 @@ export default function Home() {
 
         {/* Stat Cards Banner — uniform 4-col on desktop, 2x2 on mobile */}
         <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: width > 600 ? 12 : 10 }}>
+          <View className="flex-row flex-wrap" style={{ gap: statGap }}>
             {[
               {
                 label: 'মোট পরীক্ষা',
@@ -225,7 +230,7 @@ export default function Home() {
                   key={stat.label}
                   style={
                     {
-                      width: statCols === 4 ? 'calc(25% - 9px)' : 'calc(50% - 5px)',
+                      width: statCardWidth,
                       minHeight: width > 600 ? 130 : 118,
                     } as any
                   }
@@ -261,7 +266,7 @@ export default function Home() {
           desc="সরাসরি অনুশীলন করুন"
         />
         <View className="mb-14">
-          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+          <View className="flex-row flex-wrap" style={{ gap: subjectGap }}>
             {displaySubjects.map((s) => {
               const Icon = SUBJECT_ICONS[s.id] ?? BookOpen;
               const qCount = SUBJECT_COUNT[s.id] ?? 0;
@@ -269,13 +274,13 @@ export default function Home() {
                 <Pressable
                   key={s.id}
                   onPress={() => router.push(`/practice/subject/${s.id}` as any)}
-                  style={{ width: `${100 / subjectCols - 2}%`, height: 165 }}
+                  style={{ width: subjectCardWidth, height: 165 } as any}
                   className="justify-between rounded-2xl border border-black/10 bg-surface p-5 shadow-sm transition-all hover:border-black/30 hover:shadow-md active:bg-black/[0.02]">
                   <View>
                     <View className="mb-3 flex-row items-center justify-between">
-                      <View className="h-7 w-7 items-center justify-center rounded-full bg-black/[0.05]">
-                        <Text style={{ fontFamily: FONT.uiBold, fontSize: 11, color: '#0A0A0A' }}>
-                          {String(s.id).padStart(2, '0')}
+                      <View className="min-w-[32px] h-7 px-2 items-center justify-center rounded-full bg-black/[0.05]">
+                        <Text style={{ fontFamily: FONT.digitsBold, fontSize: 11.5, color: '#0A0A0A', includeFontPadding: false }}>
+                          {toBn(String(s.id).padStart(2, '0'))}
                         </Text>
                       </View>
                       <View className="h-7 w-7 items-center justify-center rounded-lg bg-black/[0.03]">
@@ -291,9 +296,9 @@ export default function Home() {
                   </View>
 
                   <View className="flex-row items-center justify-between border-t border-black/5 pt-2">
-                    <Bn bold style={{ fontFamily: FONT.displayBlack, fontSize: 16 }}>
-                      {`${toBn(qCount.toLocaleString('en-US'))}`}
-                    </Bn>
+                    <Text style={{ fontFamily: FONT.displayBlack, fontSize: 15.5, color: '#0A0A0A' }}>
+                      {`${toBn(qCount.toLocaleString('en-US'))}টি`}
+                    </Text>
                     <View className="h-6 w-6 items-center justify-center rounded-full bg-black/[0.04]">
                       <ArrowRight size={13} color="#0A0A0A" />
                     </View>
@@ -359,6 +364,59 @@ export default function Home() {
                 </View>
               </View>
             ))}
+          </View>
+        </View>
+
+        {/* Mobile App Download Banner */}
+        <View className="mb-14 overflow-hidden rounded-3xl border border-black/10 bg-surface p-6 sm:p-8 shadow-xs">
+          <View className="flex-col md:flex-row md:items-center md:justify-between gap-6">
+            {/* Left Column: Information */}
+            <View className="flex-1 max-w-xl">
+              <View className="flex-row items-center gap-2 mb-3">
+                <View className="flex-row items-center gap-1.5 rounded-full bg-black/[0.04] px-3 py-1 border border-black/5">
+                  <Smartphone size={13} color="#EA0000" />
+                  <Text
+                    className="text-black/75"
+                    style={{ fontFamily: FONT.uiSemi, fontSize: 11.5, letterSpacing: 0.2 }}>
+                    {`অ্যান্ড্রয়েড অ্যাপ • ${toBn(ANDROID_APP_VERSION)}`}
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                style={{
+                  fontFamily: FONT.displayBold,
+                  fontSize: width > 600 ? 23 : 19,
+                  lineHeight: width > 600 ? 30 : 26,
+                  color: '#0A0A0A',
+                  marginBottom: 6,
+                }}>
+                স্মার্টফোনে সরাসরি অনুশীলন করুন
+              </Text>
+
+              <Text
+                className="text-black/60"
+                style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 22 }}>
+                বিসিএস কনসোলের পূর্ণাঙ্গ প্রশ্নব্যাংক, বিষয়ভিত্তিক প্রস্তুতি ও মক টেস্টের জন্য অ্যান্ড্রয়েড অ্যাপ ডাউনলোড করুন।
+              </Text>
+            </View>
+
+            {/* Right Column: CTA Action */}
+            <View className="flex-col items-start md:items-end justify-center pt-2 md:pt-0 border-t md:border-t-0 border-black/5">
+              <Link href={ANDROID_APK_URL as any} asChild>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="অ্যান্ড্রয়েড APK ডাউনলোড করুন"
+                  className="group flex-row items-center gap-2.5 rounded-2xl bg-[#0A0A0A] px-6 py-3.5 shadow-sm transition-all duration-200 hover:bg-black/85 hover:shadow-md hover:-translate-y-0.5 active:scale-98">
+                  <View className="transition-transform duration-200 group-hover:-translate-y-0.5">
+                    <Download size={18} color="#FFFFFF" />
+                  </View>
+                  <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14.5 }}>
+                    APK ডাউনলোড করুন
+                  </Text>
+                </Pressable>
+              </Link>
+            </View>
           </View>
         </View>
 

@@ -1,13 +1,14 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { formatDateTimeBn, toBn } from '../lib/format';
 import { useLibrary, sortRecents } from '../lib/library';
 import { applyRerunConfig } from '../lib/rerun';
 import { useExams } from '../hooks/queries';
+import { useState } from 'react';
 import { Bn } from './ui';
-import { Breadcrumb, RecentPracticeCard } from './patterns';
+import { Breadcrumb, ConfirmModal, RecentPracticeCard } from './patterns';
 
 const MAX_RECENTS = 30;
 
@@ -24,6 +25,7 @@ export function RecentsScreen() {
   ).slice(0, MAX_RECENTS);
 
   const pinnedCount = recents.filter((r) => r.pinned).length;
+  const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
 
   return (
     <ScrollView className="bg-paper" showsVerticalScrollIndicator={true}>
@@ -64,6 +66,7 @@ export function RecentsScreen() {
                   key={r.id}
                   pinned={r.pinned}
                   onTogglePin={() => lib.togglePinRecent(r.key)}
+                  onRemove={() => setPendingDeleteKey(r.key)}
                   title={
                     r.label
                       ? r.label.replace(/^কোনো পরীক্ষা নির্বাচিত নয় ·\s*/, 'সব বিসিএস · ')
@@ -88,6 +91,17 @@ export function RecentsScreen() {
           </View>
         )}
       </View>
+      <ConfirmModal
+        visible={pendingDeleteKey != null}
+        title="সেশন মুছে ফেলবেন?"
+        message="এই সাম্প্রতিক অনুশীলনটি তালিকা থেকে মুছে যাবে। সংরক্ষিত প্রশ্ন, বুকমার্ক বা ভুলের তালিকায় কোনো পরিবর্তন হবে না।"
+        confirmLabel="মুছে ফেলুন"
+        onCancel={() => setPendingDeleteKey(null)}
+        onConfirm={() => {
+          if (pendingDeleteKey) lib.removeRecent(pendingDeleteKey);
+          setPendingDeleteKey(null);
+        }}
+      />
     </ScrollView>
   );
 }

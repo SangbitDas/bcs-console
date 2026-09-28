@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, Pressable, ScrollView, Text, View, Platform } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { Maximize2, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
+import { Maximize2, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 
 export interface ImageLightboxModalProps {
@@ -30,7 +30,7 @@ export function ImageLightboxModal({
 
   // Keyboard shortcut: Esc to close, +/- to zoom
   useEffect(() => {
-    if (!uri || Platform.OS !== 'web' || typeof window === 'undefined') return;
+    if (!uri || typeof window === 'undefined') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -216,9 +216,7 @@ export function ImageLightboxModal({
           <Text
             className="text-white/60 text-xs"
             style={{ fontFamily: FONT.ui }}>
-            {Platform.OS === 'web'
-              ? 'কীবোর্ডে [Esc] চাপুন বা বন্ধ করুন বোতামে ক্লিক করুন'
-              : 'বন্ধ করতে বাইরে স্পর্শ করুন'}
+            {'কীবোর্ডে [Esc] চাপুন বা বন্ধ করুন বোতামে ক্লিক করুন'}
           </Text>
         </View>
       </View>
