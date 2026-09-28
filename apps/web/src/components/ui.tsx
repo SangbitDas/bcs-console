@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, router } from 'expo-router';
+import { Link, router, usePathname } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CheckCircle2, Clock, User as UserIcon } from 'lucide-react-native';
+import { CheckCircle2, Clock, Download, User as UserIcon } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
 import { fmtTime, toBn } from '../lib/format';
+import { ANDROID_APK_URL } from '../lib/download';
 import { useExamStore } from '../store/exam';
 import { usePracticeStore } from '../store/practice';
 import { useAuthStore } from '../lib/auth';
@@ -41,6 +42,8 @@ export function TopBar() {
   const profile = useAuthStore((s) => s.profile);
   const init = useAuthStore((s) => s.init);
   const [authOpen, setAuthOpen] = useState(false);
+  const pathname = usePathname();
+  const isHome = pathname === '/';
 
   useEffect(() => {
     init();
@@ -127,6 +130,18 @@ export function TopBar() {
               </Text>
             </Pressable>
           </View>
+        ) : null}
+
+        {isHome ? (
+          <Link
+            href={ANDROID_APK_URL as any}
+            accessibilityRole="button"
+            accessibilityLabel="download the mobile app"
+            {...({ title: 'download the mobile app' } as any)}
+            className="flex-row items-center justify-center rounded-full border border-black/20 bg-surface shadow-2xs transition-all hover:border-black/50 hover:shadow-xs active:scale-95"
+            style={{ width: 36, height: 36 } as any}>
+            <Download size={16} color="#0A0A0A" />
+          </Link>
         ) : null}
 
         {user ? (

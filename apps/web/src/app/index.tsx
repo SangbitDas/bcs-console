@@ -7,6 +7,7 @@ import {
   Calculator,
   CheckCircle2,
   Cpu,
+  Download,
   Earth,
   FlaskConical,
   Globe,
@@ -28,6 +29,7 @@ import { PreparationGuideSection } from '../components/preparation-guide';
 import { useBankStats, useSubjects } from '../hooks/queries';
 import { FONT } from '../lib/fonts';
 import { SUBJECT_COUNT, toBn, type Subject } from '../lib/format';
+import { ANDROID_APP_VERSION, ANDROID_APK_URL } from '../lib/download';
 
 const TAXONOMY_SUBJECTS: Subject[] = [
   { id: 1, subject_bn: 'বাংলা ভাষা ও সাহিত্য', subject_en: 'Bangla Language & Literature' },
@@ -362,6 +364,33 @@ export default function Home() {
               </View>
             ))}
           </View>
+        </View>
+
+        {/* Download the mobile app */}
+        <View className="mb-6 items-center rounded-2xl border border-black/10 bg-ink p-8 text-center shadow-sm">
+          <Download size={26} color="#FFFFFF" />
+          <Text
+            className="text-center text-white"
+            style={{ fontFamily: FONT.displayBlack, fontSize: 22, marginTop: 12, marginBottom: 6 }}>
+            Download the mobile app
+          </Text>
+          <Text
+            className="text-center text-white/65"
+            style={{ fontFamily: FONT.ui, fontSize: 13, lineHeight: 22, maxWidth: 460 }}>
+            {`অ্যান্ড্রয়েড APK (${ANDROID_APP_VERSION}) — সরাসরি ফোনে ইনস্টল করুন, offline-এও অনুশীলন সুবিধা।`}
+          </Text>
+          <Link
+            href={ANDROID_APK_URL as any}
+            accessibilityRole="button"
+            accessibilityLabel="download the mobile app"
+            {...({ title: 'download the mobile app' } as any)}
+            className="mt-5 flex-row items-center gap-2 rounded-xl bg-white px-6 py-3 transition-opacity active:opacity-90"
+            style={{ minHeight: 48 } as any}>
+            <Download size={17} color="#0A0A0A" />
+            <Text className="text-black" style={{ fontFamily: FONT.uiBold, fontSize: 15 }}>
+              ডাউনলোড করুন
+            </Text>
+          </Link>
         </View>
 
         {/* Footer Brand Card */}
