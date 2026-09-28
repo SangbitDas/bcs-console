@@ -133,14 +133,13 @@ export function TopBar() {
         ) : null}
 
         {isHome ? (
-          <Link
-            href={ANDROID_APK_URL as any}
-            accessibilityRole="button"
-            accessibilityLabel="download the mobile app"
-            {...({ title: 'download the mobile app' } as any)}
-            className="flex-row items-center justify-center rounded-full border border-black/20 bg-surface shadow-2xs transition-all hover:border-black/50 hover:shadow-xs active:scale-95"
-            style={{ width: 36, height: 36 } as any}>
-            <Download size={16} color="#0A0A0A" />
+          <Link href={ANDROID_APK_URL as any} asChild>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="অ্যান্ড্রয়েড অ্যাপ ডাউনলোড"
+              className="h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-surface shadow-2xs transition-all hover:border-black/40 hover:bg-black/[0.03] active:scale-95">
+              <Download size={16} color="#0A0A0A" />
+            </Pressable>
           </Link>
         ) : null}
 
