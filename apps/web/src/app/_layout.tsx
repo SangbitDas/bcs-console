@@ -53,8 +53,20 @@ export default function RootLayout() {
   const tauriBottomPad = isTauri() ? 28 : 0;
   // Wide screens fit every feature in the bar; narrow ones collapse the last
   // three into the "আরও" overflow tab.
-  const { width } = useWindowDimensions();
-  const isWideBar = width >= 768;
+  const { width: rnWidth } = useWindowDimensions();
+  const [clientMounted, setClientMounted] = useState(false);
+
+  useEffect(() => {
+    setClientMounted(true);
+  }, []);
+
+  const effectiveWidth =
+    typeof window !== 'undefined' && window.innerWidth
+      ? window.innerWidth
+      : clientMounted
+      ? rnWidth
+      : 1024;
+  const isWideBar = effectiveWidth >= 768;
 
   useEffect(() => {
     let isMounted = true;

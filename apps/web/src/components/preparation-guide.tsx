@@ -123,12 +123,7 @@ export function PreparationGuideSection() {
 
       {/* 3. 3-Card Grid Matching Mockup */}
       <View className="max-w-5xl mx-auto w-full">
-        <View
-          className={
-            isTablet
-              ? 'flex-row items-stretch gap-5 w-full'
-              : 'flex-col gap-5 w-full'
-          }>
+        <View className="flex-col md:flex-row items-stretch gap-5 w-full">
           {POINTS.map((pt, idx) => {
             const isHovered = hoveredIdx === idx;
             const Icon = pt.icon;
@@ -141,10 +136,9 @@ export function PreparationGuideSection() {
                 onHoverOut={() => setHoveredIdx(null)}
                 style={{
                   cursor: 'pointer',
-                  flex: isTablet ? 1 : undefined,
                   minHeight: 345,
                 } as any}
-                className={`group rounded-[28px] border bg-white pt-6 px-6 pb-0 shadow-xs transition-all duration-300 flex-col justify-between overflow-hidden ${
+                className={`flex-1 group rounded-[28px] border bg-white pt-6 px-6 pb-0 shadow-xs transition-all duration-300 flex-col justify-between overflow-hidden ${
                   isHovered
                     ? 'border-stone-400 shadow-md -translate-y-1'
                     : 'border-stone-200/90 hover:border-stone-300'
