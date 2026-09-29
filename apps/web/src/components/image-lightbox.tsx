@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Maximize2, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react-native';
 import { FONT } from '../lib/fonts';
+import { isTauri } from '../lib/tauri';
 
 export interface ImageLightboxModalProps {
   uri: string | null;
@@ -22,6 +24,22 @@ export function ImageLightboxModal({
   title = 'ব্যাখ্যার ছবি',
 }: ImageLightboxModalProps) {
   const [scale, setScale] = useState(1);
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 640;
+
+  // Status bar / camera notch safe padding:
+  // In Tauri Android with edge-to-edge, the camera cutout and status bar (battery/clock)
+  // occupy the top 36px to 48px. We ensure at least 48px padding in Tauri plus breathing room,
+  // preventing the action buttons from ever collapsing into the camera notch or status bar.
+  const topSafePadding = isTauri()
+    ? Math.max(insets.top, 48) + 6
+    : Math.max(insets.top, 0) + 10;
+
+  // Bottom safe padding for gesture navigation bar on Android
+  const bottomSafePadding = isTauri()
+    ? Math.max(insets.bottom, 28) + 6
+    : Math.max(insets.bottom, 0) + 8;
 
   // Reset scale when image changes or closes
   useEffect(() => {
@@ -90,86 +108,93 @@ export function ImageLightboxModal({
           onClick={onClose}
         />
 
-        {/* Top Floating Action Bar */}
+        {/* Top Floating Action Bar — safely padded below camera notch & status bar */}
         <View
-          style={{ zIndex: 100 }}
-          className="w-full flex-row items-center justify-between border-b border-white/10 bg-black/60 px-4 py-3 sm:px-6">
-          <View className="flex-row items-center gap-2">
-            <View className="h-2 w-2 rounded-full bg-[#EA0000]" />
-            <Text
-              className="text-white font-semibold"
-              style={{ fontFamily: FONT.uiBold, fontSize: 14 }}>
-              {title}
-            </Text>
-            <Text
-              className="hidden text-white/50 sm:inline"
-              style={{ fontFamily: FONT.ui, fontSize: 12 }}>
-              · ফুল স্ক্রিন ভিউয়ার
-            </Text>
-          </View>
-
-          {/* Controls: Zoom In, Zoom Out, Reset, Close */}
-          <View className="flex-row items-center gap-2">
-            {/* Zoom Out */}
-            <Pressable
-              onPress={handleZoomOut}
-              accessibilityLabel="ছোট করুন"
-              style={{
-                // @ts-ignore
-                cursor: 'pointer',
-              }}
-              className="h-8 w-8 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95">
-              <ZoomOut size={16} color="#FFFFFF" />
-            </Pressable>
-
-            {/* Current Zoom & Reset */}
-            <Pressable
-              onPress={handleResetZoom}
-              accessibilityLabel="আসল আকার"
-              style={{
-                // @ts-ignore
-                cursor: 'pointer',
-              }}
-              className="h-8 min-w-[54px] flex-row items-center justify-center gap-1 rounded-lg bg-white/10 px-2 hover:bg-white/20 active:scale-95">
-              <RotateCcw size={12} color="#FFFFFF" />
+          style={{
+            zIndex: 100,
+            paddingTop: topSafePadding,
+          }}
+          className="w-full border-b border-white/10 bg-black/80 px-3 pb-3 sm:px-6">
+          <View className="flex-row items-center justify-between gap-2">
+            <View className="flex-row items-center gap-2 flex-1 min-w-0 mr-1 sm:mr-3">
+              <View className="h-2 w-2 rounded-full bg-[#EA0000] shrink-0" />
               <Text
-                className="text-white text-xs font-mono"
-                style={{ fontFamily: FONT.uiSemi }}>
-                {Math.round(scale * 100)}%
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                className="text-white font-semibold truncate"
+                style={{ fontFamily: FONT.uiBold, fontSize: isMobile ? 13 : 14 }}>
+                {title}
               </Text>
-            </Pressable>
-
-            {/* Zoom In */}
-            <Pressable
-              onPress={handleZoomIn}
-              accessibilityLabel="বড় করুন"
-              style={{
-                // @ts-ignore
-                cursor: 'pointer',
-              }}
-              className="h-8 w-8 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95">
-              <ZoomIn size={16} color="#FFFFFF" />
-            </Pressable>
-
-            {/* Close Button */}
-            <Pressable
-              onPress={onClose}
-              // @ts-ignore
-              onClick={onClose}
-              accessibilityRole="button"
-              accessibilityLabel="বন্ধ করুন"
-              style={{
-                // @ts-ignore
-                cursor: 'pointer',
-              }}
-              className="ml-2 h-8 flex-row items-center gap-1.5 rounded-lg bg-rose-600/80 px-3 hover:bg-rose-600 active:scale-95">
-              <X size={16} color="#FFFFFF" />
               <Text
-                className="text-white text-xs font-semibold"
-                style={{ fontFamily: FONT.uiBold }}>
-                বন্ধ করুন
+                className="hidden text-white/50 sm:inline shrink-0"
+                style={{ fontFamily: FONT.ui, fontSize: 12 }}>
+                · ফুল স্ক্রিন ভিউয়ার
               </Text>
-            </Pressable>
+            </View>
+
+            {/* Controls: Zoom In, Zoom Out, Reset, Close */}
+            <View className="flex-row items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Zoom Out */}
+              <Pressable
+                onPress={handleZoomOut}
+                accessibilityLabel="ছোট করুন"
+                style={{
+                  // @ts-ignore
+                  cursor: 'pointer',
+                }}
+                className="h-8 w-8 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95">
+                <ZoomOut size={16} color="#FFFFFF" />
+              </Pressable>
+
+              {/* Current Zoom & Reset */}
+              <Pressable
+                onPress={handleResetZoom}
+                accessibilityLabel="আসল আকার"
+                style={{
+                  // @ts-ignore
+                  cursor: 'pointer',
+                }}
+                className="h-8 min-w-[48px] sm:min-w-[54px] flex-row items-center justify-center gap-1 rounded-lg bg-white/10 px-1.5 sm:px-2 hover:bg-white/20 active:scale-95">
+                <RotateCcw size={11} color="#FFFFFF" />
+                <Text
+                  className="text-white text-xs font-mono"
+                  style={{ fontFamily: FONT.uiSemi }}>
+                  {Math.round(scale * 100)}%
+                </Text>
+              </Pressable>
+
+              {/* Zoom In */}
+              <Pressable
+                onPress={handleZoomIn}
+                accessibilityLabel="বড় করুন"
+                style={{
+                  // @ts-ignore
+                  cursor: 'pointer',
+                }}
+                className="h-8 w-8 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95">
+                <ZoomIn size={16} color="#FFFFFF" />
+              </Pressable>
+
+              {/* Close Button */}
+              <Pressable
+                onPress={onClose}
+                // @ts-ignore
+                onClick={onClose}
+                accessibilityRole="button"
+                accessibilityLabel="বন্ধ করুন"
+                style={{
+                  // @ts-ignore
+                  cursor: 'pointer',
+                }}
+                className="ml-1 sm:ml-2 h-8 flex-row items-center gap-1 rounded-lg bg-rose-600 px-2.5 sm:px-3 hover:bg-rose-700 active:scale-95">
+                <X size={16} color="#FFFFFF" />
+                <Text
+                  className="text-white text-xs font-semibold"
+                  style={{ fontFamily: FONT.uiBold }}>
+                  বন্ধ
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </View>
 
@@ -209,14 +234,19 @@ export function ImageLightboxModal({
           </Pressable>
         </ScrollView>
 
-        {/* Bottom Hint */}
+        {/* Bottom Hint — safely padded above gesture bar */}
         <View
-          style={{ zIndex: 100 }}
-          className="w-full items-center border-t border-white/10 bg-black/60 py-2">
+          style={{
+            zIndex: 100,
+            paddingBottom: bottomSafePadding,
+          }}
+          className="w-full items-center border-t border-white/10 bg-black/80 pt-2 px-3">
           <Text
-            className="text-white/60 text-xs"
+            className="text-white/60 text-xs text-center"
             style={{ fontFamily: FONT.ui }}>
-            {'কীবোর্ডে [Esc] চাপুন বা বন্ধ করুন বোতামে ক্লিক করুন'}
+            {isTauri() || isMobile
+              ? 'ট্যাপ বা পিঞ্চ করে জুম করুন • প্রস্থান করতে "বন্ধ" চাপুন'
+              : 'কীবোর্ডে [Esc] চাপুন বা বন্ধ বোতামে ক্লিক করুন'}
           </Text>
         </View>
       </View>
