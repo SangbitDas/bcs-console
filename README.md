@@ -45,15 +45,11 @@ Practice on your own terms. Select individual exams (from 10th to 50th BCS), iso
 - **Diagram & Image Support**: 766 visual questions accompanied by clear diagrammatic explanations.
 - **Session Resumption**: Continue unfinished practice sessions right where you left off.
 
-<details>
-  <summary>🔍 <b>View Screenshot (Click to expand & zoom in new tab)</b></summary>
-  <br />
-  <p align="center">
-    <a href="docs/assets/practice.png" target="_blank" rel="noopener noreferrer">
-      <img src="docs/assets/practice.png" alt="BCS Console Practice Hub" width="90%" />
-    </a>
-  </p>
-</details>
+<p align="center">
+  <a href="docs/assets/practice.png" target="_blank" rel="noopener noreferrer">
+    <img src="docs/assets/practice.png" alt="BCS Console Practice Hub" width="90%" />
+  </a>
+</p>
 
 ### 2. Timed Mock Examination Simulator
 Replicate authentic exam day pressure with standardized BCS Preliminary model tests.
@@ -63,15 +59,11 @@ Replicate authentic exam day pressure with standardized BCS Preliminary model te
 - **Interactive Question Palette**: Live countdown timer, answered/unanswered state tracker, and mark-for-review flags.
 - **Accidental Navigation Guard**: Multi-layered quit modal and browser back-button interception protect active test sessions from unintended submission.
 
-<details>
-  <summary>🔍 <b>View Screenshot (Click to expand & zoom in new tab)</b></summary>
-  <br />
-  <p align="center">
-    <a href="docs/assets/exam.png" target="_blank" rel="noopener noreferrer">
-      <img src="docs/assets/exam.png" alt="BCS Console Mock Exam Launcher" width="90%" />
-    </a>
-  </p>
-</details>
+<p align="center">
+  <a href="docs/assets/exam.png" target="_blank" rel="noopener noreferrer">
+    <img src="docs/assets/exam.png" alt="BCS Console Mock Exam Launcher" width="90%" />
+  </a>
+</p>
 
 ### 3. Results & Performance Analytics (`ফলাফল`)
 Track your preparation progress with actionable insights and deep diagnostic metrics.
@@ -81,15 +73,11 @@ Track your preparation progress with actionable insights and deep diagnostic met
 - **Per-Attempt Deep Dive**: Review every attempted question with your submitted answer, the correct key, and comprehensive explanatory notes.
 - **Automated Retention**: Cloud database keeps the 50 most recent attempts per exam type.
 
-<details>
-  <summary>🔍 <b>View Screenshot (Click to expand & zoom in new tab)</b></summary>
-  <br />
-  <p align="center">
-    <a href="docs/assets/results.png" target="_blank" rel="noopener noreferrer">
-      <img src="docs/assets/results.png" alt="BCS Console Results and Performance Analytics" width="90%" />
-    </a>
-  </p>
-</details>
+<p align="center">
+  <a href="docs/assets/results.png" target="_blank" rel="noopener noreferrer">
+    <img src="docs/assets/results.png" alt="BCS Console Results and Performance Analytics" width="90%" />
+  </a>
+</p>
 
 ### 4. Mistake Bank (`ভুলসমূহ`)
 Turn errors into strengths with an automated revision notebook.
@@ -99,15 +87,11 @@ Turn errors into strengths with an automated revision notebook.
 - **Subject Filtering & One-Tap Practice**: Filter mistakes by subject (e.g. বাংলা, গণিত, বিজ্ঞান) and launch targeted re-practice sessions to master difficult questions.
 - **Quick Solution Controls**: Batch reveal or conceal explanations, or clear resolved mistakes when mastered.
 
-<details>
-  <summary>🔍 <b>View Screenshot (Click to expand & zoom in new tab)</b></summary>
-  <br />
-  <p align="center">
-    <a href="docs/assets/mistakes.png" target="_blank" rel="noopener noreferrer">
-      <img src="docs/assets/mistakes.png" alt="BCS Console Mistake Bank" width="90%" />
-    </a>
-  </p>
-</details>
+<p align="center">
+  <a href="docs/assets/mistakes.png" target="_blank" rel="noopener noreferrer">
+    <img src="docs/assets/mistakes.png" alt="BCS Console Mistake Bank" width="90%" />
+  </a>
+</p>
 
 ---
 
