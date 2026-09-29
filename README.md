@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/assets/hero-demo.gif" target="_blank" rel="noopener noreferrer">
+  <a href="https://raw.githubusercontent.com/SangbitDas/bcs-console/main/docs/assets/hero-demo.gif" target="_blank" rel="noopener noreferrer">
     <img src="docs/assets/hero-demo.gif" alt="BCS Console Interactive Product Walkthrough" width="100%" />
   </a>
 </p>
@@ -46,7 +46,7 @@ Practice on your own terms. Select individual exams (from 10th to 50th BCS), iso
 - **Session Resumption**: Continue unfinished practice sessions right where you left off.
 
 <p align="center">
-  <a href="docs/assets/practice.png" target="_blank" rel="noopener noreferrer">
+  <a href="https://raw.githubusercontent.com/SangbitDas/bcs-console/main/docs/assets/practice.png" target="_blank" rel="noopener noreferrer">
     <img src="docs/assets/practice.png" alt="BCS Console Practice Hub" width="90%" />
   </a>
 </p>
@@ -60,7 +60,7 @@ Replicate authentic exam day pressure with standardized BCS Preliminary model te
 - **Accidental Navigation Guard**: Multi-layered quit modal and browser back-button interception protect active test sessions from unintended submission.
 
 <p align="center">
-  <a href="docs/assets/exam.png" target="_blank" rel="noopener noreferrer">
+  <a href="https://raw.githubusercontent.com/SangbitDas/bcs-console/main/docs/assets/exam.png" target="_blank" rel="noopener noreferrer">
     <img src="docs/assets/exam.png" alt="BCS Console Mock Exam Launcher" width="90%" />
   </a>
 </p>
@@ -74,7 +74,7 @@ Track your preparation progress with actionable insights and deep diagnostic met
 - **Automated Retention**: Cloud database keeps the 50 most recent attempts per exam type.
 
 <p align="center">
-  <a href="docs/assets/results.png" target="_blank" rel="noopener noreferrer">
+  <a href="https://raw.githubusercontent.com/SangbitDas/bcs-console/main/docs/assets/results.png" target="_blank" rel="noopener noreferrer">
     <img src="docs/assets/results.png" alt="BCS Console Results and Performance Analytics" width="90%" />
   </a>
 </p>
@@ -88,7 +88,7 @@ Turn errors into strengths with an automated revision notebook.
 - **Quick Solution Controls**: Batch reveal or conceal explanations, or clear resolved mistakes when mastered.
 
 <p align="center">
-  <a href="docs/assets/mistakes.png" target="_blank" rel="noopener noreferrer">
+  <a href="https://raw.githubusercontent.com/SangbitDas/bcs-console/main/docs/assets/mistakes.png" target="_blank" rel="noopener noreferrer">
     <img src="docs/assets/mistakes.png" alt="BCS Console Mistake Bank" width="90%" />
   </a>
 </p>
