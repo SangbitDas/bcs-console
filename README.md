@@ -20,6 +20,10 @@
   <a href="#-legal--fair-use"><strong>⚖️ Legal Terms</strong></a>
 </p>
 
+<p align="center">
+  <img src="docs/assets/hero-demo.gif" alt="BCS Console Interactive Product Walkthrough" width="100%" />
+</p>
+
 ---
 
 ## 🎯 What is BCS Console?
