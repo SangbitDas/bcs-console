@@ -1,16 +1,13 @@
 # BCS Console (বিসিএস কনসোল)
 
 <p align="center">
-  <img src="apps/web/assets/images/logo-glow.png" alt="BCS Console Logo" width="96" height="96" />
-</p>
-
-<p align="center">
   <strong>The modern, syllabus-aware preparation platform for Bangladesh Civil Service (BCS) Preliminary candidates.</strong>
 </p>
 
 <p align="center">
   <a href="https://bcs-console.vercel.app"><img src="https://img.shields.io/badge/Web_App-Live_on_Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Web App" /></a>
   <a href="https://github.com/SangbitDas/bcs-console/releases/download/v1.1.0/bcs-console-v1.1.0.apk"><img src="https://img.shields.io/badge/Android_APK-v1.1.0_Release-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Download Android APK" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge" alt="License: GPLv3" /></a>
   <img src="https://img.shields.io/badge/Question_Bank-5%2C350_Questions-EA0000?style=for-the-badge" alt="5,350 Questions" />
   <img src="https://img.shields.io/badge/Coverage-10th--50th_BCS-0A0A0A?style=for-the-badge" alt="10th to 50th BCS" />
 </p>
@@ -58,24 +55,29 @@ Replicate authentic exam day pressure with standardized BCS Preliminary model te
   <img src="docs/assets/exam.png" alt="BCS Console Mock Exam Launcher" width="90%" />
 </p>
 
-### 3. Interactive Solver with KaTeX Math Rendering
-Experience clean typography paired with scientific formula rendering.
+### 3. Results & Performance Analytics (`ফলাফল`)
+Track your preparation progress with actionable insights and deep diagnostic metrics.
 
-- **Formula Precision**: Mathematical fractions, exponents, square roots, and chemical equations render crisply via KaTeX.
-- **Prose Protection**: Mathematical expressions are strictly isolated from normal English and Bengali sentences so technical terms and word slashes (e.g., `a/an`, `TCP/IP`, `and/or`) never break layout.
+- **10-Subject Performance Dashboard (সারসংক্ষেপ)**: View aggregated performance metrics over your latest 10 examinations, displaying total attempts, correct count, errors, and net accuracy percentage across all 10 syllabus subjects.
+- **Exam History Tracking**: Dedicated tabs for Custom and Mock exams with chronological timestamps, total scores, and duration.
+- **Per-Attempt Deep Dive**: Review every attempted question with your submitted answer, the correct key, and comprehensive explanatory notes.
+- **Automated Retention**: Cloud database keeps the 50 most recent attempts per exam type.
 
 <p align="center">
-  <img src="docs/assets/question_runner.png" alt="Interactive Question Runner" width="90%" />
+  <img src="docs/assets/results.png" alt="BCS Console Results and Performance Analytics" width="90%" />
 </p>
 
 ### 4. Mistake Bank (`ভুলসমূহ`)
-Target your weaknesses directly. Every wrong answer submitted during practice or mock exams is cataloged in the Mistake Bank with an incremental lifetime mistake counter. Review answers, filter by subject, and drill your most frequently missed questions until mastered.
+Turn errors into strengths with an automated revision notebook.
 
-### 5. Cloud-Synced Performance Analytics
-Access your preparation metrics anytime:
-- **10-Subject Performance Dashboard**: Real-time accuracy metrics and question totals across the entire BPSC syllabus.
-- **Exam Attempt History**: In-depth review of every submitted mock or custom exam, including duration, subject breakdown, and per-question scorecards.
-- **Automated Retention**: Cloud database retains the 50 most recent attempts per exam category.
+- **Automated Cataloging**: Every question answered incorrectly during practice or mock tests is automatically recorded in the Mistake Bank.
+- **Lifetime Mistake Counter**: Badges prominently display how many times you missed each question (e.g. `২ বার ভুল`), helping you identify chronic blind spots.
+- **Subject Filtering & One-Tap Practice**: Filter mistakes by subject (e.g. বাংলা, গণিত, বিজ্ঞান) and launch targeted re-practice sessions to master difficult questions.
+- **Quick Solution Controls**: Batch reveal or conceal explanations, or clear resolved mistakes when mastered.
+
+<p align="center">
+  <img src="docs/assets/mistakes.png" alt="BCS Console Mistake Bank" width="90%" />
+</p>
 
 ---
 
@@ -127,7 +129,7 @@ BCS Console adheres to modern industry data security standards:
 
 - **Independent Platform**: BCS Console is an independent, candidate-focused open-source project. It is **not affiliated with, associated with, authorized by, endorsed by, or in any way officially connected** with the Bangladesh Public Service Commission (BPSC) or any government agency.
 - **Educational Fair Use**: All question texts, options, diagrams, and historical solutions are compiled and archived strictly for non-commercial educational, analytical, and research purposes under the principles of fair dealing.
-- **Software License**: The application source code is licensed under the [MIT License](LICENSE).
+- **Software License**: The application source code is licensed under the [GNU General Public License v3.0 (GPL-3.0)](LICENSE).
 - **Takedown & Inquiries**: If you are a copyright holder and believe any reference or content should be revised or removed, please open an issue in this repository.
 
 ---
