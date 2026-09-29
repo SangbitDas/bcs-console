@@ -25,6 +25,22 @@ configureReanimatedLogger({
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+// Instant DOM splash (#bcs-splash in +html.tsx) timing, same-to-same as
+// splash.html play(): splash stays at least 2200ms after the animation
+// visibly starts (the .go timestamp recorded on first presented frame —
+// the animation is paused until the native window background lifts), then
+// the 0.4s scale-up fadeout hands off to the first screen. Falls back to
+// module load time if the timestamp is missing.
+const SPLASH_MIN_VISIBLE_MS = 2200;
+const splashT0 = typeof performance !== 'undefined' ? performance.now() : 0;
+const splashVisibleStart = () => {
+  if (typeof window !== 'undefined') {
+    const t = (window as unknown as { __bcsSplashGo?: number }).__bcsSplashGo;
+    if (typeof t === 'number') return t;
+  }
+  return splashT0;
+};
+
 /* Tauri-only tab-bar background: white on top + black 28px system strip below,
  * so the Android gesture pill floats on black (industry edge-to-edge look).
  * Paint ONLY — icons/labels/badge/listeners stay on the default React
@@ -70,22 +86,44 @@ export default function RootLayout() {
 
   useEffect(() => {
     let isMounted = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let removeTimer: ReturnType<typeof setTimeout> | undefined;
+    // Instant DOM splash from +html.tsx: same-to-same exit as splash.html —
+    // 0.4s scale-up fadeout, fired at max(2200ms after visible start, fonts ready).
+    const hideDomSplash = () => {
+      if (typeof document === 'undefined') return;
+      const el = document.getElementById('bcs-splash');
+      if (!el || el.classList.contains('out')) return;
+      el.classList.add('go'); // fail-safe: never fade a still-paused splash
+      el.classList.add('out');
+      removeTimer = setTimeout(() => el.remove(), 450);
+    };
     const hideSplash = async () => {
+      hideDomSplash();
       try {
         await SplashScreen.hideAsync();
       } catch {}
     };
 
     if (fontsOk) {
-      hideSplash();
+      const start = splashVisibleStart();
+      const elapsed =
+        typeof performance !== 'undefined' ? performance.now() - start : SPLASH_MIN_VISIBLE_MS;
+      const wait = Math.max(0, SPLASH_MIN_VISIBLE_MS - elapsed);
+      timer = setTimeout(() => {
+        if (isMounted) hideSplash();
+      }, wait);
     } else {
-      // Safety timeout: never freeze on splash screen for more than 1.2s
-      const timer = setTimeout(hideSplash, 1200);
-      return () => {
-        clearTimeout(timer);
-        isMounted = false;
-      };
+      // Safety timeout: never freeze on splash (hideSplash still respects the 2200ms floor)
+      timer = setTimeout(() => {
+        if (isMounted) hideSplash();
+      }, 4000);
     }
+    return () => {
+      isMounted = false;
+      if (timer) clearTimeout(timer);
+      if (removeTimer) clearTimeout(removeTimer);
+    };
   }, [fontsOk]);
 
   // Tauri shell: tag <body> once so Tauri-only CSS (scroll-lock) applies.

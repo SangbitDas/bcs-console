@@ -2,6 +2,11 @@
     <!-- Base application theme. -->
     <style name="Theme.app" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
+        <!-- Cream window background (matches splash #F8F5EF) so there is no
+             black flash before the WebView draws its first frame. -->
+        <item name="android:windowBackground">#F8F5EF</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">#F8F5EF</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@drawable/splash_empty</item>
         <!-- No native scrollbar pills anywhere in the app (WebView draws its
              own overlay pill for scrolled web content; disable it here). -->
         <item name="android:scrollbars">none</item>
