@@ -106,6 +106,32 @@ export default function Root({ children }: PropsWithChildren) {
               body.tauri-app *::-webkit-scrollbar {
                 display: none !important;
               }
+
+              /* Mobile web bottom navigation tab bar styling (strictly scoped to web only; never affects native Tauri app) */
+              @media (max-width: 767.98px) {
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/more"]) {
+                  display: flex !important;
+                }
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/results"]),
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/bookmarks"]),
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/wrong"]) {
+                  display: none !important;
+                }
+                body:not(.tauri-app) div:has(> div[role="tablist"]) {
+                  min-height: calc(64px + env(safe-area-inset-bottom, 14px)) !important;
+                  padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px) !important;
+                }
+              }
+              @media (min-width: 768px) {
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/more"]) {
+                  display: none !important;
+                }
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/results"]),
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/bookmarks"]),
+                body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/wrong"]) {
+                  display: flex !important;
+                }
+              }
             `,
           }}
         />
@@ -120,7 +146,7 @@ export default function Root({ children }: PropsWithChildren) {
             behind it. Runs at parse time — before the main bundle loads. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){function go(){var s=document.getElementById('bcs-splash');if(s){s.classList.add('go');}try{window.__bcsSplashGo=performance.now();}catch(e){}}if(typeof requestAnimationFrame==='function'){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(go,120);});});}else{setTimeout(go,120);}})();`,
+            __html: `(function(){if(typeof window!=='undefined'&&window.__TAURI__){document.body.classList.add('tauri-app');}function go(){var s=document.getElementById('bcs-splash');if(s){s.classList.add('go');}try{window.__bcsSplashGo=performance.now();}catch(e){}}if(typeof requestAnimationFrame==='function'){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(go,120);});});}else{setTimeout(go,120);}})();`,
           }}
         />
         {children}

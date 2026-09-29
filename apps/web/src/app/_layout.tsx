@@ -65,8 +65,6 @@ export default function RootLayout() {
   const isMockRunning = useExamStore((s) => s.running);
   const isCustomRunning = usePracticeStore((s) => s.mode === 'custom' && s.started && !s.finished);
   const isExamActive = isMockRunning || isCustomRunning;
-  // Tauri shell reserves room for the Android gesture pill; plain web gets none.
-  const tauriBottomPad = isTauri() ? 28 : 0;
   // Wide screens fit every feature in the bar; narrow ones collapse the last
   // three into the "আরও" overflow tab.
   const { width: rnWidth } = useWindowDimensions();
@@ -81,8 +79,13 @@ export default function RootLayout() {
       ? window.innerWidth
       : clientMounted
       ? rnWidth
-      : 1024;
+      : 390;
   const isWideBar = effectiveWidth >= 768;
+
+  // Bottom padding:
+  // Tauri shell reserves 28px for its black gesture pill strip;
+  // mobile web gets 14px so the device gesture bar doesn't overlap labels.
+  const bottomPad = isTauri() ? 28 : (effectiveWidth < 768 ? 14 : 0);
 
   useEffect(() => {
     let isMounted = true;
@@ -203,9 +206,9 @@ export default function RootLayout() {
             tabBarStyle: {
               backgroundColor: USE_TAURI_BAR_BG ? 'transparent' : '#FFFFFF',
               borderTopColor: 'rgba(0,0,0,.08)',
-              height: 64 + tauriBottomPad,
+              height: 64 + bottomPad,
               paddingTop: 6,
-              paddingBottom: 6 + tauriBottomPad,
+              paddingBottom: 6 + bottomPad,
             },
             tabBarItemStyle: {
               paddingHorizontal: 0,
