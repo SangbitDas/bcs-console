@@ -107,6 +107,12 @@ export default function Root({ children }: PropsWithChildren) {
                 display: none !important;
               }
 
+              /* Hide web-only elements (e.g. app download button/banner) inside the native Tauri app */
+              body.tauri-app .web-only,
+              body.tauri-app [data-web-only] {
+                display: none !important;
+              }
+
               /* Mobile web bottom navigation tab bar styling (strictly scoped to web only; never affects native Tauri app) */
               @media (max-width: 767.98px) {
                 body:not(.tauri-app) div[role="tablist"] > div:has(a[href="/more"]) {

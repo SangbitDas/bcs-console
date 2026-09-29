@@ -31,6 +31,7 @@ import { useBankStats, useSubjects } from '../hooks/queries';
 import { FONT } from '../lib/fonts';
 import { SUBJECT_COUNT, toBn, type Subject } from '../lib/format';
 import { ANDROID_APP_VERSION, ANDROID_APK_URL } from '../lib/download';
+import { isTauri } from '../lib/tauri';
 
 const TAXONOMY_SUBJECTS: Subject[] = [
   { id: 1, subject_bn: 'বাংলা ভাষা ও সাহিত্য', subject_en: 'Bangla Language & Literature' },
@@ -348,58 +349,60 @@ export default function Home() {
           </View>
         </View>
 
-        {/* Mobile App Download Banner */}
-        <View className="mb-14 overflow-hidden rounded-3xl border border-black/10 bg-surface p-6 sm:p-8 shadow-xs">
-          <View className="flex-col md:flex-row md:items-center md:justify-between gap-6">
-            {/* Left Column: Information */}
-            <View className="flex-1 max-w-xl">
-              <View className="flex-row items-center gap-2 mb-3">
-                <View className="flex-row items-center gap-1.5 rounded-full bg-black/[0.04] px-3 py-1 border border-black/5">
-                  <Smartphone size={13} color="#EA0000" />
-                  <Text
-                    className="text-black/75"
-                    style={{ fontFamily: FONT.uiSemi, fontSize: 11.5, letterSpacing: 0.2 }}>
-                    {`অ্যান্ড্রয়েড অ্যাপ • ${toBn(ANDROID_APP_VERSION)}`}
-                  </Text>
+        {/* Mobile App Download Banner (Web-only: do not show inside native Tauri mobile app) */}
+        {!isTauri() ? (
+          <View className="web-only mb-14 overflow-hidden rounded-3xl border border-black/10 bg-surface p-6 sm:p-8 shadow-xs">
+            <View className="flex-col md:flex-row md:items-center md:justify-between gap-6">
+              {/* Left Column: Information */}
+              <View className="flex-1 max-w-xl">
+                <View className="flex-row items-center gap-2 mb-3">
+                  <View className="flex-row items-center gap-1.5 rounded-full bg-black/[0.04] px-3 py-1 border border-black/5">
+                    <Smartphone size={13} color="#EA0000" />
+                    <Text
+                      className="text-black/75"
+                      style={{ fontFamily: FONT.uiSemi, fontSize: 11.5, letterSpacing: 0.2 }}>
+                      {`অ্যান্ড্রয়েড অ্যাপ • ${toBn(ANDROID_APP_VERSION)}`}
+                    </Text>
+                  </View>
                 </View>
+
+                <Text
+                  style={{
+                    fontFamily: FONT.displayBold,
+                    fontSize: width > 600 ? 23 : 19,
+                    lineHeight: width > 600 ? 30 : 26,
+                    color: '#0A0A0A',
+                    marginBottom: 6,
+                  }}>
+                  স্মার্টফোনে সরাসরি অনুশীলন করুন
+                </Text>
+
+                <Text
+                  className="text-black/60"
+                  style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 22 }}>
+                  বিসিএস কনসোলের পূর্ণাঙ্গ প্রশ্নব্যাংক, বিষয়ভিত্তিক প্রস্তুতি ও মক টেস্টের জন্য অ্যান্ড্রয়েড অ্যাপ ডাউনলোড করুন।
+                </Text>
               </View>
 
-              <Text
-                style={{
-                  fontFamily: FONT.displayBold,
-                  fontSize: width > 600 ? 23 : 19,
-                  lineHeight: width > 600 ? 30 : 26,
-                  color: '#0A0A0A',
-                  marginBottom: 6,
-                }}>
-                স্মার্টফোনে সরাসরি অনুশীলন করুন
-              </Text>
-
-              <Text
-                className="text-black/60"
-                style={{ fontFamily: FONT.ui, fontSize: 13.5, lineHeight: 22 }}>
-                বিসিএস কনসোলের পূর্ণাঙ্গ প্রশ্নব্যাংক, বিষয়ভিত্তিক প্রস্তুতি ও মক টেস্টের জন্য অ্যান্ড্রয়েড অ্যাপ ডাউনলোড করুন।
-              </Text>
-            </View>
-
-            {/* Right Column: CTA Action */}
-            <View className="flex-col items-start md:items-end justify-center pt-2 md:pt-0 border-t md:border-t-0 border-black/5">
-              <Link href={ANDROID_APK_URL as any} asChild>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="অ্যান্ড্রয়েড APK ডাউনলোড করুন"
-                  className="group flex-row items-center gap-2.5 rounded-2xl bg-[#0A0A0A] px-6 py-3.5 shadow-sm transition-all duration-200 hover:bg-black/85 hover:shadow-md hover:-translate-y-0.5 active:scale-98">
-                  <View className="transition-transform duration-200 group-hover:-translate-y-0.5">
-                    <Download size={18} color="#FFFFFF" />
-                  </View>
-                  <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14.5 }}>
-                    APK ডাউনলোড করুন
-                  </Text>
-                </Pressable>
-              </Link>
+              {/* Right Column: CTA Action */}
+              <View className="flex-col items-start md:items-end justify-center pt-2 md:pt-0 border-t md:border-t-0 border-black/5">
+                <Link href={ANDROID_APK_URL as any} asChild>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="অ্যান্ড্রয়েড APK ডাউনলোড করুন"
+                    className="group flex-row items-center gap-2.5 rounded-2xl bg-[#0A0A0A] px-6 py-3.5 shadow-sm transition-all duration-200 hover:bg-black/85 hover:shadow-md hover:-translate-y-0.5 active:scale-98">
+                    <View className="transition-transform duration-200 group-hover:-translate-y-0.5">
+                      <Download size={18} color="#FFFFFF" />
+                    </View>
+                    <Text className="text-white" style={{ fontFamily: FONT.uiBold, fontSize: 14.5 }}>
+                      APK ডাউনলোড করুন
+                    </Text>
+                  </Pressable>
+                </Link>
+              </View>
             </View>
           </View>
-        </View>
+        ) : null}
 
         {/* Footer Brand Card */}
         <View className="items-center rounded-2xl border border-black/10 bg-surface p-8 text-center shadow-sm">

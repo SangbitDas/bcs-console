@@ -16,6 +16,7 @@ import { UserAvatar } from './avatar';
 import { MathText } from './math-text';
 import { ExplanationImage } from './image-lightbox';
 import { Bn } from './bn';
+import { isTauri } from '../lib/tauri';
 export { MathText, ExplanationImage, Bn };
 
 /* ---------- Top bar (used as router header) ---------- */
@@ -132,12 +133,12 @@ export function TopBar() {
           </View>
         ) : null}
 
-        {isHome ? (
+        {!isTauri() && isHome ? (
           <Link href={ANDROID_APK_URL as any} asChild>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="অ্যান্ড্রয়েড অ্যাপ ডাউনলোড"
-              className="h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-surface shadow-2xs transition-all hover:border-black/40 hover:bg-black/[0.03] active:scale-95">
+              className="web-only h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-surface shadow-2xs transition-all hover:border-black/40 hover:bg-black/[0.03] active:scale-95">
               <Download size={16} color="#0A0A0A" />
             </Pressable>
           </Link>
