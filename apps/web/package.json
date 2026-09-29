@@ -3,6 +3,7 @@
   "license": "0BSD",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "packageManager": "npm@10.8.2",
   "dependencies": {
     "@choochmeque/tauri-plugin-google-auth-api": "^0.5.1",
     "@expo-google-fonts/noto-sans-bengali": "^0.4.4",
