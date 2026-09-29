@@ -50,7 +50,7 @@ Practice on your own terms. Select individual exams (from 10th to 50th BCS), iso
 ### 2. Timed Mock Examination Simulator
 Replicate authentic exam day pressure with standardized BCS Preliminary model tests.
 
-- **Official BPSC Scoring**: Real examination simulation with **+1.00** for correct answers and **−0.25** negative marking for incorrect answers.
+- **Official BPSC Scoring**: Real examination simulation with **+1.00** for correct answers and **−0.50** negative marking for incorrect answers.
 - **Exam Formats**: Choose from 200-question Full Syllabus Tests (120 min), Standard 120-question tests, or 60-question Speed Sprints.
 - **Interactive Question Palette**: Live countdown timer, answered/unanswered state tracker, and mark-for-review flags.
 - **Accidental Navigation Guard**: Multi-layered quit modal and browser back-button interception protect active test sessions from unintended submission.
